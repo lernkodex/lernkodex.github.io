@@ -1,0 +1,28 @@
+# Schickt am frühen Abend allen eine Push-Nachricht, die heute noch nicht gelernt haben.
+# Braucht das Geheimnis FIREBASE_SERVICE_ACCOUNT (Repository → Settings → Secrets and variables → Actions).
+name: Tägliche Erinnerung
+
+on:
+  schedule:
+    - cron: "30 16 * * *"   # 17:30 Uhr im Winter, 18:30 Uhr im Sommer (Schweizer Zeit)
+  workflow_dispatch: {}      # zum Ausprobieren von Hand starten
+
+permissions:
+  contents: read
+
+jobs:
+  erinnern:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Abhängigkeiten installieren
+        working-directory: .github/erinnerung
+        run: npm install --no-audit --no-fund
+      - name: Erinnerungen schicken
+        working-directory: .github/erinnerung
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node erinnern.js

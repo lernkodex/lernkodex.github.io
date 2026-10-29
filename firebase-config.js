@@ -10,3 +10,7 @@ export const firebaseConfig = {
 
 // Adresse des Mentor-Bots (Cloudflare Worker). Leer = kein Mentor.
 export const botUrl = "https://zauberkodex-bot.zauberkodex.workers.dev";
+
+// Öffentlicher Schlüssel für Push-Nachrichten (Firebase: Projekteinstellungen → Cloud Messaging → Web-Push-Zertifikate).
+// Leer = keine tägliche Erinnerung. Dieser Schlüssel ist nicht geheim.
+export const vapidKey = "";

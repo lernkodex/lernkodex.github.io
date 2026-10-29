@@ -1,6 +1,6 @@
 // Gleicht den Fortschritt zwischen Laptop und Handy über Firebase ab.
 // Ohne eingetragene Firebase-Werte bleibt alles wie bisher: Der Kodex speichert nur im Browser.
-import { firebaseConfig, botUrl } from "./firebase-config.js";
+import { firebaseConfig, botUrl, vapidKey } from "./firebase-config.js";
 
 const QUELLE = "https://www.gstatic.com/firebasejs/10.12.2/";
 const kodex = window.__kodex;
@@ -148,7 +148,9 @@ function ui(el) {
       : esc(stand.text || "Gleiche ab …");
     el.innerHTML = kopf + '<p class="klein">Angemeldet als <b id="sync-name"></b>. ' + info + "</p>" +
       '<div class="fenster-zeile" style="justify-content:flex-start"><button class="knopf" type="button" id="sync-jetzt">Jetzt abgleichen</button>' +
-      '<button class="knopf still" type="button" id="sync-ab">Abmelden</button></div>';
+      '<button class="knopf still" type="button" id="sync-ab">Abmelden</button></div>' +
+      '<div id="erinnerung-bereich"></div>';
+    erinnerungZeichnen(el.querySelector("#erinnerung-bereich"));
     el.querySelector("#sync-name").textContent = nutzer.email || "";
     el.querySelector("#sync-jetzt").addEventListener("click", () => { zuletzt = ""; schreiben(true); });
     el.querySelector("#sync-ab").addEventListener("click", () => fb.A.signOut(fb.auth));
@@ -169,6 +171,51 @@ function ui(el) {
     await fb.A.sendPasswordResetEmail(fb.auth, mail());
     melde("Wir haben dir eine E-Mail zum Zurücksetzen geschickt.");
   }));
+}
+
+/* ---------- Tägliche Erinnerung per Push-Nachricht ---------- */
+// Das Gerät meldet sich mit einem Push-Token in push/{uid} an. Eine GitHub Action schickt
+// am frühen Abend allen eine Nachricht, die an diesem Tag noch nicht gelernt haben.
+let nachrichten = null;
+async function nachrichtenLaden() {
+  if (!nachrichten) {
+    const m = await import(QUELLE + "firebase-messaging.js");
+    nachrichten = { m, inst: m.getMessaging(fb.auth.app) };
+  }
+  return nachrichten;
+}
+async function erinnerungAn() {
+  if (await Notification.requestPermission() !== "granted") throw new Error("Benachrichtigungen sind blockiert. Erlaube sie in den Einstellungen des Browsers oder der App.");
+  const { m, inst } = await nachrichtenLaden();
+  if (!(await m.isSupported())) throw new Error("Dieser Browser kann keine Push-Nachrichten empfangen.");
+  const token = await m.getToken(inst, { vapidKey, serviceWorkerRegistration: await navigator.serviceWorker.ready });
+  await fb.F.setDoc(fb.F.doc(fb.db, "push", nutzer.uid), { token, geaendert: fb.F.serverTimestamp() });
+}
+async function erinnerungAus() {
+  try { const { m, inst } = await nachrichtenLaden(); await m.deleteToken(inst); } catch (e) { /* Token war schon weg */ }
+  await fb.F.deleteDoc(fb.F.doc(fb.db, "push", nutzer.uid));
+}
+async function erinnerungZeichnen(el) {
+  if (!el || !vapidKey || !fb || !nutzer) return;
+  const kopf = "<h3>Tägliche Erinnerung</h3>";
+  if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+    el.innerHTML = kopf + '<p class="klein">Dieser Browser kann keine Benachrichtigungen empfangen.</p>';
+    return;
+  }
+  let an = false;
+  try { an = Notification.permission === "granted" && (await fb.F.getDoc(fb.F.doc(fb.db, "push", nutzer.uid))).exists(); } catch (e) { an = false; }
+  if (!document.body.contains(el)) return;
+  el.innerHTML = kopf + '<p class="klein">' + (an
+    ? "Eingeschaltet. Hast du an einem Tag noch nicht gelernt, erinnert dich Orlan am frühen Abend auf diesem Gerät."
+    : "Hast du an einem Tag noch nicht gelernt, schickt dir Orlan am frühen Abend eine kurze Erinnerung. Sie kommt auf das Gerät, auf dem du sie zuletzt eingeschaltet hast.") + "</p>" +
+    '<p class="klein melde-nein" id="erinnerung-meldung"></p>' +
+    '<div class="fenster-zeile" style="justify-content:flex-start"><button class="knopf' + (an ? " still" : "") + '" type="button" id="erinnerung-knopf">' + (an ? "Ausschalten" : "Einschalten") + "</button></div>";
+  const k = el.querySelector("#erinnerung-knopf");
+  k.addEventListener("click", async () => {
+    k.disabled = true;
+    try { if (an) await erinnerungAus(); else await erinnerungAn(); erinnerungZeichnen(el); }
+    catch (e) { el.querySelector("#erinnerung-meldung").textContent = (e && e.message) || "Das hat nicht geklappt."; k.disabled = false; }
+  });
 }
 
 /* ---------- Gilde: ein öffentliches Kärtchen pro Konto ---------- */

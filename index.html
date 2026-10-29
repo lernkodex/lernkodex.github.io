@@ -387,6 +387,8 @@ pre.code-block code { font-size: inherit; }
 .datei-neu-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
 .datei-neu-form input { font: inherit; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--linie); background: transparent; color: inherit; min-width: 200px; }
 #dateien-bereich .editor, .werkstatt-arbeit .datei-reiter + form + .editor { margin-top: 0; }
+/* Breite Codezeilen sollen nur im Editor scrollen, nicht die ganze Seite verbreitern */
+.werkstatt-arbeit, #dateien-bereich, #datei-editor { min-width: 0; max-width: 100%; }
 .hinweis {
   background: var(--gold-grund); border-radius: 12px; padding: 12px 14px; display: grid; gap: 4px;
 }
@@ -9660,6 +9662,8 @@ Zwei Punkte `..` bedeuten immer: der Ordner darüber. Nach jedem `cd` siehst du 
 Alles nach `#` ist ein Kommentar und gehört nicht zum Befehl. Du musst es nicht abtippen.
 
 Du kannst auch mehrere Stufen auf einmal gehen: `cd abenteuer/karten`.
+
+**Profi-Tipp:** Tippe die ersten Buchstaben eines Namens, zum Beispiel `cd ab`, und drücke die **Tab-Taste**. Das Terminal ergänzt den Rest. Das funktioniert auch in echten Terminals und spart viele Tippfehler. Mit der Pfeiltaste nach oben holst du frühere Befehle zurück.
 --- aufgabe
 1. Geh in den Ordner `abenteuer` und schau mit `ls` nach, was darin liegt.
 2. Geh weiter in den Ordner `karten`.
@@ -10754,6 +10758,55 @@ antwort(lauf(hat_schluessel=True, staerke=8).ausgabe, "Die Tür geht auf.", "Mit
 antwort(lauf(hat_schluessel=False, staerke=18).ausgabe, "Die Tür geht auf.", "Ohne Schlüssel, Stärke 18")
 antwort(lauf(hat_schluessel=True, staerke=20).ausgabe, "Die Tür geht auf.", "Mit Schlüssel, Stärke 20")
 
+=== p2-6b | code | Übung: Genug Gold?
+--- szene
+Auf dem Markt von Rabenfurt glänzt ein Dolch in der Auslage. Mira zählt ihre Münzen. «Reicht es, oder nicht?»
+--- erklaerung
+Eine kleine Übung vor der Meisterprüfung. Du kennst schon alles dafür.
+
+In einer Bedingung darfst du auch **zwei Variablen** vergleichen, nicht nur eine Variable mit einer Zahl:
+
+```
+pfeile = 8
+gegner = 5
+
+if pfeile >= gegner:
+    print("Genug Pfeile.")
+else:
+    print("Zu wenig Pfeile.")
+```
+
+Weil der Vergleich mit Variablen arbeitet, stimmt das Programm auch dann noch, wenn sich die Zahlen ändern.
+--- aufgabe
+Gib `Gekauft.` aus, wenn `gold` für den `preis` reicht, sonst `Zu teuer.` Genau gleich viel Gold wie der Preis reicht auch.
+--- start
+gold = 12
+preis = 15
+
+# Reicht das Gold?
+--- loesung
+gold = 12
+preis = 15
+
+# Reicht das Gold?
+if gold >= preis:
+    print("Gekauft.")
+else:
+    print("Zu teuer.")
+--- hinweis
+Übernimm den Aufbau aus dem Beispiel: `if gold ... preis:`, eingerückt das erste `print`, dann `else:`.
+--- hinweis
+«Genau gleich viel reicht auch» heisst `>=`, also grösser oder gleich.
+--- test Mit 12 Gold für 15 ist es zu teuer
+pruefe(len(ausgabe) > 0, "Die Konsole ist leer. Gib das Ergebnis mit print() aus.")
+pruefe("Zu teuer." in ausgabe and "Gekauft." not in ausgabe, f"Mit 12 Gold für 15 sollte nur «Zu teuer.» erscheinen. In der Konsole steht {zeige(ausgabe)}.")
+--- test Mit 20 Gold klappt der Kauf
+r = lauf(gold=20, preis=15)
+pruefe("Gekauft." in r.ausgabe and "Zu teuer." not in r.ausgabe, f"Mit 20 Gold für 15 sollte nur «Gekauft.» erscheinen. In der Konsole steht {zeige(r.ausgabe)}. Vergleichst du gold mit preis statt mit festen Zahlen?")
+--- test Genau gleich viel reicht
+r = lauf(gold=15, preis=15)
+pruefe("Gekauft." in r.ausgabe, f"Mit genau 15 Gold für 15 sollte «Gekauft.» erscheinen. In der Konsole steht {zeige(r.ausgabe)}. Nimm >= statt >.")
+
 === p2-7 | boss | Der Händler von Rabenfurt
 --- szene
 Auf dem Markt von Rabenfurt bietet ein Händler einen Heiltrank an. Du schüttest deinen Beutel auf den Tresen und zählst.
@@ -11108,6 +11161,58 @@ f = steuere([12, 5])
 e = wurf_w20("normal")
 pruefe(e == 12, f"Im Modus «normal» mit dem Wurf 12 sollte 12 herauskommen, es kam {zeige(e)}.")
 pruefe(f.anzahl() == 1, f"Im Modus «normal» wurde {f.anzahl()} Mal gewürfelt, erwartet 1.")
+
+=== p3-6b | code | Übung: Kritisch oder Patzer?
+--- szene
+Bevor es ernst wird, lässt Orlan dich üben. «Zwei Zahlen auf dem W20 sind besonders. Bring deinem Zauber bei, sie zu erkennen.»
+--- erklaerung
+Eine kleine Übung vor der Meisterprüfung. Neu ist nur eine Kleinigkeit: Eine Funktion darf **mehrere** `return` haben. Sobald eines davon läuft, ist die Funktion sofort fertig. Was darunter steht, kommt nicht mehr dran.
+
+```
+def zustand(tp):
+    if tp <= 0:
+        return "Bewusstlos"
+    return "Wach"
+
+print(zustand(0))  # Bewusstlos
+print(zustand(7))  # Wach
+```
+--- aufgabe
+Schreibe die Funktion `bewerte(wurf)`. Sie gibt `"Kritisch"` zurück, wenn der Wurf 20 ist, `"Patzer"` bei einer 1 und sonst `"Normal"`.
+--- start
+def bewerte(wurf):
+    pass  # dein Code
+
+
+print(bewerte(20))
+print(bewerte(1))
+print(bewerte(12))
+--- loesung
+def bewerte(wurf):
+    if wurf == 20:
+        return "Kritisch"
+    if wurf == 1:
+        return "Patzer"
+    return "Normal"
+
+
+print(bewerte(20))
+print(bewerte(1))
+print(bewerte(12))
+--- hinweis
+Zwei `if` mit je einem `return`, wie im Beispiel. Ganz am Schluss steht `return "Normal"` für alle anderen Würfe.
+--- hinweis
+Gleich vergleichst du mit `==`, also `if wurf == 20:`.
+--- test Eine 20 ist kritisch
+e = bewerte(20)
+pruefe(e == "Kritisch", f"bewerte(20) sollte \"Kritisch\" zurückgeben, es kam {zeige(e)}. Benutzt du return statt print?")
+--- test Eine 1 ist ein Patzer
+e = bewerte(1)
+pruefe(e == "Patzer", f"bewerte(1) sollte \"Patzer\" zurückgeben, es kam {zeige(e)}.")
+--- test Alles andere ist normal
+for w in [2, 12, 19]:
+    e = bewerte(w)
+    pruefe(e == "Normal", f"bewerte({w}) sollte \"Normal\" zurückgeben, es kam {zeige(e)}.")
 
 === p3-7 | boss | Der Angriffswurf
 --- szene
@@ -11500,6 +11605,51 @@ leer = treffer([], 10)
 pruefe(leer == 0, f"Bei einer leeren Liste sollte 0 herauskommen, es kam {zeige(leer)}.")
 t = treffer([1, 2], 20)
 pruefe(t == 0, f"treffer([1, 2], 20) sollte 0 ergeben, es kam {zeige(t)}.")
+
+=== p4-6b | code | Übung: Der schwächste Wurf
+--- szene
+Bran hat fünfmal gewürfelt und will wissen, welcher Wurf der schlechteste war. «Damit ich weiss, über welchen ich mich ärgern muss.»
+--- erklaerung
+Eine kleine Übung vor der Meisterprüfung. Sie ist das Gegenstück zu «Der beste Wurf».
+
+Dort hast du dir den **Rekord** gemerkt: Der erste Wurf ist der Startwert, und jeder grössere Wurf wird der neue Rekord. Für den **kleinsten** Wurf drehst du nur den Vergleich um:
+
+```
+rekord = wuerfe[0]
+for w in wuerfe:
+    if w < rekord:
+        rekord = w
+```
+
+Python hat dafür auch die fertige Funktion `min(wuerfe)`. Hier übst du aber das Muster selbst, denn genau dieses Muster brauchst du in der Meisterprüfung.
+--- aufgabe
+Schreibe die Funktion `kleinster(wuerfe)`. Sie gibt den kleinsten Wurf aus der Liste zurück. Benutze eine Schleife, nicht `min`.
+--- start
+def kleinster(wuerfe):
+    pass  # dein Code
+
+
+print(kleinster([5, 2, 9, 4]))
+--- loesung
+def kleinster(wuerfe):
+    rekord = wuerfe[0]
+    for w in wuerfe:
+        if w < rekord:
+            rekord = w
+    return rekord
+
+
+print(kleinster([5, 2, 9, 4]))
+--- hinweis
+Übernimm die Zeilen aus dem Beispiel in die Funktion und gib am Schluss `rekord` mit `return` zurück.
+--- hinweis
+Der Startwert ist `wuerfe[0]`, der erste Wurf aus dem Parameter.
+--- test Findet den kleinsten Wurf
+for liste, soll in [([5, 2, 9, 4], 2), ([9, 8, 1], 1), ([3, 6, 6], 3), ([7], 7), ([4, 4, 5], 4)]:
+    e = kleinster(list(liste))
+    pruefe(e == soll, f"kleinster({liste}) sollte {soll} ergeben, es kam {zeige(e)}.")
+--- test Mit einer Schleife
+pruefe("for " in code and "min(" not in code, "Dein Ergebnis kann stimmen, aber in dieser Lektion übst du das Rekord-Muster: Löse es mit einer for-Schleife statt mit min().")
 
 === p4-7 | boss | Die Attribute auswürfeln
 --- szene
@@ -11924,6 +12074,69 @@ r = finde_held([{"name": "Ayla"}], "Zarek")
 pruefe(r is None, f"Für einen unbekannten Namen sollte None herauskommen, es kam {zeige(r)}.")
 r = finde_held([], "Bran")
 pruefe(r is None, f"In einer leeren Gruppe sollte None herauskommen, es kam {zeige(r)}.")
+
+=== p5-6b | code | Übung: Der Wert der Beute
+--- szene
+Nach dem Kampf liegt die Beute auf dem Tisch. Bevor geteilt wird, will Mira wissen, wie viel Gold das alles wert ist.
+--- erklaerung
+Eine kleine Übung vor der Meisterprüfung. Sie verbindet eine Summe aus «Der Schadenswurf» mit einer Liste von Dictionaries.
+
+Eine Summe beginnt bei 0. In der Schleife zählst du bei jedem Durchlauf etwas dazu. Bei Dictionaries greifst du mit eckigen Klammern auf die Zahl zu:
+
+```
+gruppe = [
+    {"name": "Kael", "tp": 12},
+    {"name": "Mira", "tp": 8},
+]
+
+summe = 0
+for held in gruppe:
+    summe += held["tp"]
+print(summe)  # 20
+```
+--- aufgabe
+Schreibe die Funktion `gesamt_wert(beute)`. Sie zählt den `"wert"` aller Gegenstände zusammen und gibt die Summe zurück. Eine leere Beute ist 0 Gold wert.
+--- start
+beute = [
+    {"name": "Rubin", "wert": 50},
+    {"name": "Seil", "wert": 1},
+    {"name": "Silberkelch", "wert": 25},
+]
+
+
+def gesamt_wert(beute):
+    pass  # dein Code
+
+
+print(gesamt_wert(beute))
+--- loesung
+beute = [
+    {"name": "Rubin", "wert": 50},
+    {"name": "Seil", "wert": 1},
+    {"name": "Silberkelch", "wert": 25},
+]
+
+
+def gesamt_wert(beute):
+    summe = 0
+    for ding in beute:
+        summe += ding["wert"]
+    return summe
+
+
+print(gesamt_wert(beute))
+--- hinweis
+Beginne in der Funktion mit `summe = 0` und gehe mit `for ding in beute:` durch die Beute.
+--- hinweis
+In der Schleife: `summe += ding["wert"]`. Nach der Schleife, nicht mehr eingerückt in der Schleife: `return summe`.
+--- test Zählt alle Werte zusammen
+e = gesamt_wert([{"name": "Rubin", "wert": 50}, {"name": "Seil", "wert": 1}, {"name": "Silberkelch", "wert": 25}])
+pruefe(e == 76, f"Rubin (50), Seil (1) und Silberkelch (25) sollten zusammen 76 ergeben, es kam {zeige(e)}.")
+f = gesamt_wert([{"name": "Krone", "wert": 300}, {"name": "Dolch", "wert": 2}])
+pruefe(f == 302, f"Mit einer anderen Beute (300 und 2) sollte 302 herauskommen, es kam {zeige(f)}. Zählst du die Beute aus dem Parameter zusammen?")
+--- test Leere Beute ist 0 wert
+e = gesamt_wert([])
+pruefe(e == 0, f"gesamt_wert([]) sollte 0 ergeben, es kam {zeige(e)}. Beginnt deine Summe bei 0?")
 
 === p5-7 | boss | Das Inventar
 --- szene
@@ -19836,6 +20049,169 @@ for (const soll of erwartet) {
   pos++;
 }
 
+=== tag-19 | code | Die Laternen der Wache
+--- ab k11
+--- szene
+Die Stadtwache von Rabenfurt zündet jeden Abend Laternen an. Manche brennen schneller herunter als andere.
+--- erklaerung
+Eine Klasse bündelt Daten und das, was man mit ihnen tun kann. Der `constructor` setzt die Startwerte mit `this`, Methoden ändern sie:
+
+```
+class Fackel {
+  constructor(minuten) {
+    this.minuten = minuten;
+  }
+  brenne(zeit) {
+    this.minuten = Math.max(0, this.minuten - zeit);
+  }
+}
+```
+--- aufgabe
+Schreibe die Klasse `Laterne`.
+
+1. Der `constructor` bekommt `oel` und speichert es in `this.oel`.
+2. Die Methode `brenne(stunden)` zieht die Stunden vom Öl ab, aber nie unter 0.
+3. Die Methode `leuchtet()` gibt `true` zurück, solange noch Öl da ist, sonst `false`.
+--- start
+// Die Klasse Laterne
+
+const laterne = new Laterne(5);
+laterne.brenne(3);
+console.log(laterne.oel, laterne.leuchtet());
+laterne.brenne(4);
+console.log(laterne.oel, laterne.leuchtet());
+--- loesung
+// Die Klasse Laterne
+class Laterne {
+  constructor(oel) {
+    this.oel = oel;
+  }
+  brenne(stunden) {
+    this.oel = Math.max(0, this.oel - stunden);
+  }
+  leuchtet() {
+    return this.oel > 0;
+  }
+}
+
+const laterne = new Laterne(5);
+laterne.brenne(3);
+console.log(laterne.oel, laterne.leuchtet());
+laterne.brenne(4);
+console.log(laterne.oel, laterne.leuchtet());
+--- hinweis
+Übernimm den Aufbau von `Fackel` und ergänze die Methode `leuchtet()` mit einem `return`.
+--- hinweis
+`leuchtet()` ist eine Zeile: `return this.oel > 0;`
+--- test Die Laterne brennt herunter
+$pruefe(typeof Laterne === "function", 'Es gibt keine Klasse Laterne.');
+const l = new Laterne(10);
+l.brenne(4);
+$pruefe(l.oel === 6 && l.leuchtet() === true, 'Nach new Laterne(10) und brenne(4) sollten 6 Öl übrig sein und leuchtet() true ergeben, es kam ' + $zeige([l.oel, l.leuchtet()]) + '.');
+--- test Nie unter 0
+const l = new Laterne(2);
+l.brenne(9);
+$pruefe(l.oel === 0 && l.leuchtet() === false, 'Nach new Laterne(2) und brenne(9) sollte 0 Öl übrig sein und leuchtet() false ergeben, es kam ' + $zeige([l.oel, l.leuchtet()]) + '.');
+--- test Die Konsole
+$erwarteAusgabe($ausgabe, ["2 true", "0 false"], 'Ausgabe');
+
+=== tag-20 | code | Der Bote aus Nordmark
+--- ab k13
+--- modus async
+--- botschaften
+{ "https://rabenfurt.ch/api/preise": { "Heiltrank": 50, "Seil": 1, "Fackel": 2 } }
+--- szene
+Ein Bote bringt die neue Preisliste des Händlers. Bran will wissen, was sein Einkauf kostet.
+--- erklaerung
+Mit `fetch` und `await` holst du Daten, mit `antwort.json()` packst du sie aus. Hier ist es ein Objekt: Der Name der Ware ist der Schlüssel, der Preis der Wert. Mit `preise[ware]` liest du den Preis einer Ware.
+--- aufgabe
+Schreibe `async function kosten(einkauf)`. `einkauf` ist eine Liste von Warennamen, zum Beispiel `["Seil", "Fackel", "Fackel"]`. Lade die Preise von `https://rabenfurt.ch/api/preise` und gib die Summe zurück.
+--- start
+async function start() {
+  console.log(await kosten(["Seil", "Fackel", "Fackel"]));
+}
+
+start();
+--- loesung
+async function kosten(einkauf) {
+  const antwort = await fetch("https://rabenfurt.ch/api/preise");
+  const preise = await antwort.json();
+  let summe = 0;
+  for (const ware of einkauf) {
+    summe = summe + preise[ware];
+  }
+  return summe;
+}
+
+async function start() {
+  console.log(await kosten(["Seil", "Fackel", "Fackel"]));
+}
+
+start();
+--- hinweis
+Erst laden und auspacken wie in «Ein Brief aus der Ferne», dann eine Summe mit einer Schleife.
+--- hinweis
+In der Schleife: `summe = summe + preise[ware];`
+--- test Der Einkauf kostet 5 Gold
+$pruefe(typeof kosten === "function", 'Es gibt keine Funktion kosten.');
+const e = await kosten(["Seil", "Fackel", "Fackel"]);
+$pruefe(e === 5, 'Seil (1) und zwei Fackeln (je 2) kosten 5, es kam ' + $zeige(e) + '.');
+--- test Die Preise kommen vom Boten
+$botschaft("https://rabenfurt.ch/api/preise", { "Heiltrank": 70, "Seil": 3 });
+const e = await kosten(["Heiltrank", "Seil"]);
+$pruefe(e === 73, 'Mit neuen Preisen (70 und 3) sollte 73 herauskommen, es kam ' + $zeige(e) + '. Lädst du die Preise mit fetch?');
+
+=== tag-21 | code | Die Fackeln im Gang
+--- ab k16
+--- szene
+Im Gang des Gewölbes hängen Fackeln. Mit einem Klick zündest du eine weitere an.
+--- erklaerung
+Erinnerung an «Die lebendige Seite»: Ein Klick ändert nur den Zustand, danach baut `zeichne()` die Anzeige neu. Mit `"🔥".repeat(3)` entsteht ein Text aus drei Flammen.
+--- html
+<h1>Der Gang</h1>
+<button id="anzuenden">Fackel anzünden</button>
+<button id="loeschen">Alle löschen</button>
+<div id="app"></div>
+--- aufgabe
+1. Der Zustand ist `{ fackeln: 0 }`.
+2. `zeichne()` zeigt in `#app` den Absatz `<p id="anzeige">` mit so vielen 🔥 wie Fackeln brennen, oder `Dunkel.`, wenn keine brennt.
+3. `#anzuenden` zündet eine Fackel mehr an, höchstens 5. `#loeschen` setzt auf 0.
+--- start
+// Zustand, zeichne() und die zwei Knöpfe
+--- loesung
+const zustand = { fackeln: 0 };
+
+function zeichne() {
+  const text = zustand.fackeln === 0 ? "Dunkel." : "🔥".repeat(zustand.fackeln);
+  document.querySelector("#app").innerHTML = `<p id="anzeige">${text}</p>`;
+}
+
+document.querySelector("#anzuenden").addEventListener("click", () => {
+  if (zustand.fackeln < 5) zustand.fackeln = zustand.fackeln + 1;
+  zeichne();
+});
+
+document.querySelector("#loeschen").addEventListener("click", () => {
+  zustand.fackeln = 0;
+  zeichne();
+});
+
+zeichne();
+--- hinweis
+Beginne mit `const zustand = { fackeln: 0 };` und einer Funktion `zeichne()`, die du am Schluss einmal aufrufst.
+--- hinweis
+Im Klick: zuerst `zustand.fackeln` ändern, dann `zeichne();`.
+--- test Am Anfang ist es dunkel
+$textGleich("#anzeige", "Dunkel.");
+--- test Fackeln anzünden, höchstens 5
+$klick("#anzuenden"); $klick("#anzuenden");
+$textGleich("#anzeige", "🔥🔥", 'Nach zwei Klicks');
+$klick("#anzuenden"); $klick("#anzuenden"); $klick("#anzuenden"); $klick("#anzuenden");
+$textGleich("#anzeige", "🔥🔥🔥🔥🔥", 'Nach sechs Klicks');
+--- test Alle löschen
+$klick("#anzuenden"); $klick("#loeschen");
+$textGleich("#anzeige", "Dunkel.", 'Nach dem Löschen');
+
 ### wdh | Wiederholung | Fragen, die nach ein paar Tagen zurückkommen | Gedächtnissiegel | pfad:wdh
 
 === wdh-k1-1 | quiz | Gold kommt, Gold geht
@@ -20581,6 +20957,261 @@ In ein `style`-Attribut jeder Karte
 --- erklaerung
 Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umschliessende Kasten `display: flex`, die Karten selbst höchstens `flex: 1`.
 
+=== wdh-k11-1 | quiz | Wozu this?
+--- kapitel k11
+--- frage
+Was steht nach diesem Code in der Konsole?
+--- code
+class Held {
+  constructor(name) {
+    this.name = name;
+  }
+  gruss() {
+    return `Ich bin ${this.name}.`;
+  }
+}
+const a = new Held("Kael");
+const b = new Held("Mira");
+console.log(b.gruss());
+--- option
+Ich bin Kael.
+--- option*
+Ich bin Mira.
+--- option
+Ich bin undefined.
+--- option
+Ein Fehler
+--- erklaerung
+Jedes Objekt, das mit `new` entsteht, hat seine eigenen Werte. In `b.gruss()` zeigt `this` auf `b`, also auf Mira.
+
+=== wdh-k11-2 | quiz | Geerbt
+--- kapitel k11
+--- frage
+`class Monster extends Kreatur` hat keine eigene Methode `heile`. Was passiert bei `oger.heile(5)`?
+--- option*
+Die Methode `heile` von `Kreatur` wird benutzt.
+--- option
+Ein Fehler, weil Monster keine Methode heile hat.
+--- option
+Nichts, der Aufruf wird übersprungen.
+--- option
+`heile` wird als neue, leere Methode angelegt.
+--- erklaerung
+Mit `extends` erbt eine Klasse alle Methoden der anderen. Fehlt eine Methode in `Monster`, sucht JavaScript sie in `Kreatur`.
+
+=== wdh-k12-1 | quiz | Zeile und Spalte
+--- kapitel k12
+--- frage
+`karte` ist eine Liste von Zeilen. Wie liest du das Feld in Zeile 2, Spalte 5?
+--- option
+`karte[5][2]`
+--- option*
+`karte[2][5]`
+--- option
+`karte[2, 5]`
+--- option
+`karte.zeile(2).spalte(5)`
+--- erklaerung
+Zuerst wählst du die Zeile, dann darin die Spalte: `karte[zeile][spalte]`. Auf der Tafel ist die Zeile die y-Richtung, die Spalte die x-Richtung.
+
+=== wdh-k12-2 | quiz | Das Rechteck
+--- kapitel k12
+--- frage
+Was zeichnet `ctx.fillRect(40, 20, 10, 30)`?
+--- option*
+Ein Rechteck, 10 breit und 30 hoch, mit der linken oberen Ecke bei x = 40, y = 20
+--- option
+Ein Rechteck von Punkt (40, 20) bis Punkt (10, 30)
+--- option
+Ein Rechteck, 40 breit und 20 hoch
+--- option
+Einen Kreis mit Radius 10
+--- erklaerung
+Die vier Zahlen sind x, y, Breite und Höhe. Der Nullpunkt liegt oben links, y wächst nach unten.
+
+=== wdh-k13-1 | quiz | Vor oder nach dem Raben?
+--- kapitel k13
+--- frage
+In welcher Reihenfolge erscheinen die Zeilen?
+--- code
+setTimeout(() => console.log("Rabe"), 100);
+console.log("Tee");
+--- option
+Rabe, Tee
+--- option*
+Tee, Rabe
+--- option
+Nur Rabe
+--- option
+Nur Tee
+--- erklaerung
+`setTimeout` hält das Programm nicht an. Es merkt sich die Funktion für später und macht sofort weiter. Darum kommt der Tee zuerst.
+
+=== wdh-k13-2 | quiz | Zwei Mal warten
+--- kapitel k13
+--- frage
+Welche Zeile lädt Daten richtig?
+--- option
+`const daten = fetch(url).json();`
+--- option
+`const daten = await fetch(url).json();`
+--- option*
+`const daten = await (await fetch(url)).json();`
+--- option
+`const daten = fetch(await url).json();`
+--- erklaerung
+`fetch` und `json()` geben beide ein Versprechen zurück, auf das du wartest. Meist schreibt man es in zwei Zeilen: erst `const antwort = await fetch(url);`, dann `const daten = await antwort.json();`.
+
+=== wdh-k14-1 | quiz | Wer bietet an?
+--- kapitel k14
+--- frage
+`spiel.js` enthält `import { heile } from "./regeln.js";`. Was muss in `regeln.js` stehen?
+--- option
+`import function heile(...)`
+--- option*
+`export function heile(...)`
+--- option
+`function heile(...)` reicht.
+--- option
+`public function heile(...)`
+--- erklaerung
+Nur was mit `export` angeboten wird, kann eine andere Datei mit `import` holen. Ohne `export` bleibt eine Funktion privat.
+
+=== wdh-k14-2 | quiz | Die drei Dateien
+--- kapitel k14
+--- frage
+Welche Zeile gehört in `index.html`, damit `style.css` wirkt?
+--- option
+`<script src="style.css">`
+--- option
+`<style src="style.css">`
+--- option*
+`<link rel="stylesheet" href="style.css">`
+--- option
+`import "./style.css";`
+--- erklaerung
+CSS-Dateien bindest du mit `<link rel="stylesheet" href="...">` ein, JavaScript-Dateien mit `<script type="module" src="...">`.
+
+=== wdh-k15-1 | quiz | Der richtige Status
+--- kapitel k15
+--- frage
+Ein Gast schickt eine Bestellung ohne Namen. Welchen Status gibt der Server zurück?
+--- option
+200
+--- option
+201
+--- option*
+400
+--- option
+404
+--- erklaerung
+400 heisst «die Anfrage ist fehlerhaft». 201 wäre «neu angelegt», 404 «diese Adresse gibt es nicht».
+
+=== wdh-k15-2 | quiz | Wem trauen?
+--- kapitel k15
+--- frage
+Die Webseite prüft schon, dass der Name nicht leer ist. Muss der Server das auch prüfen?
+--- option
+Nein, doppelt prüfen ist unnötig.
+--- option*
+Ja, denn jeder kann dem Server direkt Anfragen schicken, ohne die Webseite.
+--- option
+Nur wenn der Server langsam ist.
+--- option
+Nein, Browser schicken nie falsche Daten.
+--- erklaerung
+Ein Server muss alles selbst prüfen. Die Prüfung auf der Webseite ist nur eine Hilfe für ehrliche Gäste. Wer Böses will, umgeht sie einfach.
+
+=== wdh-k16-1 | quiz | Zwei Schritte
+--- kapitel k16
+--- frage
+Was gehört bei diesem Muster in jeden Klick?
+--- option
+Nur die Anzeige direkt ändern.
+--- option*
+Erst den Zustand ändern, dann `zeichne()` aufrufen.
+--- option
+Erst `zeichne()` aufrufen, dann den Zustand ändern.
+--- option
+Nur den Zustand ändern.
+--- erklaerung
+Die Anzeige entsteht immer aus dem Zustand. Ändert sich der Zustand, muss neu gezeichnet werden, sonst passen sie nicht mehr zusammen.
+
+=== wdh-k16-2 | quiz | Ein Baustein
+--- kapitel k16
+--- frage
+Was gibt `zustand.helden.map(HeldenKarte).join("")` zurück?
+--- option
+Eine Liste von Helden-Objekten
+--- option*
+Einen Text mit dem HTML aller Karten hintereinander
+--- option
+Nur die erste Karte
+--- option
+Die Anzahl der Helden
+--- erklaerung
+`map` macht aus jedem Helden mit `HeldenKarte` ein Stück HTML. `join("")` klebt alle Stücke ohne Trennzeichen zu einem Text zusammen.
+
+=== wdh-t1-1 | quiz | Eine Stufe hoch
+--- kapitel t1
+--- frage
+Du bist in `~/abenteuer/karten`. Welcher Befehl bringt dich nach `~/abenteuer`?
+--- option
+`cd abenteuer`
+--- option*
+`cd ..`
+--- option
+`cd ~`
+--- option
+`pwd ..`
+--- erklaerung
+`..` ist immer der Ordner darüber. `cd ~` würde ganz nach Hause gehen, in den Heimordner.
+
+=== wdh-t1-2 | quiz | Überschrieben
+--- kapitel t1
+--- frage
+`notiz.txt` enthält schon eine Zeile. Was steht nach `echo "Neu" > notiz.txt` darin?
+--- option
+Die alte Zeile und darunter «Neu»
+--- option*
+Nur noch «Neu»
+--- option
+Nur die alte Zeile
+--- option
+Gar nichts
+--- erklaerung
+Ein Pfeil `>` überschreibt die ganze Datei. Zum Anhängen brauchst du zwei Pfeile `>>`.
+
+=== wdh-t2-1 | quiz | Die Reihenfolge
+--- kapitel t2
+--- frage
+In welcher Reihenfolge hältst du eine Änderung mit Git fest?
+--- option
+`git commit`, dann `git add`
+--- option*
+`git add`, dann `git commit`
+--- option
+Nur `git status`
+--- option
+`git init`, nach jeder Änderung von Neuem
+--- erklaerung
+`git add` merkt vor, `git commit` hält fest. `git init` brauchst du nur einmal pro Projekt.
+
+=== wdh-t2-2 | quiz | Der Seitenweg
+--- kapitel t2
+--- frage
+Du bist auf `main` und willst etwas ausprobieren, ohne `main` zu verändern. Welcher Befehl passt?
+--- option
+`git merge probe`
+--- option
+`git commit -m probe`
+--- option*
+`git switch -c probe`
+--- option
+`git init probe`
+--- erklaerung
+`git switch -c probe` legt den neuen Branch `probe` an und wechselt hin. Gefällt das Ergebnis, holst du es später mit `git merge probe` auf `main`.
+
 ### r1 | Fehlerjagd | Tippe auf die Zeile mit dem Fehler | Jägersiegel | pfad:raetsel
 
 === r1-1 | fehlerjagd | Der lahme Würfel
@@ -21293,7 +21924,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
   }
 
   const PFADE = [
-    { id: "js", name: "JavaScript", kurz: "Der Hauptweg: vom ersten Zauber bis zur eigenen Webseite" },
+    { id: "js", name: "JavaScript", kurz: "Der Hauptweg: vom ersten Zauber über Webseiten bis zum eigenen Server" },
     { id: "lesen", name: "Code lesen", kurz: "Fremden Code verstehen und KI-Code prüfen, bevor du ihm vertraust" },
     { id: "raetsel", name: "Rätsel", kurz: "Kurze Knobeleien, auch fürs Handy: Fehler finden, Zeilen ordnen, Lücken füllen, Zauber vergleichen" },
     { id: "elektro", name: "Blitzrunen", kurz: "Elektrotechnik aus der Lehre, mit JavaScript gerechnet" },
@@ -21643,6 +22274,9 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     { id: "orakelpruefer", name: "Orakelprüfer", text: "Kapitel «KI-Code prüfen» abgeschlossen.", symbol: "lupe", pruef: () => !!KAPITEL_NACH_ID.l2 && kapitelFertig(KAPITEL_NACH_ID.l2) },
     { id: "schmiedemeister", name: "Schmiedemeister", text: "Kapitel «Die Drehstromschmiede» abgeschlossen.", symbol: "blitz", pruef: () => !!KAPITEL_NACH_ID.e2 && kapitelFertig(KAPITEL_NACH_ID.e2) },
     { id: "weber", name: "Kenner der eigenen Schmiede", text: "Den Weltenweber-Pfad gemeistert: deine App von innen verstanden.", symbol: "rolle", pruef: () => !!KAPITEL_NACH_PFAD.weltenweber && pfadFertig("weltenweber") },
+    { id: "werkzeugmeister", name: "Herr der Werkzeuge", text: "Den Werkzeuge-Pfad gemeistert: Terminal, Git und der Auszug.", symbol: "hammer", pruef: () => !!KAPITEL_NACH_PFAD.werkzeug && pfadFertig("werkzeug") },
+    { id: "wirt", name: "Wirt am Tresen", text: "Den eigenen Server gebaut: Kapitel «Der Wirt am Tresen» gemeistert.", symbol: "schild", pruef: () => !!KAPITEL_NACH_ID.k15 && kapitelFertig(KAPITEL_NACH_ID.k15) },
+    { id: "auftragsmeister", name: "Ohne Bauplan", text: "Alle Meisteraufträge erfüllt.", symbol: "stern", pruef: () => !!KAPITEL_NACH_ID.k17 && kapitelFertig(KAPITEL_NACH_ID.k17) },
     { id: "gut-verwahrt", name: "Gut verwahrt", text: "Die automatische Sicherung eingerichtet.", symbol: "schild", pruef: () => !!zustand.stats.sicherung },
     { id: "wochenheld", name: "Wochenheld", text: "Eine Wochenquest erfüllt.", symbol: "krone", pruef: () => (zustand.stats.wochenquests || 0) >= 1 },
     { id: "erster-einkauf", name: "Kundschaft der Schatzkammer", text: "Zum ersten Mal in der Schatzkammer eingekauft.", symbol: "muenze", pruef: () => Object.keys(schatz().besitz).length > 0 || schatz().traenkeGekauft > 0 },
@@ -24318,6 +24952,27 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     };
   }
 
+  // Mentor-Bot für Datei- und Terminal-Lektionen (window.__kodexBot gibt es nur in der App mit Anmeldung)
+  function mentorHtml(antworten, gefragt) {
+    if (typeof window.__kodexBot !== "function") return "";
+    return '<div class="bot-box">' + antworten.map(a => a.fehler ? '<p class="melde-nein">' + esc(a.fehler) + "</p>"
+      : '<div class="hinweis"><b>Mentor</b><div>' + esc(a.text).replace(/`([^`\n]+)`/g, "<code>$1</code>").replace(/\n/g, "<br>") + "</div></div>").join("") +
+      '<div class="hilfe-knoepfe"><button class="knopf still" type="button" id="mentor-knopf">' + SYMBOL.lupe + (antworten.length ? "Mentor nochmal fragen" : gefragt) + "</button></div>" +
+      (antworten.length ? "" : '<p class="klein">Der Mentor erklärt, was nicht stimmt, die Lösung verrät er nicht. Er kostet keine EP.</p>') + "</div>";
+  }
+  function mentorBinden(holeDaten, antworten, neuZeichnen) {
+    const k = $("#mentor-knopf");
+    if (!k) return;
+    k.addEventListener("click", async () => {
+      k.disabled = true;
+      k.textContent = "Der Mentor denkt nach …";
+      try { antworten.push({ text: await window.__kodexBot(Object.assign({ stufe: 2 }, holeDaten())) }); }
+      catch (e) { antworten.push({ fehler: e.message }); }
+      neuZeichnen();
+    });
+  }
+  const dateienAlsText = d => Object.entries(d).map(([n, t]) => "// ===== Datei " + n + " =====\n" + t).join("\n\n");
+
   // Lektion mit mehreren Dateien (--- modus dateien)
   function zeigeDateienLektion(l) {
     const bereits = istErledigt(l.id);
@@ -24376,7 +25031,10 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     async function ausfuehrenKnopf() {
       if (web) { webStarten(); return; }
       const b = buendeln(ed.dateien(), einstieg, l.server);
-      konsoleZeigen(await ausfuehren(b.code, null, null, dateienZusatz(l)), b.karte);
+      const r = await ausfuehren(b.code, null, null, dateienZusatz(l));
+      konsoleZeigen(r, b.karte);
+      merkeFuerMentor(Object.assign({}, r, { fehler: r.fehler ? fehlerZurueck(r.fehler, b.karte) : null }), null);
+      terminalLoseHilfe();
     }
     function terminalLoseHilfe() {
       const genutzt = zustand.hinweise[l.id] || 0, versuche = zustand.versuche[l.id] || 0, offen = !!zustand.loesung[l.id];
@@ -24391,10 +25049,20 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       if (genutzt < l.hinweise.length) k.push('<button class="knopf" type="button" id="d-hinweis">Hinweis zeigen (' + (genutzt + 1) + " von " + l.hinweise.length + ")</button>");
       if (!offen && (versuche >= 3 || bereits)) k.push('<button class="knopf still" type="button" id="d-loesung">Lösung ansehen</button>');
       if (k.length) html += '<div class="hilfe-knoepfe">' + k.join("") + "</div>";
+      if (mentorDaten) html += mentorHtml(mentorAntworten, mentorDaten.pruefungen ? "Mentor fragen, was falsch ist" : "Mentor zu deinem Code fragen");
       $("#hilfe").innerHTML = html;
       const hb = $("#d-hinweis"); if (hb) hb.addEventListener("click", () => { zustand.hinweise[l.id] = genutzt + 1; speichern(); terminalLoseHilfe(); });
       const lb = $("#d-loesung"); if (lb) lb.addEventListener("click", () => { zustand.loesung[l.id] = true; speichern(); terminalLoseHilfe(); });
+      mentorBinden(() => mentorDaten, mentorAntworten, terminalLoseHilfe);
     }
+    let mentorDaten = null, mentorAntworten = [];
+    const merkeFuerMentor = (ergebnis, pruefungen) => {
+      const f = ergebnis.fehler;
+      mentorDaten = { sprache: "js", titel: l.titel, aufgabe: l.aufgabe, code: dateienAlsText(ed.dateien()), pruefungen,
+        ausgabe: (ergebnis.ausgabe || []).slice(0, 30).join("\n"),
+        fehler: f ? (f.name || "") + ": " + (f.text || "") + (f.zeile ? " (Zeile " + f.zeile + ")" : "") : ergebnis.zeitUeberschritten ? "Der Code lief zu lange" : "" };
+      mentorAntworten = [];
+    };
     let laeuft = false;
     async function pruefen() {
       if (laeuft) return;
@@ -24424,6 +25092,8 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
         belohnungZeigen(belohnung, p);
       } else {
         fehlversuch(l, ergebnis);
+        merkeFuerMentor(Object.assign({}, ergebnis, { fehler: ergebnis.fehler ? fehlerZurueck(ergebnis.fehler, karte) : null }),
+          zeilen.filter(z => z.status !== "ok" && z.text).map(z => ({ name: z.name, grund: z.text })));
         p.innerHTML = html;
         terminalLoseHilfe();
         zeigeKopf();
@@ -24950,6 +25620,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       "</article></div></div>";
     const aus = $("#term-aus"), ein = $("#term-ein"), editor = $("#term-editor"), text = $("#term-text");
     let w = null, offeneDatei = null, fertig = bereits, zeiger = -1, laeuft = false;
+    const mentorAntworten = [];
     const prompt = () => '<span class="term-wer">held@kodex</span>:<span class="term-wo">' + esc(zeigePfad(w.cwd)) + "</span>$ ";
     const zeile = (html, kl) => { const d = document.createElement("div"); d.className = "term-z" + (kl ? " " + kl : ""); d.innerHTML = html; aus.appendChild(d); };
     const ui = {
@@ -24981,7 +25652,15 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       if (genutzt < l.hinweise.length) k.push('<button class="knopf" type="button" id="term-hinweis">Hinweis zeigen (' + (genutzt + 1) + " von " + l.hinweise.length + ")</button>");
       else if (!loesungOffen) k.push('<button class="knopf still" type="button" id="term-loesung">Lösung ansehen</button>');
       if (k.length) html += '<div class="hilfe-knoepfe">' + k.join("") + "</div>";
+      if (!fertig) html += mentorHtml(mentorAntworten, "Mentor fragen, wie es weitergeht");
       $("#hilfe").innerHTML = html;
+      mentorBinden(() => ({
+        sprache: "shell (nachgebautes Terminal mit Git)", titel: l.titel, aufgabe: l.aufgabe,
+        code: "# Bisher getippte Befehle\n" + (w ? w.befehle.slice(-40).join("\n") : ""),
+        ausgabe: w ? w.ausgabe.slice(-30).join("\n") : "",
+        pruefungen: w ? terminalZiele(l, w).filter(z => !z.ok).map(z => ({ name: z.name, grund: "noch nicht erreicht" })) : [],
+        fehler: ""
+      }), mentorAntworten, terminalHilfe);
       const hb = $("#term-hinweis");
       if (hb) hb.addEventListener("click", () => { zustand.hinweise[l.id] = genutzt + 1; speichern(); terminalHilfe(); });
       const lb = $("#term-loesung");
@@ -25019,7 +25698,32 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       laeuft = false;
       ein.focus();
     });
+    // Tab ergänzt Befehle, Git-Befehle sowie Datei- und Ordnernamen
+    function ergaenze() {
+      const v = ein.value, teil = /(\S*)$/.exec(v)[1], vorne = v.slice(0, v.length - teil.length);
+      let kandidaten;
+      if (!vorne.trim()) kandidaten = ["pwd", "ls", "cd", "mkdir", "touch", "cat", "echo", "rm", "mv", "code", "node", "git", "clear", "help"];
+      else if (/^\s*git\s+$/.test(vorne)) kandidaten = ["init", "status", "add", "commit", "log", "branch", "switch", "checkout", "merge", "config", "remote", "push"];
+      else if (/^\s*git\s+(switch|checkout|merge)\s+(-\w\s+)?$/.test(vorne) && w.git) kandidaten = Object.keys(w.git.zweige);
+      else {
+        const ordner = teil.includes("/") ? teil.slice(0, teil.lastIndexOf("/") + 1) : "";
+        kandidaten = kinderVon(w, pfadAuf(w, ordner || ".")).map(k => k.slice(k.lastIndexOf("/") + 1)).filter(n => !n.startsWith(".") || teil.slice(ordner.length).startsWith("."))
+          .map(n => ordner + n + (w.fs.get(pfadAuf(w, ordner + n)).ordner ? "/" : ""));
+      }
+      const passend = kandidaten.filter(k => k.startsWith(teil));
+      if (passend.length === 1) { ein.value = vorne + passend[0] + (passend[0].endsWith("/") ? "" : " "); return; }
+      if (passend.length > 1) {
+        let gemeinsam = passend[0];
+        for (const p of passend) while (!p.startsWith(gemeinsam)) gemeinsam = gemeinsam.slice(0, -1);
+        if (gemeinsam.length > teil.length) ein.value = vorne + gemeinsam;
+        else {
+          const kurz = passend.map(p => (p.endsWith("/") ? p.slice(0, -1) : p).split("/").pop() + (p.endsWith("/") ? "/" : ""));
+          zeile(prompt() + esc(v), "term-ein-z"); zeile(esc(kurz.join("  ")), "term-info"); aus.scrollTop = aus.scrollHeight;
+        }
+      }
+    }
     ein.addEventListener("keydown", e => {
+      if (e.key === "Tab") { e.preventDefault(); if (w) ergaenze(); return; }
       const alte = protokoll.filter(p => p.c !== undefined).map(p => p.c);
       if (e.key === "ArrowUp" && alte.length) { e.preventDefault(); zeiger = zeiger < 0 ? alte.length - 1 : Math.max(0, zeiger - 1); ein.value = alte[zeiger]; }
       else if (e.key === "ArrowDown" && zeiger >= 0) { e.preventDefault(); zeiger++; ein.value = zeiger < alte.length ? alte[zeiger] : ""; if (zeiger >= alte.length) zeiger = -1; }
