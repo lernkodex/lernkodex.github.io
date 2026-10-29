@@ -1,4 +1,4 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Zauberkodex</title><meta name="description" content="Programmieren lernen mit Aufgaben aus der Welt von D&amp;D."><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="theme-color" content="#fbfaff" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#161838" media="(prefers-color-scheme: dark)"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content"><title>Zauberkodex</title><meta name="description" content="Programmieren lernen mit Aufgaben aus der Welt von D&amp;D."><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="theme-color" content="#fbfaff" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#161838" media="(prefers-color-scheme: dark)"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -948,6 +948,40 @@ body::after {
 .sync-knopf[data-stand="ok"] { color: var(--gut); }
 .sync-knopf[data-stand="laeuft"] { color: var(--gold); }
 .sync-knopf[data-stand="fehler"] { color: var(--schlecht); border-color: var(--schlecht); }
+
+/* ---------- App: je nach Geraet ---------- */
+.schlank .kopf [data-ziel="werkstatt"], .schlank .werkstatt-kachel { display: none; }
+.schlank .dungeon { border: 0; background: none; border-radius: 0; }
+.schlank .dungeon-flaeche { padding: 0; }
+.kap-wahl { display: grid; gap: 8px; }
+.kap-wahl button {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; min-height: 52px;
+  padding: 8px 14px; border-radius: 12px; border: 1px solid var(--linie); background: var(--blatt); cursor: pointer; font-weight: 700;
+}
+.kap-wahl button b { font-family: var(--schrift-zier); color: var(--leise); min-width: 2.2em; }
+.kap-wahl button span { flex: 1; }
+.kap-wahl button small { color: var(--leise); font-weight: 600; font-variant-numeric: tabular-nums; }
+.kap-wahl button.fertig { border-color: color-mix(in srgb, var(--gold) 45%, var(--linie)); background: var(--gold-grund); }
+.kap-wahl button.fertig b { color: var(--gold); }
+.kap-wahl button.zu { opacity: .55; }
+.kap-wahl button.gewaehlt { border-color: var(--arkan); box-shadow: 0 0 0 2px color-mix(in srgb, var(--arkan) 30%, transparent); }
+.ed-leiste {
+  position: sticky; bottom: 0; z-index: 5; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+  padding: 6px; border: 1px solid var(--linie); border-radius: 12px; background: var(--mulde);
+}
+.ed-leiste::-webkit-scrollbar { display: none; }
+.ed-leiste button {
+  flex: none; min-width: 40px; height: 40px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--linie);
+  background: var(--code-grund); color: var(--tinte); font-family: var(--schrift-code); font-size: 16px; cursor: pointer; touch-action: manipulation;
+}
+.ed-leiste button:active { background: var(--arkan-grund); }
+.gross-knoepfe .knopf { min-height: 48px; padding-inline: 20px; }
+.gross-knoepfe .symbolknopf { width: 44px; height: 44px; }
+.gross-knoepfe .reiter { padding: 12px 16px; }
+.gross-knoepfe .wegpunkt { min-height: 64px; }
+.gross-knoepfe .schalter input { width: 22px; height: 22px; }
+.gross-knoepfe .editor { font-size: 15px; }
+.geraet-wahl { display: flex; flex-wrap: wrap; gap: 6px; }
 </style>
 
 <header class="kopf">
@@ -19237,6 +19271,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
       }
     });
     zeichne();
+    zeichenLeiste(wurzel, py, einfuegen, ta);
     return {
       wert: () => ta.value,
       setze: v => { ta.value = v; fehlerZeile = null; zeichne(); optionen.aenderung(v); },
@@ -19406,7 +19441,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
   function kapitelOffen(k) { return k.lektionen.length > 0 && istOffen(k.lektionen[0]); }
   function zeigeKarte() {
     document.title = "Zauberkodex";
-    const pfad = KAPITEL_NACH_PFAD[zustand.pfad] && PFAD_NACH_ID[zustand.pfad] ? zustand.pfad : "js";
+    const pfad = sichtPfad();
     const naechste = naechsteOffene(pfad);
     const anfang = zustand.ep === 0 && Object.keys(zustand.erledigt).length === 0;
     const kapitel = KAPITEL_NACH_PFAD[pfad] || [];
@@ -19451,7 +19486,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
       '<div class="seite karte"><section class="auftakt">' + auftakt + brett + "</section>" +
       '<section class="alltag" aria-label="Jeden Tag">' + karteTagesaufgabe() + karteWiederholung() + karteWerkstatt() + "</section>" +
       '<section class="pfadwahl" aria-label="Lernpfade"><div class="pfad-reiter" role="tablist">' +
-      LERNPFADE.map(p => {
+      LERNPFADE.filter(p => !(GERAET.schlank && p.id === "python")).map(p => {
         const alle = lektionenImPfad(p.id), fertig = alle.filter(l => istErledigt(l.id)).length;
         return '<button type="button" role="tab" class="reiter' + (p.id === pfad ? " aktiv" : "") + '" aria-selected="' + (p.id === pfad) + '" data-pfad="' + p.id + '">' +
           "<span>" + esc(p.name) + '</span><small>' + fertig + " / " + alle.length + "</small></button>";
@@ -19466,7 +19501,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
     }));
     const flaeche = $("#dungeon");
     const zeichne = () => {
-      flaeche.innerHTML = dungeonSvg(pfad, kapitel, gewaehlt, naechste, flaeche.clientWidth || 1000);
+      flaeche.innerHTML = GERAET.schlank ? kapitelWahl(kapitel, gewaehlt) : dungeonSvg(pfad, kapitel, gewaehlt, naechste, flaeche.clientWidth || 1000);
       flaeche.querySelectorAll("[data-kapitel]").forEach(n => {
         const waehle = () => {
           const k = KAPITEL_NACH_ID[n.dataset.kapitel];
@@ -19635,7 +19670,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
   }
   function karteWerkstatt() {
     const n = zustand.werkstatt.projekte.length;
-    return '<article class="kachel">' + '<div class="kachel-kopf"><span class="kachel-symbol">' + SYMBOL.hammer + '</span><span class="eyebrow">Werkstatt</span></div>' +
+    return '<article class="kachel werkstatt-kachel">' + '<div class="kachel-kopf"><span class="kachel-symbol">' + SYMBOL.hammer + '</span><span class="eyebrow">Werkstatt</span></div>' +
       "<h3>" + (n ? n + (n === 1 ? " eigenes Projekt" : " eigene Projekte") : "Dein freier Arbeitsplatz") + "</h3>" +
       "<p>Probiere eigene Ideen aus, mit JavaScript, Webseiten oder Python, und speichere sie als Datei.</p>" +
       '<a class="knopf" href="#werkstatt">Werkstatt öffnen</a></article>';
@@ -20602,6 +20637,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
     const html =
       "<h2>Einstellungen</h2>" +
       '<div class="einstellung" id="sync-bereich" hidden></div>' +
+      geraetHtml() +
       '<div class="einstellung"><h3>Automatische Sicherung</h3>' + sicherungHtml + "</div>" +
       '<div class="einstellung"><h3>Aus einer Sicherungsdatei laden</h3><p class="klein">Ersetzt deinen aktuellen Fortschritt durch den aus der Datei.</p><input type="file" id="sicherung-datei" accept=".json,application/json"><p class="klein" id="datei-meldung"></p></div>' +
       '<div class="einstellung"><h3>Sicherungscode</h3><p class="klein">Ein Text zum Kopieren, etwa um den Stand zwischen Chat-Fenster und Laptop-Datei mitzunehmen.</p><div class="fenster-zeile" style="justify-content:flex-start"><button class="knopf" type="button" id="sichern">Code erstellen</button></div><div id="sicherung"></div>' +
@@ -20613,6 +20649,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
     const w = f.wurzel;
     const neu = () => { f.schliessen(); zeigeEinstellungen(); };
     if (typeof window.__kodexSyncUi === "function") window.__kodexSyncUi($("#sync-bereich", w));
+    geraetBinden(w);
     const bind = (id, fn) => { const e = $("#" + id, w); if (e) e.addEventListener("click", fn); };
     bind("sicherung-einrichten", async () => { await sicherungEinrichten(); neu(); });
     bind("sicherung-weiter2", async () => { await sicherungFortsetzen(); neu(); });
@@ -20667,9 +20704,77 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
       return sessionStorage.getItem("kodex-handy") === "1" && innerWidth < 900;
     } catch (e) { return false; }
   })();
+  /* Einstellungen, die nur fuer dieses Geraet gelten und nicht abgeglichen werden */
+  const GERAET = (() => {
+    const touch = matchMedia("(pointer: coarse)").matches;
+    let g = {};
+    try { g = JSON.parse(localStorage.getItem("kodex-geraet") || "{}") || {}; } catch (e) { g = {}; }
+    return Object.assign({ start: HANDY ? "heute" : "karte", schlank: HANDY, leiste: touch, gross: HANDY }, g);
+  })();
+  function geraetAnwenden() {
+    document.documentElement.classList.toggle("schlank", !!GERAET.schlank);
+    document.documentElement.classList.toggle("gross-knoepfe", !!GERAET.gross);
+  }
+  geraetAnwenden();
+  function sichtPfad() {
+    const p = zustand.pfad;
+    return KAPITEL_NACH_PFAD[p] && PFAD_NACH_ID[p] && !(GERAET.schlank && p === "python") ? p : "js";
+  }
+  function kapitelWahl(kapitel, gewaehlt) {
+    return '<div class="kap-wahl">' + kapitel.map(k => {
+      const fertig = k.lektionen.filter(l => istErledigt(l.id)).length;
+      const klassen = [kapitelFertig(k) ? "fertig" : "", k.lektionen.some(istOffen) ? "" : "zu", k === gewaehlt ? "gewaehlt" : ""].join(" ").trim();
+      return '<button type="button" class="' + klassen + '" data-kapitel="' + k.id + '"><b>' + ROEMISCH[k.nr] + "</b><span>" + esc(k.titel) +
+        "</span><small>" + fertig + " / " + k.lektionen.length + "</small></button>";
+    }).join("") + "</div>";
+  }
+  function zeichenLeiste(wurzel, py, einfuegen, ta) {
+    const alt = wurzel.nextElementSibling;
+    if (alt && alt.classList.contains("ed-leiste")) alt.remove();
+    if (!GERAET.leiste) return;
+    const zeichen = ["⇥", "←", "→", "(", ")", "{", "}", "[", "]", '"', "'", py ? ":" : ";", "=", "+", "-", "*", "/", "<", ">", "!", "&", "|", ".", ",", py ? "#" : "`", py ? "_" : "$"];
+    const leiste = document.createElement("div");
+    leiste.className = "ed-leiste";
+    leiste.setAttribute("aria-label", "Sonderzeichen");
+    leiste.innerHTML = zeichen.map(z => '<button type="button" data-z="' + esc(z) + '">' + esc(z) + "</button>").join("");
+    leiste.addEventListener("pointerdown", e => { if (e.target.closest("button")) e.preventDefault(); });
+    leiste.addEventListener("click", e => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      const z = b.dataset.z;
+      if (z === "←" || z === "→") {
+        ta.focus();
+        const p = Math.max(0, Math.min(ta.value.length, (z === "←" ? ta.selectionStart - 1 : ta.selectionEnd + 1)));
+        ta.setSelectionRange(p, p);
+      } else einfuegen(z === "⇥" ? (py ? "    " : "  ") : z);
+    });
+    wurzel.insertAdjacentElement("afterend", leiste);
+  }
+  function geraetHtml() {
+    const wahl = (wert, text) => '<label class="schalter"><input type="radio" name="geraet-start" value="' + wert + '"' + (GERAET.start === wert ? " checked" : "") + "> " + text + "</label>";
+    const schalter = (id, an, text) => '<label class="schalter"><input type="checkbox" id="' + id + '"' + (an ? " checked" : "") + "> " + text + "</label>";
+    return '<div class="einstellung"><h3>Dieses Gerät</h3><p class="klein">Diese Einstellungen gelten nur hier und werden nicht abgeglichen.</p>' +
+      '<p class="klein"><b>Startseite</b></p><div class="geraet-wahl">' + wahl("heute", "Heute") + wahl("karte", "Karte") + "</div>" +
+      schalter("geraet-schlank", GERAET.schlank, "Handy-Modus: ohne Werkstatt und Python, Kapitel als einfache Liste") +
+      schalter("geraet-leiste", GERAET.leiste, "Leiste mit Sonderzeichen über dem Code") +
+      schalter("geraet-gross", GERAET.gross, "Grössere Knöpfe") + "</div>";
+  }
+  function geraetBinden(w) {
+    const speichereGeraet = () => {
+      try { localStorage.setItem("kodex-geraet", JSON.stringify(GERAET)); } catch (e) { /* Speicher nicht verfuegbar */ }
+      geraetAnwenden();
+    };
+    w.querySelectorAll('[name="geraet-start"]').forEach(r => r.addEventListener("change", () => { GERAET.start = r.value; speichereGeraet(); }));
+    // Ansicht dahinter neu zeichnen, ohne das Einstellungsfenster zu schliessen
+    const neuZeichnen = () => { const offen = fensterSchliessen; fensterSchliessen = null; route(); fensterSchliessen = offen; };
+    const bind = (id, feld) => { const e = $("#" + id, w); if (e) e.addEventListener("change", () => { GERAET[feld] = e.checked; speichereGeraet(); neuZeichnen(); }); };
+    bind("geraet-schlank", "schlank");
+    bind("geraet-leiste", "leiste");
+    bind("geraet-gross", "gross");
+  }
   function zeigeHeute() {
     document.title = "Heute · Zauberkodex";
-    const s = serie(), r = rangInfo(zustand.ep), n = naechsteOffene(zustand.pfad);
+    const s = serie(), r = rangInfo(zustand.ep), n = naechsteOffene(sichtPfad());
     const datum = new Date().toLocaleDateString("de-CH", { weekday: "long", day: "numeric", month: "long" });
     ansicht.innerHTML = '<div class="seite heute"><div class="heute-kopf"><p class="eyebrow">' + esc(datum) + '</p><h1 class="gross">Dein Tag im Kodex</h1>' +
       '<p class="klein">' + (s ? ICON.flamme + " " + s + (s === 1 ? " Tag" : " Tage") + " in Folge" : "Heute beginnt eine neue Serie.") + " · " + esc(r.name) + ", " + zustand.ep + " EP</p></div>" +
@@ -20686,7 +20791,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
     else if (ziel === "werkstatt") zeigeWerkstatt();
     else if (ziel === "wiederholung") zeigeWiederholung();
     else if (ziel === "statistik") zeigeStatistik();
-    else if (ziel === "heute" || (!ziel && HANDY)) zeigeHeute();
+    else if (ziel === "heute" || (!ziel && GERAET.start === "heute")) zeigeHeute();
     else if (l && istOffen(l)) { if (PFAD_NACH_ID[l.pfad] && zustand.pfad !== l.pfad) { zustand.pfad = l.pfad; speichern(); } zeigeLektion(l); }
     else zeigeKarte();
     zeigeKopf();
