@@ -7834,6 +7834,509 @@ $pruefe(held.x === 8 && held.y === 5, 'Viermal nach unten führt zum dritten Sch
 $pruefe(gefunden === 3, 'Nach drei Schätzen sollte gefunden 3 sein, es ist ' + $zeige(gefunden) + '.');
 $textGleich("#meldung", "Alle 3 Schätze gefunden!", 'Nach dem dritten Schatz');
 
+### k13 | Die Botenraben | Warten können: setTimeout, async, await und Daten mit fetch laden | Rabensiegel
+
+=== k13-1 | code | Der Rabe braucht Zeit
+--- modus async
+--- szene
+Auf dem Turm von Rabenfurt landet ein schwarzer Rabe. «Er bringt Nachrichten aus der ganzen Welt», sagt Orlan. «Aber nie sofort. Ein guter Magier wartet, ohne stillzustehen.»
+--- erklaerung
+Bisher lief dein Code immer von oben nach unten, Zeile für Zeile, ohne Pause. In echten Programmen muss man aber oft **warten**: auf Daten aus dem Internet, auf einen Klick, auf einen Timer.
+
+Mit `setTimeout` sagst du: «Führe diese Funktion **später** aus.» Die Zahl ist die Wartezeit in Millisekunden. 1000 Millisekunden sind eine Sekunde.
+
+```
+console.log("Ich schicke den Raben los.");
+
+setTimeout(() => {
+  console.log("Der Rabe ist zurück!");
+}, 200);
+
+console.log("Ich trinke inzwischen einen Tee.");
+```
+
+Die Konsole zeigt:
+
+```
+Ich schicke den Raben los.
+Ich trinke inzwischen einen Tee.
+Der Rabe ist zurück!
+```
+
+Das Programm bleibt bei `setTimeout` **nicht stehen**. Es merkt sich die Funktion für später und macht sofort mit der nächsten Zeile weiter. Darum kommt der Tee vor dem Raben. Die Funktion `() => { ... }` kennst du als Pfeilfunktion aus Kapitel VIII.
+--- aufgabe
+1. Gib `Der Rabe fliegt los.` aus.
+2. Gib mit `setTimeout` nach 100 Millisekunden `Der Rabe ist zurück.` aus.
+3. Gib danach, aber **ohne** zu warten, `Ich warte am Fenster.` aus.
+
+Schreibe die drei Teile genau in dieser Reihenfolge in den Code. Die Konsole soll zeigen: fliegt los, warte am Fenster, ist zurück.
+--- start
+// 1. Der Rabe fliegt los
+
+// 2. Nach 100 Millisekunden: der Rabe ist zurück
+
+// 3. Ohne zu warten: ich warte am Fenster
+--- loesung
+// 1. Der Rabe fliegt los
+console.log("Der Rabe fliegt los.");
+
+// 2. Nach 100 Millisekunden: der Rabe ist zurück
+setTimeout(() => {
+  console.log("Der Rabe ist zurück.");
+}, 100);
+
+// 3. Ohne zu warten: ich warte am Fenster
+console.log("Ich warte am Fenster.");
+--- hinweis
+Teil 1 und 3 sind ganz normale `console.log`-Zeilen. Nur Teil 2 steckt in `setTimeout(() => { ... }, 100);`.
+--- hinweis
+Im Code steht «Ich warte am Fenster» ganz unten, erscheint aber vor dem Raben, weil `setTimeout` das Programm nicht anhält.
+--- test Die Reihenfolge stimmt
+$erwarteAusgabe($ausgabe, ["Der Rabe fliegt los.", "Ich warte am Fenster.", "Der Rabe ist zurück."], 'Ausgabe');
+--- test Mit setTimeout
+$pruefe(/setTimeout\s*\(/.test($code), 'Dein Ergebnis kann stimmen, aber in dieser Lektion übst du setTimeout. Lass den Raben mit setTimeout(...) zurückkommen.');
+$pruefe($code.indexOf("Ich warte am Fenster") > $code.indexOf("setTimeout"), 'Schreibe «Ich warte am Fenster.» unter das setTimeout. Es soll trotzdem vorher erscheinen, weil setTimeout das Programm nicht anhält.');
+
+=== k13-2 | quiz | Wer spricht zuerst?
+--- frage
+In welcher Reihenfolge erscheinen die Buchstaben in der Konsole?
+--- code
+console.log("A");
+setTimeout(() => console.log("B"), 0);
+console.log("C");
+--- option
+A, B, C
+--- option*
+A, C, B
+--- option
+B, A, C
+--- option
+Nur A und C, das B fehlt.
+--- erklaerung
+Auch mit 0 Millisekunden kommt die Funktion in `setTimeout` erst an die Reihe, wenn der übrige Code fertig ist. JavaScript arbeitet zuerst alles ab, was gerade dran ist, und schaut erst dann in seine Liste mit «später». Darum: A, C und erst dann B.
+
+=== k13-3 | code | Auf den Raben warten
+--- modus async
+--- szene
+Orlan hält dir einen versiegelten Brief hin. «Schick ihn mit dem Raben zur Gilde. Und lies mir die Antwort vor, sobald sie da ist.»
+--- erklaerung
+Mit `setTimeout` kannst du etwas später ausführen. Oft willst du aber auf ein **Ergebnis** warten, zum Beispiel auf die Antwort des Raben. Dafür gibt es ein **Promise**, auf Deutsch ein Versprechen: «Die Antwort kommt, nur noch nicht jetzt.»
+
+Die Funktion `rabeSenden` im Startcode gibt so ein Versprechen zurück. Wie sie innen gebaut ist, musst du nicht verstehen, nur benutzen. Mit `await` wartest du, bis das Versprechen erfüllt ist, und bekommst die Antwort:
+
+```
+async function frageDenWirt() {
+  const antwort = await rabeSenden("Habt ihr ein Zimmer frei?");
+  console.log(antwort);
+}
+
+frageDenWirt();
+```
+
+Zwei Regeln:
+
+- `await` heisst: «Warte hier, bis die Antwort da ist.» Erst dann geht es in dieser Funktion weiter.
+- `await` darf nur in einer Funktion stehen, die mit `async` beginnt. `async` heisst: «In dieser Funktion wird gewartet.»
+
+Ohne `await` bekämst du nicht die Antwort, sondern nur das Versprechen selbst.
+--- aufgabe
+Schreibe die Funktion `frageDieGilde`. Sie schickt mit `rabeSenden` die Nachricht `Wir brauchen Verstärkung!`, wartet mit `await` auf die Antwort und gibt sie mit `console.log` aus. Rufe die Funktion danach auf.
+--- start
+// Der Rabe: bringt nach kurzer Zeit eine Antwort zurück
+function rabeSenden(nachricht) {
+  return new Promise(fertig => {
+    setTimeout(() => fertig(`Antwort auf «${nachricht}»: Wir kommen!`), 150);
+  });
+}
+
+// Deine Funktion frageDieGilde
+--- loesung
+// Der Rabe: bringt nach kurzer Zeit eine Antwort zurück
+function rabeSenden(nachricht) {
+  return new Promise(fertig => {
+    setTimeout(() => fertig(`Antwort auf «${nachricht}»: Wir kommen!`), 150);
+  });
+}
+
+// Deine Funktion frageDieGilde
+async function frageDieGilde() {
+  const antwort = await rabeSenden("Wir brauchen Verstärkung!");
+  console.log(antwort);
+}
+
+frageDieGilde();
+--- hinweis
+Übernimm das Beispiel mit dem Wirt und ändere nur den Funktionsnamen und die Nachricht.
+--- hinweis
+Vergiss den Aufruf `frageDieGilde();` ganz am Schluss nicht. Ohne Aufruf passiert nichts.
+--- test Die Antwort der Gilde steht in der Konsole
+$pruefe(!$ausgabe.some(z => z.startsWith("Promise")), 'In der Konsole steht ein Promise statt der Antwort. Fehlt das await vor rabeSenden(...)?');
+$pruefe($ausgabe.length > 0, 'Die Konsole ist leer. Gibst du die Antwort aus, und rufst du frageDieGilde() am Schluss auf?');
+$pruefe($enthaelt($ausgabe, "Antwort auf «Wir brauchen Verstärkung!»: Wir kommen!"), 'Erwartet war die Antwort auf «Wir brauchen Verstärkung!», die Konsole zeigt ' + $zeige($ausgabe) + '.');
+--- test Mit async und await
+$pruefe(typeof frageDieGilde === "function", 'Es gibt keine Funktion frageDieGilde.');
+$pruefe(/async\s+function\s+frageDieGilde/.test($code), 'frageDieGilde sollte mit async function beginnen, damit darin await erlaubt ist.');
+$pruefe(/await\s+rabeSenden\s*\(/.test($code), 'Warte mit await rabeSenden(...) auf die Antwort.');
+
+=== k13-4 | code | Ein Brief aus der Ferne
+--- modus async
+--- botschaften
+{ "https://rabenfurt.ch/api/wetter": { "ort": "Rabenfurt", "himmel": "Regen", "grad": 11 } }
+--- szene
+Bevor die Gruppe aufbricht, will Mira das Wetter wissen. Die Wetterwarte von Rabenfurt schickt Berichte an jeden, der fragt.
+--- erklaerung
+Echte Programme holen Daten aus dem Internet mit `fetch`. Du gibst eine **Adresse** an, eine sogenannte URL, und bekommst eine Antwort. Das dauert einen Moment, darum wartest du mit `await`.
+
+Die Antwort kommt in zwei Schritten:
+
+```
+async function ladeWetter() {
+  const antwort = await fetch("https://rabenfurt.ch/api/wetter");
+  const daten = await antwort.json();
+  return daten;
+}
+```
+
+1. `fetch(...)` holt die Antwort. Das ist wie der Umschlag des Briefes.
+2. `antwort.json()` öffnet den Umschlag und macht aus dem Text ein Objekt. Auch das braucht ein `await`.
+
+Danach ist `daten` ein ganz normales Objekt wie in Kapitel V, hier `{ ort: "Rabenfurt", himmel: "Regen", grad: 11 }`.
+
+**Wichtig:** Eine `async`-Funktion gibt mit `return` ebenfalls ein Versprechen zurück. Wer ihr Ergebnis will, wartet darum auch mit `await`:
+
+```
+const wetter = await ladeWetter();
+console.log(wetter.himmel); // Regen
+```
+
+Im Kodex fragt `fetch` nicht das echte Internet, sondern eine Wetterwarte, die der Kodex nachbaut. Dein Code funktioniert aber genau so mit echten Adressen.
+--- aufgabe
+Schreibe die Funktion `himmel()`. Sie lädt mit `fetch` den Wetterbericht von `https://rabenfurt.ch/api/wetter` und gibt nur den Wert `himmel` zurück, also zum Beispiel `"Regen"`.
+--- start
+async function himmel() {
+  // 1. Antwort holen
+  // 2. Daten auspacken
+  // 3. nur den Himmel zurückgeben
+}
+
+async function start() {
+  console.log(await himmel());
+}
+
+start();
+--- loesung
+async function himmel() {
+  // 1. Antwort holen
+  const antwort = await fetch("https://rabenfurt.ch/api/wetter");
+  // 2. Daten auspacken
+  const daten = await antwort.json();
+  // 3. nur den Himmel zurückgeben
+  return daten.himmel;
+}
+
+async function start() {
+  console.log(await himmel());
+}
+
+start();
+--- hinweis
+Die ersten zwei Zeilen kannst du fast genau aus dem Beispiel übernehmen.
+--- hinweis
+Am Schluss: `return daten.himmel;`
+--- test Der Himmel steht in der Konsole
+$pruefe(!$ausgabe.some(z => z.startsWith("Promise")), 'In der Konsole steht ein Promise. Fehlt irgendwo ein await, zum Beispiel vor fetch(...) oder vor antwort.json()?');
+$pruefe($enthaelt($ausgabe, "Regen"), 'Erwartet war "Regen" in der Konsole, sie zeigt ' + $zeige($ausgabe) + '.');
+--- test Funktioniert auch bei anderem Wetter
+$pruefe(typeof himmel === "function", 'Es gibt keine Funktion himmel.');
+$botschaft("https://rabenfurt.ch/api/wetter", { ort: "Rabenfurt", himmel: "Nebel", grad: 4 });
+const e = await himmel();
+$pruefe(e === "Nebel", 'Bei Nebel sollte himmel() "Nebel" zurückgeben, es kam ' + $zeige(e) + '. Lädst du die Daten mit fetch, statt "Regen" fest hinzuschreiben?');
+--- test Mit fetch
+$pruefe(/fetch\s*\(/.test($code) && /\.json\s*\(/.test($code), 'Lade die Daten mit fetch(...) und packe sie mit antwort.json() aus.');
+
+=== k13-5 | code | Wenn der Rabe nichts findet
+--- modus async
+--- botschaften
+{
+  "https://rabenfurt.ch/api/helden/1": { "name": "Kael", "klasse": "Kämpfer" },
+  "https://rabenfurt.ch/api/helden/2": { "name": "Mira", "klasse": "Magierin" }
+}
+--- szene
+Im Archiv der Gilde ist jeder Held unter einer Nummer verzeichnet. Bran fragt nach Nummer 99. Der Rabe kommt mit leerem Schnabel zurück.
+--- erklaerung
+Nicht jede Anfrage gelingt. Gibt es eine Adresse nicht, antwortet der Server trotzdem, aber mit einem **Fehlercode**. Der bekannteste ist **404**: «Nicht gefunden».
+
+Jede Antwort hat dafür die Eigenschaft `ok`. Sie ist `true`, wenn alles geklappt hat, sonst `false`. Prüfe sie, **bevor** du die Daten auspackst:
+
+```
+async function ladeMonster(nr) {
+  const antwort = await fetch(`https://rabenfurt.ch/api/monster/${nr}`);
+  if (!antwort.ok) {
+    return "Unbekanntes Monster";
+  }
+  const daten = await antwort.json();
+  return daten.name;
+}
+```
+
+Zwei Dinge sind neu:
+
+- Die Adresse ist ein **Vorlagen-Text**. So landet die Nummer direkt in der URL: `ladeMonster(3)` fragt `.../monster/3`.
+- `!antwort.ok` heisst «nicht ok». Das `!` dreht `true` und `false` um.
+--- aufgabe
+Schreibe `heldenName(nr)`. Sie lädt `https://rabenfurt.ch/api/helden/` mit der Nummer am Ende und gibt den `name` des Helden zurück. Ist die Antwort nicht ok, gibt sie `"Unbekannt"` zurück.
+--- start
+async function heldenName(nr) {
+  // dein Code
+}
+
+async function start() {
+  console.log(await heldenName(1));
+  console.log(await heldenName(99));
+}
+
+start();
+--- loesung
+async function heldenName(nr) {
+  const antwort = await fetch(`https://rabenfurt.ch/api/helden/${nr}`);
+  if (!antwort.ok) {
+    return "Unbekannt";
+  }
+  const daten = await antwort.json();
+  return daten.name;
+}
+
+async function start() {
+  console.log(await heldenName(1));
+  console.log(await heldenName(99));
+}
+
+start();
+--- hinweis
+Übernimm das Beispiel mit den Monstern. Ändere die Adresse auf `helden` und den Text auf `"Unbekannt"`.
+--- hinweis
+Die Adresse steht zwischen Backticks: `` `https://rabenfurt.ch/api/helden/${nr}` ``.
+--- test Findet die Helden
+$pruefe(typeof heldenName === "function", 'Es gibt keine Funktion heldenName.');
+const a = await heldenName(1);
+$pruefe(a === "Kael", 'heldenName(1) sollte "Kael" ergeben, es kam ' + $zeige(a) + '.');
+const b = await heldenName(2);
+$pruefe(b === "Mira", 'heldenName(2) sollte "Mira" ergeben, es kam ' + $zeige(b) + '. Setzt du die Nummer nr in die Adresse ein?');
+--- test Unbekannte Nummer
+const e = await heldenName(99);
+$pruefe(e === "Unbekannt", 'heldenName(99) gibt es nicht und sollte "Unbekannt" ergeben, es kam ' + $zeige(e) + '. Prüfst du antwort.ok, bevor du die Daten auspackst?');
+--- test Ein neuer Held im Archiv
+$botschaft("https://rabenfurt.ch/api/helden/7", { name: "Ysolde", klasse: "Klerikerin" });
+const e = await heldenName(7);
+$pruefe(e === "Ysolde", 'Für den neuen Helden 7 sollte "Ysolde" herauskommen, es kam ' + $zeige(e) + '.');
+
+=== k13-6 | code | Die Gildenliste
+--- modus async
+--- botschaften
+{ "https://rabenfurt.ch/api/gruppe": [
+  { "name": "Kael", "tp": 8 },
+  { "name": "Oger", "tp": 0 },
+  { "name": "Mira", "tp": 11 },
+  { "name": "Bran", "tp": 0 }
+] }
+--- szene
+Nach der Schlacht schickt die Gilde eine Liste aller Kämpfer. Orlan will nur wissen, wer noch steht.
+--- erklaerung
+Hier kommt alles zusammen. Ein Server schickt oft eine ganze **Liste von Objekten**. Nach `await antwort.json()` ist das eine ganz normale Liste. Du kannst sie darum wie in Kapitel VIII mit `filter` und `map` bearbeiten:
+
+```
+async function teureWaren() {
+  const antwort = await fetch("https://rabenfurt.ch/api/markt");
+  const waren = await antwort.json();
+  return waren.filter(w => w.preis > 50).map(w => w.name);
+}
+```
+
+`filter` sortiert die günstigen Waren aus, `map` macht aus den übrigen Objekten nur noch ihre Namen. Die zwei Werkzeuge lassen sich mit einem Punkt hintereinanderhängen.
+--- aufgabe
+Schreibe `nochStehend()`. Sie lädt die Liste von `https://rabenfurt.ch/api/gruppe` und gibt die **Namen** aller Kämpfer mit mehr als 0 TP zurück.
+--- start
+async function nochStehend() {
+  // dein Code
+}
+
+async function start() {
+  console.log(await nochStehend());
+}
+
+start();
+--- loesung
+async function nochStehend() {
+  const antwort = await fetch("https://rabenfurt.ch/api/gruppe");
+  const gruppe = await antwort.json();
+  return gruppe.filter(k => k.tp > 0).map(k => k.name);
+}
+
+async function start() {
+  console.log(await nochStehend());
+}
+
+start();
+--- hinweis
+Zuerst wie gewohnt laden und auspacken. Danach `filter` für mehr als 0 TP.
+--- hinweis
+Hänge an das `filter(...)` ein `.map(k => k.name)` an und gib das Ergebnis mit `return` zurück.
+--- test Die Richtigen stehen noch
+$pruefe(typeof nochStehend === "function", 'Es gibt keine Funktion nochStehend.');
+const e = await nochStehend();
+$pruefe(Array.isArray(e), 'nochStehend() sollte eine Liste zurückgeben, es kam ' + $zeige(e) + '.');
+$pruefe(JSON.stringify(e) === JSON.stringify(["Kael", "Mira"]), 'Von Kael (8), Oger (0), Mira (11) und Bran (0) sollten ["Kael", "Mira"] übrig bleiben, es kam ' + $zeige(e) + '.');
+--- test Funktioniert mit einer anderen Gruppe
+$botschaft("https://rabenfurt.ch/api/gruppe", [{ name: "Ayla", tp: 3 }, { name: "Thorin", tp: 0 }]);
+const e = await nochStehend();
+$pruefe(JSON.stringify(e) === JSON.stringify(["Ayla"]), 'Mit Ayla (3) und Thorin (0) sollte ["Ayla"] herauskommen, es kam ' + $zeige(e) + '. Lädst du die Liste mit fetch?');
+
+=== k13-7 | quiz | Das vergessene await
+--- frage
+Der Wetterbericht meldet Sonne. Was erscheint in der Konsole?
+--- code
+async function ladeWetter() {
+  const antwort = await fetch("https://rabenfurt.ch/api/wetter");
+  return await antwort.json();
+}
+
+async function start() {
+  const wetter = ladeWetter();
+  console.log(wetter.himmel);
+}
+
+start();
+--- option
+Sonne
+--- option*
+undefined
+--- option
+Ein Fehler, weil fetch nicht erlaubt ist.
+--- option
+Gar nichts, die Konsole bleibt leer.
+--- erklaerung
+In `start` fehlt das `await` vor `ladeWetter()`. Dann ist `wetter` nicht der Wetterbericht, sondern nur das **Versprechen** darauf. Ein Versprechen hat keine Eigenschaft `himmel`, also erscheint `undefined`. Richtig wäre `const wetter = await ladeWetter();`. Merke: Wer eine `async`-Funktion aufruft und ihr Ergebnis braucht, wartet mit `await`.
+
+=== k13-8 | boss | Das Schwarze Brett
+--- modus async
+--- botschaften
+{ "https://rabenfurt.ch/api/auftraege": [
+  { "titel": "Wölfe vertreiben", "belohnung": 40 },
+  { "titel": "Drachenei bewachen", "belohnung": 250 },
+  { "titel": "Brief nach Nordmark", "belohnung": 15 }
+] }
+--- szene
+Am Schwarzen Brett der Gilde hängen Aufträge. Die Gilde will sie neu auch per Rabe verschicken. Orlan lehnt sich zurück: «Zeig mir, dass du warten kannst.»
+--- erklaerung
+Diese Meisterprüfung verbindet `fetch`, `ok`, das Rekord-Muster und `map`. Hier steht, was du wofür brauchst.
+
+**Laden mit Prüfung** wie in «Wenn der Rabe nichts findet». Ist die Antwort nicht ok, gibst du eine **leere Liste** `[]` zurück. Dann müssen sich die anderen Funktionen nicht um Fehler kümmern.
+
+**Eine async-Funktion ruft eine andere auf.** `besteBelohnung` und `aushang` brauchen beide die Aufträge. Sie laden sie nicht selbst, sondern rufen `ladeAuftraege` auf, mit `await`:
+
+```
+const auftraege = await ladeAuftraege();
+```
+
+**Der Rekord** wie in «Der beste Wurf», nur mit Objekten und `.belohnung`. Ist die Liste leer, gibt es keinen ersten Auftrag als Startwert. Prüfe darum zuerst `auftraege.length === 0`.
+
+**Der Bauplan:**
+
+```
+async function ladeAuftraege() {
+  // 1. fetch auf die Adresse
+  // 2. nicht ok? leere Liste zurückgeben
+  // 3. sonst die ausgepackten Daten zurückgeben
+}
+
+async function besteBelohnung() {
+  // 1. Aufträge mit await ladeAuftraege() holen
+  // 2. leer? "Keine Aufträge" zurückgeben
+  // 3. Rekord-Muster über belohnung, am Schluss den titel zurückgeben
+}
+
+async function aushang() {
+  // Aufträge holen und mit map zu Zeilen wie "Wölfe vertreiben: 40 Gold" machen
+}
+```
+--- aufgabe
+1. `ladeAuftraege()` lädt die Aufträge von `https://rabenfurt.ch/api/auftraege`. Ist die Antwort nicht ok, gibt sie `[]` zurück.
+2. `besteBelohnung()` gibt den **Titel** des Auftrags mit der höchsten Belohnung zurück. Gibt es keine Aufträge, gibt sie `"Keine Aufträge"` zurück.
+3. `aushang()` gibt eine Liste mit Zeilen wie `Wölfe vertreiben: 40 Gold` zurück, eine pro Auftrag.
+--- start
+// Meisterprüfung: Das Schwarze Brett
+
+async function start() {
+  console.log(await besteBelohnung());
+  console.log(await aushang());
+}
+
+start();
+--- loesung
+// Meisterprüfung: Das Schwarze Brett
+async function ladeAuftraege() {
+  const antwort = await fetch("https://rabenfurt.ch/api/auftraege");
+  if (!antwort.ok) {
+    return [];
+  }
+  return await antwort.json();
+}
+
+async function besteBelohnung() {
+  const auftraege = await ladeAuftraege();
+  if (auftraege.length === 0) {
+    return "Keine Aufträge";
+  }
+  let rekord = auftraege[0];
+  for (const a of auftraege) {
+    if (a.belohnung > rekord.belohnung) {
+      rekord = a;
+    }
+  }
+  return rekord.titel;
+}
+
+async function aushang() {
+  const auftraege = await ladeAuftraege();
+  return auftraege.map(a => `${a.titel}: ${a.belohnung} Gold`);
+}
+
+async function start() {
+  console.log(await besteBelohnung());
+  console.log(await aushang());
+}
+
+start();
+--- hinweis
+Beginne mit `ladeAuftraege`. Sie sieht fast aus wie `heldenName`, nur gibst du statt eines Namens die ganze ausgepackte Liste zurück.
+--- hinweis
+In `aushang` reicht nach dem Laden eine Zeile: `return auftraege.map(a => ...);` mit einem Vorlagen-Text.
+--- test ladeAuftraege lädt die Liste
+$pruefe(typeof ladeAuftraege === "function", 'Es gibt keine Funktion ladeAuftraege.');
+const e = await ladeAuftraege();
+$pruefe(Array.isArray(e) && e.length === 3, 'ladeAuftraege() sollte die Liste mit 3 Aufträgen zurückgeben, es kam ' + $zeige(e) + '.');
+--- test Fehlt das Brett, kommt eine leere Liste
+$botschaft("https://rabenfurt.ch/api/auftraege", { $status: 404, daten: { fehler: "Nicht gefunden" } });
+const e = await ladeAuftraege();
+$pruefe(Array.isArray(e) && e.length === 0, 'Bei einer Antwort mit Fehlercode 404 sollte ladeAuftraege() [] zurückgeben, es kam ' + $zeige(e) + '. Prüfst du antwort.ok?');
+--- test besteBelohnung findet den besten Auftrag
+$pruefe(typeof besteBelohnung === "function", 'Es gibt keine Funktion besteBelohnung.');
+$botschaft("https://rabenfurt.ch/api/auftraege", [{ titel: "Wölfe vertreiben", belohnung: 40 }, { titel: "Drachenei bewachen", belohnung: 250 }, { titel: "Brief nach Nordmark", belohnung: 15 }]);
+const e = await besteBelohnung();
+$pruefe(e === "Drachenei bewachen", 'Die höchste Belohnung (250) hat «Drachenei bewachen», es kam ' + $zeige(e) + '.');
+$botschaft("https://rabenfurt.ch/api/auftraege", [{ titel: "Ratten jagen", belohnung: 5 }, { titel: "Karren schieben", belohnung: 3 }]);
+const f = await besteBelohnung();
+$pruefe(f === "Ratten jagen", 'Mit «Ratten jagen» (5) und «Karren schieben» (3) sollte «Ratten jagen» herauskommen, es kam ' + $zeige(f) + '. Merkst du dir als Startwert den ersten Auftrag?');
+--- test Ohne Aufträge
+$botschaft("https://rabenfurt.ch/api/auftraege", []);
+const e = await besteBelohnung();
+$pruefe(e === "Keine Aufträge", 'Ohne Aufträge sollte besteBelohnung() "Keine Aufträge" zurückgeben, es kam ' + $zeige(e) + '.');
+--- test aushang macht die Zeilen
+$pruefe(typeof aushang === "function", 'Es gibt keine Funktion aushang.');
+$botschaft("https://rabenfurt.ch/api/auftraege", [{ titel: "Wölfe vertreiben", belohnung: 40 }, { titel: "Drachenei bewachen", belohnung: 250 }, { titel: "Brief nach Nordmark", belohnung: 15 }]);
+const e = await aushang();
+$pruefe(JSON.stringify(e) === JSON.stringify(["Wölfe vertreiben: 40 Gold", "Drachenei bewachen: 250 Gold", "Brief nach Nordmark: 15 Gold"]), 'aushang() sollte drei Zeilen wie "Wölfe vertreiben: 40 Gold" zurückgeben, es kam ' + $zeige(e) + '.');
+
 ### p1 | Die ersten Runen | print, Variablen, Texte und Zahlen | Runensiegel | pfad:python
 
 === p1-1 | code | Der erste Zauber
@@ -18891,7 +19394,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
   const NACH_ID = Object.fromEntries(LEKTIONEN.map(l => [l.id, l]));
   const KAPITEL_NACH_ID = Object.fromEntries(AKTIVE_KAPITEL.map(k => [k.id, k]));
   const LERNPFADE = PFADE.filter(p => (KAPITEL_NACH_PFAD[p.id] || []).length);
-  const ROEMISCH = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+  const ROEMISCH = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"];
   const lektionenImPfad = pfad => LEKTIONEN.filter(l => l.pfad === pfad);
 
   /* =========================================================
@@ -19539,6 +20042,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       if (v === undefined) return "undefined";
       if (v === null) return "null";
       if (typeof v === "function") return "Funktion " + (v.name || "ohne Namen");
+      if (v instanceof Promise) return "Promise (ein Versprechen, auf das niemand mit await gewartet hat)";
       if (Array.isArray(v)) return (tief || 0) > 3 ? "[…]" : "[" + v.map(x => fmt(x, (tief || 0) + 1)).join(", ") + "]";
       if (typeof v === "object") {
         if ((tief || 0) > 3) return "{…}";
@@ -19564,8 +20068,32 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       return c.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`\\])\/\/[^\n]*/g, "$1");
     }
 
-    self.onmessage = function (ereignis) {
+    // Asynchrone Lektionen: Code und Prüfungen dürfen await benutzen. fetch fragt nicht das echte Internet,
+    // sondern die Botenraben der Lektion (feste Testdaten). Unbekannte Adressen antworten mit 404.
+    const AsyncFunction = (async () => {}).constructor;
+    const pause = ms => new Promise(r => setTimeout(r, ms));
+    let botschaften = {};
+    let offenerFehler = null;
+    function botenEinrichten(b) {
+      botschaften = b;
+      self.$botschaft = (url, daten) => { botschaften[url] = daten; };
+      self.fetch = async url => {
+        await pause(30);
+        url = String(url);
+        const e = Object.prototype.hasOwnProperty.call(botschaften, url) ? botschaften[url] : { $status: 404, daten: { fehler: "Nicht gefunden" } };
+        const status = e && e.$status ? e.$status : 200;
+        const daten = e && e.$status ? e.daten : e;
+        return { ok: status >= 200 && status < 300, status, url,
+          json: async () => JSON.parse(JSON.stringify(daten === undefined ? null : daten)),
+          text: async () => typeof daten === "string" ? daten : JSON.stringify(daten) };
+      };
+      self.onunhandledrejection = e => { e.preventDefault(); if (!offenerFehler) offenerFehler = e.reason; };
+    }
+
+    self.onmessage = async function (ereignis) {
       const { code, tests } = ereignis.data;
+      const asynchron = !!ereignis.data.asynchron;
+      if (asynchron) botenEinrichten(JSON.parse(JSON.stringify(ereignis.data.botschaften || {})));
       const aliase = ereignis.data.aliase || "";
       const umbenennung = ereignis.data.umbenennung || [];
       const anzahlZeilen = code.split("\n").length;
@@ -19660,20 +20188,24 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       const antwort = { ausgabe: [], fehler: null, tests: null };
       let pruefungen = [];
       try {
+        const Fn = asynchron ? AsyncFunction : Function;
+        // Bei asynchronem Code kurz warten, bis Raben und Timer zurück sind
+        const nachlauf = asynchron ? "\n;await new Promise(r => setTimeout(r, 400));" : "";
         if (!tests) {
-          new Function('"use strict";\n' + code + "\n;")();
+          await new Fn('"use strict";\n' + code + "\n;" + nachlauf)();
           antwort.ausgabe = logs.slice();
         } else {
-          const rumpf = '"use strict";\n' + code + "\n;" + aliase + "\n;$ausgabe = $ausgabe.slice();\nreturn [" +
-            tests.map(t => "() => {\n" + t + "\n}").join(",\n") + "];";
+          const rumpf = '"use strict";\n' + code + "\n;" + aliase + nachlauf + "\n;$ausgabe = $ausgabe.slice();\nreturn [" +
+            tests.map(t => (asynchron ? "async " : "") + "() => {\n" + t + "\n}").join(",\n") + "];";
           let codeText = ohneKommentare(code);
           for (const [u, e] of umbenennung) {
             codeText = codeText.replace(new RegExp("(?<!" + NAMENSRAND + ")" + regEsc(u) + "(?!" + NAMENSRAND + ")", "g"), e);
           }
-          const fn = new Function("$pruefe", "$zeige", "$erwarteAusgabe", "$folge", "$lauf", "$code", "$ausgabe", "$notiz", "$enthaelt", "$gleich", rumpf);
-          pruefungen = fn($pruefe, $zeige, $erwarteAusgabe, $folge, $lauf, codeText, logs, $notiz, $enthaelt, $gleich);
+          const fn = new Fn("$pruefe", "$zeige", "$erwarteAusgabe", "$folge", "$lauf", "$code", "$ausgabe", "$notiz", "$enthaelt", "$gleich", rumpf);
+          pruefungen = await fn($pruefe, $zeige, $erwarteAusgabe, $folge, $lauf, codeText, logs, $notiz, $enthaelt, $gleich);
           antwort.ausgabe = logs.slice();
         }
+        if (offenerFehler) throw offenerFehler;
       } catch (e) {
         antwort.ausgabe = logs.slice();
         antwort.fehler = fehlerInfo(e, anzahlZeilen);
@@ -19689,7 +20221,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
           Math.random = originalZufall;
           sammler = [];
           try {
-            t();
+            await t();
             antwort.tests.push({ status: "ok" });
           } catch (e) {
             gescheitert = true;
@@ -20297,7 +20829,9 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     return "Python meldet einen Fehler.";
   }
 
-  function ausfuehren(code, tests, toleranz) {
+  // Asynchrone Lektionen (--- modus async) bekommen await und die Botenraben der Lektion statt des echten Internets
+  const asyncZusatz = l => l && l.modus === "async" ? { asynchron: true, botschaften: l.botschaften ? JSON.parse(l.botschaften) : {} } : null;
+  function ausfuehren(code, tests, toleranz, zusatz) {
     return new Promise(fertig => {
       let w;
       try { w = new Worker(workerAdresse); }
@@ -20305,14 +20839,14 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
         fertig({ ausgabe: [], fehler: { name: "Umgebung", text: "Dieser Browser erlaubt hier keine Ausführung von Code (Web Worker blockiert)." } });
         return;
       }
-      const zeit = setTimeout(() => { w.terminate(); fertig({ zeitUeberschritten: true, ausgabe: [] }); }, 2500);
+      const zeit = setTimeout(() => { w.terminate(); fertig({ zeitUeberschritten: true, ausgabe: [] }); }, zusatz ? 6000 : 2500);
       w.onmessage = e => { clearTimeout(zeit); w.terminate(); fertig(e.data); };
       w.onerror = e => {
         e.preventDefault();
         clearTimeout(zeit); w.terminate();
         fertig({ ausgabe: [], fehler: { name: "Error", text: e.message || "Unbekannter Fehler" } });
       };
-      w.postMessage({ code, tests, aliase: toleranz ? toleranz.aliase : "", umbenennung: toleranz ? toleranz.umbenennung : [] });
+      w.postMessage(Object.assign({ code, tests, aliase: toleranz ? toleranz.aliase : "", umbenennung: toleranz ? toleranz.umbenennung : [] }, zusatz || {}));
     });
   }
 
@@ -20334,6 +20868,8 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       [/Identifier '(.+)' has already been declared/, m => "«" + m[1] + "» wurde zweimal erstellt. Lass beim zweiten Mal let oder const weg, oder wähle einen anderen Namen."],
       [/Cannot access '(.+)' before initialization/, m => "«" + m[1] + "» wird benutzt, bevor es erstellt wurde. Verschiebe die Zeile mit const oder let weiter nach oben."],
       [/is not iterable/, () => "Die Schleife bekommt keine Liste, sondern etwas anderes (oft undefined). Gibt deine Funktion die Liste mit return zurück?"],
+      [/^(.+)\.json is not a function/, m => "«" + m[1] + "» ist noch keine Antwort, sondern nur ein Versprechen darauf. Fehlt ein await vor fetch(...)?"],
+      [/await is only valid in async functions/, () => "await geht nur in einer Funktion, die mit async beginnt. Schreibe async vor function."],
       [/^(.+) is not a function/, m => "«" + m[1] + "» ist keine Funktion. Stimmt die Schreibweise?"],
       [/hört nicht mehr auf/, () => "Eine Schleife läuft immer weiter. Der Kodex hat sie angehalten. Prüfe, ob ihre Bedingung irgendwann falsch wird."],
       [/of null \(reading '(.+)'\)/, m => "Du willst «" + m[1] + "» bei etwas benutzen, das es nicht gibt (null). Meistens hat document.querySelector(...) kein Element gefunden: Stimmt die ID, und steht das # davor?"],
@@ -21296,7 +21832,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       if (web) { vorschauStarten(); return; }
       const k = $("#ausfuehren");
       k.disabled = true;
-      const ergebnis = sprache === "python" ? await ausfuehrenPython(editor.wert(), null, [], ladeHinweis) : await ausfuehren(editor.wert(), null);
+      const ergebnis = sprache === "python" ? await ausfuehrenPython(editor.wert(), null, [], ladeHinweis) : await ausfuehren(editor.wert(), null, null, asyncZusatz(l));
       k.disabled = false;
       zeigeKonsole(ergebnis);
       botFehler = botDaten(editor.wert(), ergebnis, null);
@@ -21314,7 +21850,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       let ergebnis;
       if (sprache === "python") ergebnis = await ausfuehrenPython(code, l.tests.map(t => t.code), pythonErwartet(l), ladeHinweis);
       else if (web) ergebnis = await pruefeWeb(l, code, l.modus === "seite" ? null : namensToleranz(l, code));
-      else ergebnis = await ausfuehren(code, l.tests.map(t => t.code), namensToleranz(l, code));
+      else ergebnis = await ausfuehren(code, l.tests.map(t => t.code), namensToleranz(l, code), asyncZusatz(l));
       knopf.disabled = false;
       laeuft = false;
       if (!web || ergebnis.fehler || ergebnis.zeitUeberschritten) zeigeKonsole(ergebnis);
@@ -22440,7 +22976,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
   if (nachgereicht.length) setTimeout(() => zeigeNeueAbzeichen(nachgereicht), 600);
   sicherungStart();
 
-  window.__kodex = { LEKTIONEN, ausfuehren, ausfuehrenPython, namensToleranz, pruefeWeb, sichereSchleifen, pythonErwartet, zustandHolen: () => zustand,
+  window.__kodex = { LEKTIONEN, ausfuehren, asyncZusatz, ausfuehrenPython, namensToleranz, pruefeWeb, sichereSchleifen, pythonErwartet, zustandHolen: () => zustand,
     zustandSetzen: z => {
       zustand = normalisiere(z);
       try { localStorage.setItem(SCHLUESSEL, JSON.stringify(zustand)); } catch (e) { /* Speicher nicht verfuegbar */ }
