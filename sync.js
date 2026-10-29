@@ -36,6 +36,11 @@ export function zusammenfuehren(a, b) {
   const projekte = ((z.werkstatt && z.werkstatt.projekte) || []).slice();
   for (const p of (andere.werkstatt && andere.werkstatt.projekte) || []) if (!projekte.some(x => x.id === p.id)) projekte.push(p);
   z.werkstatt = Object.assign({ aktiv: null }, z.werkstatt, { projekte });
+  // Gemerkte Lektionen: je Lektion gilt die neuere Änderung
+  z.gemerkt = Object.assign({}, andere.gemerkt || {});
+  for (const [id, e] of Object.entries(basis.gemerkt || {})) {
+    if (!z.gemerkt[id] || (e && e.zeit || 0) >= (z.gemerkt[id].zeit || 0)) z.gemerkt[id] = e;
+  }
   const sa = andere.schatz || {}, sz = z.schatz || {};
   z.schatz = {
     ausgegeben: Math.max(sz.ausgegeben || 0, sa.ausgegeben || 0),

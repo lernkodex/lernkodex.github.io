@@ -313,6 +313,22 @@ pre.code-block code { font-size: inherit; }
 .lek-nav { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
 .lek-nav .wo { color: var(--leise); font-size: .92rem; }
 .reihe { display: flex; gap: 5px; margin-left: auto; }
+.merk-knopf svg { width: 18px; height: 18px; }
+.merk-knopf.an { color: var(--gold); }
+.merk-knopf.an svg { fill: currentColor; }
+.merk-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; width: 100%; }
+.merk-liste li { display: grid; }
+.merk-liste a { font-weight: 700; color: var(--tinte); }
+.merk-liste small { color: var(--leise); }
+.spick { display: grid; gap: 16px; }
+.spick .schatz-kopf { margin-bottom: 0; }
+.spick-suche { max-width: 420px; }
+.spick-kapitel { display: grid; gap: 8px; }
+.spick-kapitel h2 { font-size: 1.05rem; color: var(--leise); margin-top: 8px; }
+.spick-eintrag { border: 1px solid var(--linie); border-radius: 12px; background: var(--blatt); padding: 0 14px; }
+.spick-eintrag summary { cursor: pointer; font-weight: 700; padding: 12px 0; min-height: 48px; display: flex; align-items: center; }
+.spick-eintrag[open] { padding-bottom: 14px; }
+.spick-eintrag .prosa { margin-bottom: 10px; }
 .reihe a {
   width: 22px; height: 8px; border-radius: 99px; background: var(--mulde); display: block;
 }
@@ -18585,7 +18601,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       ep: 0, erledigt: {}, code: {}, versuche: {}, hinweise: {}, loesung: {}, tage: [], alleOffen: false,
       pfad: "js", kapitelDatum: {}, tagesaufgabe: null, tagesErledigt: {}, wdh: {},
       abzeichen: {}, stats: {}, ausruestung: {}, werkstatt: { projekte: [], aktiv: null },
-      vorschauSpeicher: {}
+      vorschauSpeicher: {}, gemerkt: {}
     };
   }
   function laden() {
@@ -18597,7 +18613,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
   }
   function normalisiere(daten) {
     const z = Object.assign(leer(), daten);
-    for (const k of ["kapitelDatum", "tagesErledigt", "wdh", "abzeichen", "stats", "ausruestung", "vorschauSpeicher", "erledigt", "code", "versuche", "hinweise", "loesung", "kapitelWahl", "verlauf"]) {
+    for (const k of ["kapitelDatum", "tagesErledigt", "wdh", "abzeichen", "stats", "ausruestung", "vorschauSpeicher", "erledigt", "code", "versuche", "hinweise", "loesung", "kapitelWahl", "verlauf", "gemerkt"]) {
       if (!z[k] || typeof z[k] !== "object") z[k] = {};
     }
     if (!Array.isArray(z.tage)) z.tage = [];
@@ -19142,6 +19158,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     stab: svg24('<path d="M4 20L15 9"/><path d="M17.5 3.5l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8z"/><path d="M13.5 7.5l3 3"/>'),
     amulett: svg24('<path d="M6 3c0 4 2.5 6 6 6s6-2 6-6"/><circle cx="12" cy="15" r="5"/><path d="M12 12.5l.8 1.6 1.7.2-1.3 1.2.3 1.7-1.5-.8-1.5.8.3-1.7-1.3-1.2 1.7-.2z"/>'),
     rahmen: svg24('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5.5"/><path d="M12 2v1.5M12 20.5V22M2 12h1.5M20.5 12H22"/>'),
+    lesezeichen: svg24('<path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"/>'),
     muenze: svg24('<circle cx="12" cy="12" r="8.5"/><path d="M14.5 9.3c-.5-.8-1.4-1.3-2.5-1.3-1.5 0-2.6.8-2.6 2s1.1 1.7 2.6 2 2.6.8 2.6 2-1.1 2-2.6 2c-1.1 0-2-.5-2.5-1.3M12 6.5V8M12 16v1.5"/>'),
     trank: svg24('<path d="M10 3h4M10.5 3v5.2L6.2 15.6A3.6 3.6 0 0 0 9.3 21h5.4a3.6 3.6 0 0 0 3.1-5.4L13.5 8.2V3"/><path d="M7.6 14.5h8.8"/><circle cx="11" cy="17.5" r=".7" fill="currentColor"/><circle cx="13.5" cy="16.5" r=".5" fill="currentColor"/>')
   };
@@ -20280,11 +20297,12 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       '<div class="zahlen"><div><b>' + fertigPfad + " / " + lekPfad.length + "</b><span>" + esc(pfadName(pfad)) + "</span></div>" +
       "<div><b>" + kapitel.filter(kapitelFertig).length + " / " + kapitel.length + "</b><span>Siegel im Pfad</span></div>" +
       "<div><b>" + serie() + "</b><span>Tage in Folge</span></div></div>" +
-      '<a class="knopf still klein-knopf" href="#statistik">' + SYMBOL.auge + "Lernstatistik ansehen</a></div>";
+      '<div class="aktionen-zeile"><a class="knopf still klein-knopf" href="#statistik">' + SYMBOL.auge + "Lernstatistik ansehen</a>" +
+      '<a class="knopf still klein-knopf" href="#spickzettel">' + SYMBOL.rolle + "Spickzettel</a></div></div>";
 
     ansicht.innerHTML =
       '<div class="seite karte"><section class="auftakt">' + auftakt + brett + "</section>" +
-      '<section class="alltag" aria-label="Jeden Tag">' + karteTagesaufgabe() + karteWiederholung() + karteWoche() + karteSchatz() + karteWerkstatt() + "</section>" +
+      '<section class="alltag" aria-label="Jeden Tag">' + karteGemerkt() + karteTagesaufgabe() + karteWiederholung() + karteWoche() + karteSchatz() + karteWerkstatt() + "</section>" +
       '<section class="pfadwahl" aria-label="Lernpfade"><div class="pfad-reiter" role="tablist">' +
       LERNPFADE.filter(p => !(GERAET.schlank && p.id === "python")).map(p => {
         const alle = lektionenImPfad(p.id), fertig = alle.filter(l => istErledigt(l.id)).length;
@@ -20712,7 +20730,68 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     }).join("");
     return '<nav class="lek-nav"><a class="knopf still" href="#karte">' + ICON.zurueck + "Karte</a>" +
       '<span class="wo">' + esc(kapitelLabel(l.kapitel)) + " · " + esc(l.kapitel.titel) + " · " + l.nrImKapitel + " von " + l.kapitel.lektionen.length + "</span>" +
+      (l.pfad === "wdh" ? "" : merkKnopf(l)) +
       '<div class="reihe">' + reihe + "</div></nav>";
+  }
+
+  /* ---------- Merken: auf dem Handy vormerken, am Laptop lösen ---------- */
+  const istGemerkt = id => !!(zustand.gemerkt[id] && zustand.gemerkt[id].an);
+  const gemerkteLektionen = () => Object.keys(zustand.gemerkt).filter(id => istGemerkt(id) && NACH_ID[id] && !istErledigt(id))
+    .sort((a, b) => zustand.gemerkt[b].zeit - zustand.gemerkt[a].zeit).map(id => NACH_ID[id]);
+  function merkKnopf(l) {
+    const an = istGemerkt(l.id);
+    return '<button type="button" class="knopf still merk-knopf' + (an ? " an" : "") + '" data-merk="' + l.id + '" aria-pressed="' + an + '">' + SYMBOL.lesezeichen + (an ? "Gemerkt" : "Merken") + "</button>";
+  }
+  ansicht.addEventListener("click", e => {
+    const b = e.target.closest("[data-merk]");
+    if (!b) return;
+    const an = !istGemerkt(b.dataset.merk);
+    zustand.gemerkt[b.dataset.merk] = { an, zeit: Date.now() };
+    speichern();
+    b.outerHTML = merkKnopf(NACH_ID[b.dataset.merk]);
+    toast(an ? "Gemerkt. Du findest die Lektion zuoberst auf der Startseite." : "Nicht mehr gemerkt");
+  });
+  function karteGemerkt() {
+    const liste = gemerkteLektionen();
+    if (!liste.length) return "";
+    return '<article class="kachel wichtig"><div class="kachel-kopf"><span class="kachel-symbol">' + SYMBOL.lesezeichen + '</span><span class="eyebrow">Gemerkt</span></div>' +
+      "<h3>" + (liste.length === 1 ? "1 Lektion wartet" : liste.length + " Lektionen warten") + '</h3><ul class="merk-liste">' +
+      liste.slice(0, 4).map(l => '<li><a href="#' + l.id + '">' + esc(l.titel) + "</a><small>" + esc(pfadName(l.pfad)) + " · " + esc(artText(l)) + "</small></li>").join("") + "</ul>" +
+      (liste.length > 4 ? '<p class="klein">und ' + (liste.length - 4) + " weitere</p>" : "") + "</article>";
+  }
+
+  /* ---------- Spickzettel: alles Gelernte zum Nachschlagen ---------- */
+  function spickEintrag(l) {
+    const erk = l.erklaerung || "";
+    const m = /^[\s\S]*?```[\s\S]*?```/.exec(erk);
+    return m ? m[0] : erk.split(/\n\s*\n/)[0];
+  }
+  function zeigeSpickzettel() {
+    document.title = "Spickzettel · Zauberkodex";
+    const pfade = LERNPFADE.filter(p => p.id !== "raetsel" && !(typeof GERAET !== "undefined" && GERAET.schlank && p.id === "python"));
+    const gelernt = pfad => (KAPITEL_NACH_PFAD[pfad] || []).map(k => ({ k, lek: k.lektionen.filter(l => istErledigt(l.id) && l.erklaerung && !istQuizArt(l)) })).filter(x => x.lek.length);
+    let pfad = zeigeSpickzettel.pfad && pfade.some(p => p.id === zeigeSpickzettel.pfad) ? zeigeSpickzettel.pfad : (pfade.find(p => gelernt(p.id).length) || pfade[0] || {}).id;
+    ansicht.innerHTML = '<div class="seite spick"><div class="schatz-kopf"><p class="eyebrow">Spickzettel</p><h1 class="gross">Alles, was du schon kannst</h1>' +
+      '<p class="klein">Zu jeder gelösten Lektion das Wichtigste auf einen Blick. Tippe auf einen Eintrag, um ihn aufzuklappen.</p></div>' +
+      '<div class="pfad-reiter" role="tablist">' + pfade.map(p => '<button type="button" role="tab" class="reiter' + (p.id === pfad ? " aktiv" : "") + '" data-spick-pfad="' + p.id + '"><span>' + esc(p.name) + "</span></button>").join("") + "</div>" +
+      '<label class="feld spick-suche"><span>Suchen</span><input type="search" id="spick-suche" placeholder="zum Beispiel push, if oder Funktion" autocomplete="off"></label>' +
+      '<div id="spick-liste"></div></div>';
+    const liste = $("#spick-liste");
+    const gruppen = gelernt(pfad);
+    liste.innerHTML = gruppen.length ? gruppen.map(({ k, lek }) => '<section class="spick-kapitel"><h2>' + esc(kapitelLabel(k)) + " · " + esc(k.titel) + "</h2>" +
+      lek.map(l => '<details class="spick-eintrag" data-text="' + esc((l.titel + " " + l.erklaerung).toLowerCase()) + '"><summary>' + esc(l.titel) + "</summary>" +
+        '<div class="prosa">' + md(spickEintrag(l), spracheVon(l)) + '</div><a class="knopf still klein-knopf" href="#' + l.id + '">Ganze Lektion öffnen</a></details>').join("") + "</section>").join("")
+      : '<p class="klein">In diesem Pfad hast du noch keine Lektion gelöst. Sobald du eine schaffst, steht sie hier.</p>';
+    $("#spick-suche").addEventListener("input", e => {
+      const q = e.target.value.trim().toLowerCase();
+      liste.querySelectorAll(".spick-eintrag").forEach(d => {
+        const passt = !q || d.dataset.text.includes(q);
+        d.hidden = !passt;
+        if (q && passt) d.open = true;
+      });
+      liste.querySelectorAll(".spick-kapitel").forEach(s => { s.hidden = !s.querySelector(".spick-eintrag:not([hidden])"); });
+    });
+    ansicht.querySelectorAll("[data-spick-pfad]").forEach(b => b.addEventListener("click", () => { zeigeSpickzettel.pfad = b.dataset.spickPfad; zeigeSpickzettel(); }));
   }
   const bereitsGeloest = l => l.pfad === "tag" ? zustand.tagesErledigt[heute()] === l.id : istErledigt(l.id);
 
@@ -21792,9 +21871,9 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     const datum = new Date().toLocaleDateString("de-CH", { weekday: "long", day: "numeric", month: "long" });
     ansicht.innerHTML = '<div class="seite heute"><div class="heute-kopf"><p class="eyebrow">' + esc(datum) + '</p><h1 class="gross">Dein Tag im Kodex</h1>' +
       '<p class="klein">' + (s ? ICON.flamme + " " + s + (s === 1 ? " Tag" : " Tage") + " in Folge" : "Heute beginnt eine neue Serie.") + " · " + esc(r.name) + ", " + zustand.ep + " EP</p></div>" +
-      '<section class="alltag" aria-label="Heute">' + karteTagesaufgabe() + karteWiederholung() + karteRaetsel() + karteWoche() + karteSchatz() + "</section>" +
+      '<section class="alltag" aria-label="Heute">' + karteGemerkt() + karteTagesaufgabe() + karteWiederholung() + karteRaetsel() + karteWoche() + karteSchatz() + "</section>" +
       '<div class="aktionen-zeile">' + (n ? '<a class="knopf haupt" href="#' + n.id + '">Weiterlernen' + ICON.weiter + "</a>" : "") +
-      '<a class="knopf" href="#karte">Alle Lektionen</a></div></div>';
+      '<a class="knopf" href="#karte">Alle Lektionen</a><a class="knopf still" href="#spickzettel">' + SYMBOL.rolle + "Spickzettel</a></div></div>";
   }
   function route() {
     if (fensterSchliessen) fensterSchliessen();
@@ -21806,6 +21885,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     else if (wocheBelohnen()) toast("Wochenquest erfüllt: +" + WOCHEN_GOLD + " Gold");
     if (ziel === "profil") zeigeProfil();
     else if (ziel === "schatzkammer") zeigeSchatzkammer();
+    else if (ziel === "spickzettel") zeigeSpickzettel();
     else if (ziel === "werkstatt") zeigeWerkstatt();
     else if (ziel === "wiederholung") zeigeWiederholung();
     else if (ziel === "statistik") zeigeStatistik();
