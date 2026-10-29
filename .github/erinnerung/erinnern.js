@@ -9,7 +9,14 @@ if (!konto) {
   console.log("Kein FIREBASE_SERVICE_ACCOUNT gesetzt, es wird nichts verschickt.");
   process.exit(0);
 }
-initializeApp({ credential: cert(JSON.parse(konto)) });
+let schluessel;
+try { schluessel = JSON.parse(konto.trim()); }
+catch (e) {
+  console.log("Das Geheimnis FIREBASE_SERVICE_ACCOUNT ist kein gültiges JSON (" + e.message + ").");
+  console.log("Lösung: In Firebase einen neuen privaten Schlüssel erzeugen und den GANZEN Inhalt der Datei unverändert als Geheimnis eintragen.");
+  process.exit(1);
+}
+initializeApp({ credential: cert(schluessel) });
 const db = getFirestore();
 const nachrichten = getMessaging();
 
