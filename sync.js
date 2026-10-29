@@ -128,40 +128,51 @@ async function laden() {
   return { auth: auth.getAuth(a), A: auth, db, F: fs };
 }
 
-/* Der Bereich «Synchronisieren» in den Einstellungen */
+/* Das Konto in den Einstellungen: ein Bibliotheksausweis mit Porträt, Name und Stand des Abgleichs */
+const SCHLOSS = '<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>';
+function ausweis(zu, titel, unter, fuss) {
+  const info = kodex && kodex.gildeInfo ? kodex.gildeInfo() : { name: "", portraet: "" };
+  return '<div class="ausweis' + (zu ? " zu" : "") + '"><span class="ausweis-bild">' + (kodex ? kodex.portraetSvg(info.portraet) : "") +
+    (zu ? '<span class="ausweis-schloss">' + SCHLOSS + "</span>" : "") + "</span>" +
+    '<div class="ausweis-text"><p class="eyebrow">Bibliotheksausweis</p><b class="ausweis-name">' + esc(titel || info.name || "Namenloser Held") + "</b>" +
+    '<span class="ausweis-mail" id="sync-name">' + esc(unter || "") + "</span></div>" + (fuss ? '<div class="ausweis-fuss">' + fuss + "</div>" : "") + "</div>";
+}
 function ui(el) {
   if (!el) return;
   bereich = el;
   el.hidden = false;
-  const kopf = "<h3>Synchronisieren</h3>";
   if (!konfiguriert) {
-    el.innerHTML = kopf + '<p class="klein">Noch nicht eingerichtet. Trage die Firebase-Werte in firebase-config.js ein, wie in der Anleitung beschrieben.</p>';
+    el.innerHTML = ausweis(true, "", "Noch nicht eingerichtet", '<p class="zb-info">Trage die Firebase-Werte in firebase-config.js ein, wie in der Anleitung beschrieben.</p>');
     return;
   }
   if (!fb) {
-    el.innerHTML = kopf + '<p class="klein">' + esc(stand.phase === "fehler" ? stand.text : "Verbinde mit Firebase …") + "</p>";
+    const fehler = stand.phase === "fehler";
+    el.innerHTML = ausweis(true, "", "", '<span class="siegel-stand" data-stand="' + (fehler ? "fehler" : "laeuft") + '"><i></i>' + esc(fehler ? stand.text : "Verbinde mit der Bibliothek …") + "</span>");
     return;
   }
   if (nutzer) {
-    const info = stand.phase === "fehler" ? '<span class="melde-nein">' + esc(stand.text) + "</span>"
-      : stand.phase === "ok" ? "Alles abgeglichen" + (stand.zuletzt ? ", zuletzt um " + esc(stand.zuletzt.toLocaleTimeString("de-CH")) : "") + "."
-      : esc(stand.text || "Gleiche ab …");
-    el.innerHTML = kopf + '<p class="klein">Angemeldet als <b id="sync-name"></b>. ' + info + "</p>" +
-      '<div class="fenster-zeile" style="justify-content:flex-start"><button class="knopf" type="button" id="sync-jetzt">Jetzt abgleichen</button>' +
-      '<button class="knopf still" type="button" id="sync-ab">Abmelden</button></div>' +
-      '<div id="erinnerung-bereich"></div>';
+    const phase = ["ok", "fehler", "laeuft"].includes(stand.phase) ? stand.phase : "laeuft";
+    const text = phase === "fehler" ? stand.text
+      : phase === "ok" ? "Abgeglichen" + (stand.zuletzt ? " um " + stand.zuletzt.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" }) : "")
+      : stand.text || "Gleiche ab …";
+    el.innerHTML = ausweis(false, "", nutzer.email || "",
+      '<span class="siegel-stand" data-stand="' + phase + '"><i></i>' + esc(text) + "</span>" +
+      '<div class="zb-knoepfe"><button class="knopf" type="button" id="sync-jetzt">Jetzt abgleichen</button>' +
+      '<button class="knopf still" type="button" id="sync-ab">Abmelden</button></div>') +
+      '<div class="zb-gruppe" id="erinnerung-bereich" style="margin-top:14px"></div>';
     erinnerungZeichnen(el.querySelector("#erinnerung-bereich"));
-    el.querySelector("#sync-name").textContent = nutzer.email || "";
     el.querySelector("#sync-jetzt").addEventListener("click", () => { zuletzt = ""; schreiben(true); });
     el.querySelector("#sync-ab").addEventListener("click", () => fb.A.signOut(fb.auth));
     return;
   }
-  el.innerHTML = kopf + '<p class="klein">Melde dich auf Laptop und Handy mit demselben Konto an. Dann ist dein Fortschritt überall gleich. Konten vergibt der Besitzer des Kodex.</p>' +
+  el.innerHTML = ausweis(true, "", "Noch nicht verbunden. Melde dich an, dann ist dein Fortschritt auf Laptop und Handy gleich.") +
+    '<div class="zb-gruppe ausweis-form" style="margin-top:14px">' +
     '<label class="feld"><span>E-Mail</span><input type="email" id="sync-mail" autocomplete="username"></label>' +
     '<label class="feld"><span>Passwort</span><input type="password" id="sync-pw" autocomplete="current-password"></label>' +
-    '<p class="klein melde-nein" id="sync-meldung">' + (stand.phase === "fehler" ? esc(stand.text) : "") + "</p>" +
-    '<div class="fenster-zeile" style="justify-content:flex-start"><button class="knopf haupt" type="button" id="sync-an">Anmelden</button>' +
-    '<button class="knopf still" type="button" id="sync-vergessen">Passwort vergessen</button></div>';
+    '<p class="zb-meldung melde-nein" id="sync-meldung">' + (stand.phase === "fehler" ? esc(stand.text) : "") + "</p>" +
+    '<div class="zb-knoepfe"><button class="knopf haupt" type="button" id="sync-an">Anmelden</button>' +
+    '<button class="knopf still" type="button" id="sync-vergessen">Passwort vergessen</button></div>' +
+    '<p class="zb-info">Konten vergibt der Besitzer des Kodex.</p></div>';
   const mail = () => el.querySelector("#sync-mail").value.trim();
   const pw = () => el.querySelector("#sync-pw").value;
   const melde = t => { el.querySelector("#sync-meldung").textContent = t; };
@@ -196,25 +207,25 @@ async function erinnerungAus() {
   await fb.F.deleteDoc(fb.F.doc(fb.db, "push", nutzer.uid));
 }
 async function erinnerungZeichnen(el) {
-  if (!el || !vapidKey || !fb || !nutzer) return;
-  const kopf = "<h3>Tägliche Erinnerung</h3>";
+  if (!el || !vapidKey || !fb || !nutzer) { if (el) el.hidden = true; return; }
+  const glocke = '<span class="zb-symbol"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg></span>';
   if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
-    el.innerHTML = kopf + '<p class="klein">Dieser Browser kann keine Benachrichtigungen empfangen.</p>';
+    el.innerHTML = '<div class="zb-zeile">' + glocke + '<span class="zb-text"><b>Tägliche Erinnerung</b><span>Dieser Browser kann keine Benachrichtigungen empfangen.</span></span></div>';
     return;
   }
   let an = false;
   try { an = Notification.permission === "granted" && (await fb.F.getDoc(fb.F.doc(fb.db, "push", nutzer.uid))).exists(); } catch (e) { an = false; }
   if (!document.body.contains(el)) return;
-  el.innerHTML = kopf + '<p class="klein">' + (an
-    ? "Eingeschaltet. Hast du an einem Tag noch nicht gelernt, erinnert dich Orlan am frühen Abend auf diesem Gerät."
-    : "Hast du an einem Tag noch nicht gelernt, schickt dir Orlan am frühen Abend eine kurze Erinnerung. Sie kommt auf das Gerät, auf dem du sie zuletzt eingeschaltet hast.") + "</p>" +
-    '<p class="klein melde-nein" id="erinnerung-meldung"></p>' +
-    '<div class="fenster-zeile" style="justify-content:flex-start"><button class="knopf' + (an ? " still" : "") + '" type="button" id="erinnerung-knopf">' + (an ? "Ausschalten" : "Einschalten") + "</button></div>";
+  el.innerHTML = '<label class="zb-zeile zb-klick" for="erinnerung-knopf">' + glocke + '<span class="zb-text"><b>Tägliche Erinnerung</b><span>' + (an
+    ? "Hast du noch nicht gelernt, erinnert dich Orlan am frühen Abend auf diesem Gerät."
+    : "Orlan erinnert dich am frühen Abend, wenn du an dem Tag noch nicht gelernt hast.") + "</span>" +
+    '<span class="zb-meldung melde-nein" id="erinnerung-meldung"></span></span>' +
+    '<input type="checkbox" class="umschalter" id="erinnerung-knopf"' + (an ? " checked" : "") + "></label>";
   const k = el.querySelector("#erinnerung-knopf");
-  k.addEventListener("click", async () => {
+  k.addEventListener("change", async () => {
     k.disabled = true;
     try { if (an) await erinnerungAus(); else await erinnerungAn(); erinnerungZeichnen(el); }
-    catch (e) { el.querySelector("#erinnerung-meldung").textContent = (e && e.message) || "Das hat nicht geklappt."; k.disabled = false; }
+    catch (e) { el.querySelector("#erinnerung-meldung").textContent = (e && e.message) || "Das hat nicht geklappt."; k.checked = an; k.disabled = false; }
   });
 }
 
@@ -307,7 +318,7 @@ if (botUrl) window.__kodexBot = async frage => {
 };
 window.__kodexSyncUi = ui;
 window.__kodexNachSpeichern = () => schreiben(false);
-if (knopf) knopf.addEventListener("click", () => document.getElementById("menue").click());
+if (knopf) knopf.addEventListener("click", () => window.__kodexEinstellungen ? window.__kodexEinstellungen("konto") : document.getElementById("menue").click());
 
 if (konfiguriert && kodex) {
   if (knopf) knopf.hidden = false;

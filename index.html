@@ -1042,6 +1042,354 @@ body::after {
 
 .buch section > *, .buch .aufgabe > *, .buch .szene > * { min-width: 0; }
 .prosa code { white-space: normal; overflow-wrap: break-word; }
+
+/* =========================================================
+   Feinschliff (Design-Meister): Bewegung, Zustände, Lesbarkeit.
+   Alles hier überschreibt nur, ganzer Block entfernbar.
+   ========================================================= */
+:root {
+  --bewegung-druck: 120ms;
+  --bewegung-schnell: 160ms;
+  --bewegung-normal: 220ms;
+  --bewegung-gross: 300ms;
+  --kurve-raus: cubic-bezier(0.23, 1, 0.32, 1);
+  --kurve-wechsel: cubic-bezier(0.77, 0, 0.175, 1);
+  --schatten-1: 0 1px 2px rgba(29, 26, 43, .06);
+  --schatten-2: 0 1px 2px rgba(29, 26, 43, .06), 0 6px 16px -6px rgba(29, 26, 43, .14);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --schatten-1: 0 1px 2px rgba(6, 6, 24, .35);
+    --schatten-2: 0 1px 2px rgba(6, 6, 24, .35), 0 8px 20px -8px rgba(6, 6, 24, .6);
+  }
+}
+:root[data-theme="dark"] {
+  --schatten-1: 0 1px 2px rgba(6, 6, 24, .35);
+  --schatten-2: 0 1px 2px rgba(6, 6, 24, .35), 0 8px 20px -8px rgba(6, 6, 24, .6);
+}
+
+/* Lesbarkeit */
+.prosa { line-height: 1.62; }
+.buch h1, .weiter h1, h1.gross, .werkstatt-leer h1 { letter-spacing: -.005em; }
+.wp-art, .kachel p, .klein { text-wrap: pretty; }
+.eyebrow { letter-spacing: .1em; }
+
+/* Tippen: Grössen und sofortige Rückmeldung */
+button, a, summary, [role="button"] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.knopf { min-height: 44px; }
+.symbolknopf { width: 42px; height: 42px; }
+.profilknopf { height: 42px; }
+.knopf, .symbolknopf, .profilknopf, .mini, .option, .wegpunkt, .reiter, .projekt, .neu-art, .gegenstand,
+.portraet-knopf, .datei-tab, .puzzle-vorrat button, .code-flaeche button, .spick-eintrag summary {
+  transition:
+    background-color var(--bewegung-schnell) var(--kurve-raus),
+    border-color var(--bewegung-schnell) var(--kurve-raus),
+    color var(--bewegung-schnell) var(--kurve-raus),
+    box-shadow var(--bewegung-normal) var(--kurve-raus),
+    transform var(--bewegung-druck) var(--kurve-raus),
+    opacity var(--bewegung-schnell) var(--kurve-raus);
+}
+.knopf:active:not(:disabled), .symbolknopf:active, .profilknopf:active, .mini:active,
+.option:active:not(:disabled), .wegpunkt:active:not(:disabled), .reiter:active, .projekt:active,
+.neu-art:active, .gegenstand:active:not(:disabled), .portraet-knopf:active, .puzzle-vorrat button:active {
+  transform: scale(.97);
+}
+.knopf.haupt { box-shadow: var(--schatten-1); }
+.knopf.haupt:hover { filter: none; background: color-mix(in srgb, var(--knopf) 90%, var(--blatt)); box-shadow: var(--schatten-2); }
+.knopf:disabled { opacity: .45; }
+.option:hover:not(:disabled) { background: color-mix(in srgb, var(--arkan-grund) 45%, var(--blatt)); }
+.wegpunkt.aktuell { box-shadow: 0 0 0 3px color-mix(in srgb, var(--arkan) 14%, transparent); }
+
+/* Fokus: gut sichtbar, auch auf farbigen Knöpfen */
+:focus-visible { outline: 2px solid var(--arkan); outline-offset: 3px; }
+.knopf.haupt:focus-visible { outline-color: var(--tinte); }
+
+/* Kacheln heben sich nur auf Geräten mit Maus */
+.kachel { transition: transform var(--bewegung-normal) var(--kurve-raus), box-shadow var(--bewegung-normal) var(--kurve-raus); }
+@media (hover: none) { .kachel:hover { transform: none; box-shadow: none; } }
+
+/* Fenster kommen weich herein */
+@keyframes schicht-rein { from { opacity: 0; } }
+@keyframes fenster-rein { from { opacity: 0; transform: translateY(8px) scale(.96); } }
+.schicht { animation: schicht-rein var(--bewegung-normal) var(--kurve-raus); }
+.fenster { animation: fenster-rein var(--bewegung-gross) var(--kurve-raus); }
+.toast { transition: opacity var(--bewegung-normal) var(--kurve-raus), transform var(--bewegung-normal) var(--kurve-raus); }
+.abzeichen-meldung { transition: opacity var(--bewegung-gross) var(--kurve-raus), transform var(--bewegung-gross) var(--kurve-raus); }
+
+/* Prüfergebnisse erscheinen leicht gestaffelt */
+@keyframes zeile-rein { from { opacity: 0; transform: translateY(4px); } }
+.pruef-liste .pruef-zeile { animation: zeile-rein var(--bewegung-normal) var(--kurve-raus) both; }
+.pruef-liste .pruef-zeile:nth-child(2) { animation-delay: 40ms; }
+.pruef-liste .pruef-zeile:nth-child(3) { animation-delay: 80ms; }
+.pruef-liste .pruef-zeile:nth-child(4) { animation-delay: 120ms; }
+.pruef-liste .pruef-zeile:nth-child(5) { animation-delay: 160ms; }
+.pruef-liste .pruef-zeile:nth-child(n+6) { animation-delay: 200ms; }
+@keyframes haken-pop { from { transform: scale(.6); } 60% { transform: scale(1.12); } }
+.pruef-zeile.ok .marke-i { animation: haken-pop var(--bewegung-gross) var(--kurve-raus) both; animation-delay: inherit; }
+
+/* Gelöst: feines Leuchten und ein Häkchen, das hereinspringt */
+@keyframes geloest-leuchten {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gut) 40%, transparent); }
+  100% { box-shadow: 0 0 0 14px color-mix(in srgb, var(--gut) 0%, transparent); }
+}
+@keyframes erfolg-rein { from { opacity: 0; transform: translateY(6px) scale(.98); } }
+@keyframes haekchen-rein { from { opacity: 0; transform: scale(.5) rotate(-12deg); } }
+.erfolg:not(.nein) {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--gut) 35%, transparent);
+  animation: erfolg-rein var(--bewegung-gross) var(--kurve-raus) both, geloest-leuchten 800ms var(--kurve-raus) 120ms 1;
+}
+.erfolg:not(.nein)::before {
+  content: ""; flex: none; width: 36px; height: 36px; border-radius: 50%;
+  background: var(--gut) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M6 12.5l4 4 8-9' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/></svg>") center / 22px no-repeat;
+  animation: haekchen-rein 360ms var(--kurve-raus) 140ms both;
+}
+.erfolg.nein { border: 1px solid color-mix(in srgb, var(--schlecht) 30%, transparent); }
+
+/* Zahlen, die steigen, ploppen kurz auf */
+@keyframes zahl-pop { 40% { transform: scale(1.12); color: var(--gold); } }
+.zahl-neu { animation: zahl-pop 360ms var(--kurve-raus); }
+
+/* ---------- Einstellungen als Zauberbuch ---------- */
+.unsichtbar { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.fenster.zb {
+  width: min(880px, 100%); height: min(680px, 100%); padding: 0; gap: 0; overflow: hidden;
+  grid-template-rows: auto minmax(0, 1fr); align-content: stretch;
+}
+.zb-kopf {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 22px 16px;
+  border-bottom: 1px solid var(--linie);
+  background: radial-gradient(520px 160px at 0% 0%, color-mix(in srgb, var(--gold-hell) 14%, transparent), transparent 70%);
+}
+.zb-kopf .eyebrow { color: var(--gold); }
+.zb-kopf h2 { font-size: 1.9rem; }
+.zb-raster { display: grid; grid-template-columns: 210px minmax(0, 1fr); min-height: 0; }
+.zb-reiter {
+  display: flex; flex-direction: column; gap: 4px; padding: 14px 10px; overflow: auto;
+  border-right: 1px solid var(--linie); background: color-mix(in srgb, var(--mulde) 45%, var(--blatt));
+}
+.zb-tab {
+  position: relative; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px 12px;
+  border: 0; border-radius: 10px; background: transparent; color: var(--leise); font-weight: 700; text-align: left; cursor: pointer;
+  transition: background-color var(--bewegung-schnell) var(--kurve-raus), color var(--bewegung-schnell) var(--kurve-raus);
+}
+.zb-tab svg { width: 20px; height: 20px; flex: none; }
+.zb-tab:hover { background: color-mix(in srgb, var(--blatt) 70%, transparent); color: var(--tinte); }
+.zb-tab[aria-selected="true"] { background: var(--blatt); color: var(--tinte); box-shadow: var(--schatten-1); }
+.zb-tab[aria-selected="true"] svg { color: var(--gold); }
+.zb-tab[aria-selected="true"]::before {
+  content: ""; position: absolute; left: -10px; top: 10px; bottom: 10px; width: 3px; border-radius: 0 3px 3px 0; background: var(--gold-hell);
+}
+.zb-tab.gefahr[aria-selected="true"] svg { color: var(--schlecht); }
+.zb-tab.gefahr[aria-selected="true"]::before { background: var(--schlecht); }
+.zb-seiten { overflow: auto; padding: 24px 26px 30px; min-height: 0; }
+@keyframes zb-seite-rein { from { opacity: 0; transform: translateY(4px); } }
+.zb-seite { display: grid; gap: 14px; align-content: start; animation: zb-seite-rein var(--bewegung-normal) var(--kurve-raus); }
+.zb-seite[hidden] { display: none; }
+.zb-seite-kopf { display: grid; gap: 4px; margin-bottom: 2px; }
+.zb-seite-kopf h3 { font-family: var(--schrift-zier); font-weight: 700; font-size: 1.7rem; line-height: 1.1; }
+.zb-seite-kopf p { color: var(--leise); font-size: .95rem; max-width: 52ch; }
+.zb-gruppe { border: 1px solid var(--linie); border-radius: 14px; background: var(--blatt); overflow: hidden; }
+.zb-gruppe > * + * { border-top: 1px solid var(--linie); }
+.zb-gruppe > .zb-unter { border-top: 0; }
+.zb-gruppe:empty { display: none; }
+.zb-zeile { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 14px 16px; }
+.zb-klick { cursor: pointer; transition: background-color var(--bewegung-schnell) var(--kurve-raus); }
+.zb-klick:hover { background: color-mix(in srgb, var(--mulde) 55%, transparent); }
+.zb-symbol { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: var(--gold-grund); color: var(--gold); }
+.zb-symbol svg { width: 21px; height: 21px; }
+.zb-text { display: grid; gap: 2px; min-width: 0; }
+.zb-text b { font-weight: 700; }
+.zb-text > span { color: var(--leise); font-size: .92rem; line-height: 1.4; }
+.zb-steuer { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.zb-zeile.zb-breit { align-items: start; }
+.zb-zeile.zb-breit .zb-symbol { grid-row: span 2; }
+.zb-zeile.zb-breit > .zb-steuer { grid-column: 2 / -1; display: grid; gap: 10px; justify-content: stretch; }
+.zb-info { color: var(--leise); font-size: .92rem; line-height: 1.45; }
+.zb-knoepfe { display: flex; gap: 8px; flex-wrap: wrap; }
+.zb-unter { padding: 0 16px 14px 70px; display: grid; gap: 8px; }
+.zb-unter:empty { display: none; }
+.zb-mehr summary { cursor: pointer; font-weight: 700; color: var(--leise); font-size: .92rem; min-height: 32px; display: flex; align-items: center; }
+.zb-mehr[open] summary { margin-bottom: 8px; color: var(--tinte); }
+.zb-meldung { display: block; font-weight: 700; }
+.zb-meldung:empty { display: none; }
+.zb-gefahr { border-color: color-mix(in srgb, var(--schlecht) 40%, var(--linie)); background: color-mix(in srgb, var(--schlecht-grund) 50%, var(--blatt)); }
+.zb-gefahr .zb-symbol { background: var(--schlecht-grund); color: var(--schlecht); }
+.knopf.gefahr { color: var(--schlecht); border-color: color-mix(in srgb, var(--schlecht) 45%, var(--linie)); }
+.knopf.gefahr:hover, .knopf.gefahr.scharf { background: var(--schlecht); border-color: var(--schlecht); color: #fff; }
+/* Schalter statt Häkchen */
+.umschalter {
+  appearance: none; -webkit-appearance: none; flex: none; position: relative; margin: 0; cursor: pointer;
+  width: 46px; height: 28px; border-radius: 99px; background: var(--mulde); border: 1px solid var(--linie);
+  transition: background-color var(--bewegung-normal) var(--kurve-raus), border-color var(--bewegung-normal) var(--kurve-raus);
+}
+.umschalter::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(20, 16, 40, .3); transition: transform var(--bewegung-normal) var(--kurve-raus);
+}
+.umschalter:checked { background: var(--gold-hell); border-color: var(--gold-hell); }
+.umschalter:checked::after { transform: translateX(18px); }
+.umschalter:disabled { opacity: .5; cursor: default; }
+/* Auswahl in Segmenten */
+.zb-segment { display: inline-flex; gap: 2px; padding: 3px; border-radius: 11px; background: var(--mulde); }
+.zb-segment label { position: relative; }
+.zb-segment input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.zb-segment span {
+  display: grid; place-items: center; min-height: 36px; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: .92rem; color: var(--leise);
+  transition: background-color var(--bewegung-schnell) var(--kurve-raus), color var(--bewegung-schnell) var(--kurve-raus);
+}
+.zb-segment input:checked + span { background: var(--blatt); color: var(--tinte); box-shadow: var(--schatten-1); }
+.zb-segment input:focus-visible + span { outline: 2px solid var(--arkan); outline-offset: 1px; }
+/* Stand-Anzeige (Abgleich, Sicherung) */
+.siegel-stand { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: .92rem; color: var(--gut); }
+.siegel-stand i { width: 9px; height: 9px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 20%, transparent); }
+.siegel-stand[data-stand="laeuft"] { color: var(--arkan); }
+.siegel-stand[data-stand="laeuft"] i { animation: stand-puls 1.2s ease-in-out infinite; }
+.siegel-stand[data-stand="fehler"] { color: var(--schlecht); }
+.siegel-stand[data-stand="aus"] { color: var(--leise); }
+@keyframes stand-puls { 50% { opacity: .35; } }
+.zb-info .siegel-stand { margin-right: 6px; }
+@media (max-width: 640px) {
+  .fenster.zb { height: 100%; }
+  .zb-kopf { padding: 16px 16px 12px; }
+  .zb-raster { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .zb-reiter { flex-direction: row; padding: 8px 10px; border-right: 0; border-bottom: 1px solid var(--linie); overflow-x: auto; scrollbar-width: none; }
+  .zb-tab { flex: none; }
+  .zb-tab[aria-selected="true"]::before { left: 12px; right: 12px; top: auto; bottom: -8px; width: auto; height: 3px; border-radius: 3px 3px 0 0; }
+  .zb-seiten { padding: 18px 14px 24px; }
+  .zb-zeile { grid-template-columns: 36px minmax(0, 1fr) auto; gap: 12px; padding: 12px 14px; }
+  .zb-symbol { width: 36px; height: 36px; }
+  .zb-zeile > .zb-steuer { grid-column: 2 / -1; justify-content: flex-start; }
+  .zb-unter { padding-left: 14px; }
+}
+
+/* ---------- Konto als Bibliotheksausweis ---------- */
+.ausweis {
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; padding: 22px; border-radius: 18px; overflow: hidden;
+  background:
+    radial-gradient(420px 200px at 100% 0%, color-mix(in srgb, var(--gold-hell) 20%, transparent), transparent 70%),
+    linear-gradient(160deg, color-mix(in srgb, var(--gold-grund) 70%, var(--blatt)), var(--blatt));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold-hell) 55%, var(--linie)), inset 0 0 0 5px var(--blatt),
+    inset 0 0 0 6px color-mix(in srgb, var(--gold-hell) 30%, transparent), var(--schatten-2);
+}
+.ausweis-bild {
+  position: relative; width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; color: var(--gold);
+  background: radial-gradient(circle at 50% 35%, var(--gold-grund), var(--mulde));
+  box-shadow: inset 0 0 0 3px var(--gold-hell), inset 0 0 0 5px color-mix(in srgb, var(--gold-hell) 30%, transparent);
+}
+.ausweis-bild svg { width: 58%; height: 58%; }
+.ausweis-schloss {
+  position: absolute; right: -4px; bottom: -4px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--blatt); color: var(--leise); box-shadow: 0 0 0 2px var(--linie);
+}
+.ausweis-schloss svg { width: 15px; height: 15px; }
+.ausweis.zu .ausweis-bild { filter: saturate(.3); }
+.ausweis-text { display: grid; gap: 2px; min-width: 0; }
+.ausweis-text .eyebrow { color: var(--gold); }
+.ausweis-name { font-family: var(--schrift-zier); font-weight: 700; font-size: 1.7rem; line-height: 1.1; overflow-wrap: anywhere; }
+.ausweis-mail { color: var(--leise); font-size: .92rem; overflow-wrap: anywhere; }
+.ausweis-fuss {
+  grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
+  border-top: 1px dashed color-mix(in srgb, var(--gold-hell) 50%, var(--linie)); padding-top: 14px;
+}
+.ausweis-fuss .zb-knoepfe { margin-left: auto; }
+.ausweis-form { display: grid; gap: 12px; padding: 16px; }
+@media (max-width: 480px) {
+  .ausweis { grid-template-columns: minmax(0, 1fr); justify-items: start; padding: 18px; }
+  .ausweis-fuss .zb-knoepfe { margin-left: 0; }
+}
+
+/* ---------- Profil als Charakterbogen ---------- */
+.bogen {
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(220px, 280px); gap: 28px; align-items: center;
+  padding: 28px; border-radius: 22px; overflow: hidden;
+  background:
+    radial-gradient(520px 260px at 0% 0%, color-mix(in srgb, var(--gold-hell) 16%, transparent), transparent 70%),
+    radial-gradient(420px 260px at 100% 100%, color-mix(in srgb, var(--arkan) 9%, transparent), transparent 70%),
+    var(--blatt);
+  box-shadow: inset 0 0 0 1px var(--linie), inset 0 0 0 6px var(--blatt), inset 0 0 0 7px color-mix(in srgb, var(--gold-hell) 35%, var(--linie)), var(--schatten-2);
+}
+.bogen-held { display: grid; justify-items: center; gap: 14px; }
+.bogen .portraet.p-gross { width: 148px; height: 148px; }
+.slots { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: 220px; }
+.slot {
+  display: grid; justify-items: center; gap: 3px; width: 52px; padding: 4px 0; border-radius: 10px; color: var(--leise); text-decoration: none;
+  transition: background-color var(--bewegung-schnell) var(--kurve-raus), transform var(--bewegung-druck) var(--kurve-raus);
+}
+.slot:hover { background: var(--mulde); color: var(--tinte); }
+.slot:active { transform: scale(.95); }
+.slot .muster {
+  width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: var(--gold);
+  background: var(--muster, var(--mulde)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tinte) 18%, transparent), 0 0 0 2px var(--blatt), 0 0 0 3px color-mix(in srgb, var(--gold-hell) 45%, var(--linie));
+}
+.slot .muster svg { width: 18px; height: 18px; }
+.slot small { font-size: .7rem; font-weight: 700; line-height: 1.1; text-align: center; }
+.bogen-mitte { display: grid; gap: 8px; min-width: 0; align-content: center; }
+.bogen-mitte .eyebrow { color: var(--gold); }
+.bogen-name { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.bogen-name h1 { font-family: var(--schrift-zier); font-weight: 700; font-size: clamp(2.2rem, 4.5vw, 3rem); line-height: 1.02; letter-spacing: -.005em; overflow-wrap: anywhere; }
+.bogen.ohne-name .bogen-name h1 { color: var(--leise); }
+.bogen-name .symbolknopf { flex: none; width: 38px; height: 38px; color: var(--leise); }
+.bogen-name .symbolknopf svg { width: 18px; height: 18px; }
+.bogen-name .symbolknopf[aria-expanded="true"] { color: var(--gold); border-color: var(--gold-hell); background: var(--gold-grund); }
+.bogen-titel { font-weight: 800; color: var(--leise); letter-spacing: .02em; }
+.bogen-motto { font-style: italic; color: var(--leise); max-width: 46ch; }
+.bogen-form { display: grid; gap: 12px; padding: 14px; margin: 4px 0; border-radius: 14px; background: var(--grund); border: 1px solid var(--linie); animation: zb-seite-rein var(--bewegung-normal) var(--kurve-raus); }
+.bogen-form[hidden] { display: none; }
+.bogen-form .feld-reihe { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); }
+@media (max-width: 640px) { .bogen-form .feld-reihe { grid-template-columns: minmax(0, 1fr); } }
+.rang-banner {
+  display: grid; gap: 6px; margin-top: 8px; padding: 12px 14px; border-radius: 12px;
+  background: color-mix(in srgb, var(--gold-grund) 65%, transparent); border: 1px solid color-mix(in srgb, var(--gold-hell) 35%, transparent);
+}
+.rang-banner .rang-zeile { font-size: .95rem; }
+.rang-banner .rang-name { color: var(--gold); }
+.rang-banner .ep-leiste { height: 9px; background: color-mix(in srgb, var(--blatt) 70%, var(--mulde)); }
+.rang-banner small { color: var(--leise); font-size: .82rem; }
+.bogen-werte { display: grid; gap: 14px; justify-items: stretch; padding-left: 26px; border-left: 1px dashed color-mix(in srgb, var(--gold-hell) 45%, var(--linie)); }
+.bogen-werte > .knopf { justify-self: start; }
+.haupt-wert { display: grid; justify-items: center; gap: 6px; }
+.haupt-wert small { color: var(--leise); font-weight: 700; font-size: .85rem; }
+.ring {
+  width: 116px; height: 116px; border-radius: 50%; display: grid; place-content: center; text-align: center;
+  background:
+    radial-gradient(closest-side, var(--blatt) 80%, transparent 81%),
+    conic-gradient(var(--gold-hell) var(--anteil), var(--mulde) 0);
+}
+.ring b { font-size: 2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.ring span { color: var(--leise); font-size: .8rem; }
+.attribute { margin: 0; display: grid; gap: 7px; }
+.attribute div { display: flex; align-items: baseline; gap: 8px; }
+.attribute div::after { content: none; }
+.attribute dt { display: flex; align-items: center; gap: 8px; color: var(--leise); font-size: .92rem; white-space: nowrap; order: 0; }
+.attribute dt svg { width: 16px; height: 16px; color: var(--gold); flex: none; align-self: center; }
+.attribute div::before { content: ""; order: 1; flex: 1; border-bottom: 1px dotted color-mix(in srgb, var(--leise) 55%, transparent); transform: translateY(-4px); min-width: 12px; }
+.attribute dd { order: 2; margin: 0; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+@keyframes platz-hervor { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold-hell) 55%, transparent); } 100% { box-shadow: 0 0 0 12px transparent; } }
+.platz.hervor { animation: platz-hervor 900ms var(--kurve-raus); border-color: var(--gold-hell); }
+.platz { scroll-margin: 90px; }
+/* Abschnitte mit kleiner Zierlinie */
+.profil .block h2 { display: flex; align-items: center; gap: 14px; }
+.profil .block h2::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, color-mix(in srgb, var(--gold-hell) 55%, transparent), transparent); }
+/* Abzeichen: verdiente glänzen, offene sind nur Umrisse */
+.abzeichen:not(.verdient) { opacity: .7; }
+.abzeichen:not(.verdient) .medaille { border-style: dashed; opacity: .7; }
+.medaille.verdient { background: radial-gradient(circle at 35% 30%, color-mix(in srgb, #fff 35%, var(--gold-hell)), var(--gold-hell) 60%, color-mix(in srgb, var(--gold) 70%, var(--gold-hell))); }
+.abzeichen.verdient { border-color: color-mix(in srgb, var(--gold-hell) 45%, var(--linie)); }
+@media (max-width: 980px) {
+  .bogen { grid-template-columns: auto minmax(0, 1fr); }
+  .bogen-werte { grid-column: 1 / -1; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 24px; padding: 18px 0 0; border-left: 0; border-top: 1px dashed color-mix(in srgb, var(--gold-hell) 45%, var(--linie)); }
+  .bogen-werte > .knopf { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .bogen { grid-template-columns: minmax(0, 1fr); padding: 22px 18px; gap: 20px; text-align: center; }
+  .bogen-mitte { justify-items: center; }
+  .bogen-name { justify-content: center; }
+  .rang-banner, .bogen-form { width: 100%; text-align: left; }
+  .bogen-werte { grid-template-columns: minmax(0, 1fr); text-align: left; }
+}
+
+/* Bewegung reduzieren: Bedeutung bleibt über Farbe und Häkchen sichtbar */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -22552,6 +22900,11 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     const el = $("#serie");
     el.innerHTML = ICON.flamme + "<span>" + s + "</span>";
     el.classList.toggle("aktiv", s > 0);
+    // Gestiegene Zahlen kurz aufploppen lassen, aber nicht beim ersten Zeichnen
+    if (zeigeKopf.ep != null && zustand.ep > zeigeKopf.ep) $("#rang-anzeige .rang-ep").classList.add("zahl-neu");
+    if (zeigeKopf.serie != null && s > zeigeKopf.serie) $("span", el).classList.add("zahl-neu");
+    zeigeKopf.ep = zustand.ep;
+    zeigeKopf.serie = s;
     el.title = s === 1 ? "1 Tag in Folge gelernt" : s + " Tage in Folge gelernt";
     const p = profil();
     $("#profil-knopf").innerHTML = portraetHtml("p-mini") + '<span class="profil-name">' + esc(p.name || "Profil") + "</span>";
@@ -25922,7 +26275,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     const inventar = PLAETZE.map(pl => {
       const sachen = GEGENSTAENDE.filter(g => g.platz === pl.id);
       const traegt = getragen(pl.id);
-      return '<section class="platz"><div class="platz-kopf"><span class="platz-symbol">' + SYMBOL[pl.symbol] + "</span><div><h3>" + esc(pl.name) + "</h3><p>" + esc(pl.text) + '</p></div></div><div class="gegenstaende">' +
+      return '<section class="platz" id="platz-' + pl.id + '"><div class="platz-kopf"><span class="platz-symbol">' + SYMBOL[pl.symbol] + "</span><div><h3>" + esc(pl.name) + "</h3><p>" + esc(pl.text) + '</p></div></div><div class="gegenstaende">' +
         sachen.map(g => {
           const frei = freigeschaltet(g), an = traegt.id === g.id;
           return '<button type="button" class="gegenstand' + (an ? " getragen" : "") + (frei ? "" : " gesperrt") + '" data-platz="' + pl.id + '" data-gegenstand="' + g.id + '"' + (frei ? "" : " disabled") + ' aria-pressed="' + an + '">' +
@@ -25942,27 +26295,44 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       KAPITEL_NACH_PFAD[pf.id].map(k => '<div class="siegel-feld' + (kapitelFertig(k) ? " verdient" : "") + '" title="' + esc(k.titel) + '">' + siegelSvg(k.nr, kapitelFertig(k)) + "<span>" + esc(k.siegel) + "</span></div>").join("") +
       "</div></div>").join("");
 
+    // Charakterbogen: Porträt mit Ausrüstung, Name und Rang, daneben die Werte wie auf einem Rollenspielbogen
+    const geloest = lernLek.filter(l => istErledigt(l.id)).length;
+    const ring = Math.round((geloest / Math.max(1, lernLek.length)) * 1000) / 10;
+    const ausruestung = PLAETZE.map(pl => {
+      const g = getragen(pl.id);
+      return '<a class="slot" href="#platz-' + pl.id + '" data-slot="' + pl.id + '" title="' + esc(pl.name + ": " + g.name) + '">' +
+        '<span class="muster" style="' + (g.farbe ? "--muster:" + g.farbe : "") + '">' + (g.farbe ? "" : SYMBOL[pl.symbol]) + "</span><small>" + esc(pl.name.replace(/^Zauberbuch-/, "")) + "</small></a>";
+    }).join("");
+    const attribut = (symbol, name, zahl) => "<div><dt>" + SYMBOL[symbol] + esc(name) + "</dt><dd>" + esc(String(zahl)) + "</dd></div>";
     ansicht.innerHTML =
       '<div class="seite profil">' +
-      '<section class="steckbrief">' +
-      '<div class="steckbrief-bild">' + portraetHtml("p-gross") + "</div>" +
-      '<div class="steckbrief-text">' +
+      '<section class="bogen' + (p.name ? "" : " ohne-name") + '" aria-label="Charakterbogen">' +
+      '<div class="bogen-held">' + portraetHtml("p-gross") + '<nav class="slots" aria-label="Ausrüstung">' + ausruestung + "</nav></div>" +
+      '<div class="bogen-mitte">' +
+      '<p class="eyebrow">Charakterbogen</p>' +
+      '<div class="bogen-name"><h1>' + esc(p.name || "Namenloser Held") + '</h1><button type="button" class="symbolknopf" id="bogen-stift" aria-expanded="false" aria-controls="bogen-form" aria-label="Name, Titel und Motto bearbeiten">' + ZB_SYMBOL.stift + "</button></div>" +
+      '<p class="bogen-titel">' + esc(titelText()) + "</p>" +
+      (p.motto ? '<p class="bogen-motto">«' + esc(p.motto) + "»</p>" : "") +
+      '<div class="bogen-form" id="bogen-form" hidden>' +
       '<label class="feld"><span>Heldenname</span><input type="text" id="profil-name" maxlength="40" placeholder="Wie heisst dein Held?" value="' + esc(p.name) + '"></label>' +
       '<div class="feld-reihe">' +
       '<label class="feld"><span>Titel</span><select id="profil-titel">' + titelOptionen + "</select></label>" +
       '<label class="feld breit"><span>Motto</span><input type="text" id="profil-motto" maxlength="80" placeholder="Zum Beispiel: Erst denken, dann zaubern." value="' + esc(p.motto) + '"></label>' +
+      '</div><div class="zb-knoepfe"><button type="button" class="knopf haupt" id="bogen-fertig">Fertig</button></div></div>' +
+      '<div class="rang-banner"><div class="rang-zeile"><span class="rang-name">' + esc(r.name) + '</span><span class="rang-ep">' + zustand.ep + (r.bis ? " / " + r.bis + " EP" : " EP") + "</span></div>" +
+      '<div class="ep-leiste"><i style="width:' + anteil + '%"></i></div><small>' + (r.bis ? "Nächster Rang: " + esc(r.naechsterName) + ", noch " + (r.bis - zustand.ep) + " EP" : "Höchster Rang erreicht") + "</small></div>" +
       "</div>" +
-      '<div class="rang-gross"><div class="rang-zeile"><span class="rang-name">' + esc(r.name) + '</span><span class="rang-ep">' + zustand.ep + (r.bis ? " / " + r.bis + " EP · nächster Rang: " + esc(r.naechsterName) : " EP · höchster Rang") + '</span></div><div class="ep-leiste"><i style="width:' + anteil + '%"></i></div></div>' +
+      '<div class="bogen-werte">' +
+      '<div class="haupt-wert" style="--anteil:' + ring + '%"><div class="ring"><b>' + geloest + "</b><span>von " + lernLek.length + "</span></div><small>Lektionen gemeistert</small></div>" +
+      '<dl class="attribute">' +
+      attribut("krone", "Siegel", siegelVerdient + " / " + allesSiegel.length) +
+      attribut("stern", "Abzeichen", abzVerdient + " / " + ABZEICHEN.length) +
+      attribut("flamme", "Serie", serie() + (serie() === 1 ? " Tag" : " Tage")) +
+      attribut("blitz", "Beste Serie", (zustand.stats.besteTagesserie || serie()) + " Tage") +
+      attribut("sonne", "Tagesaufgaben", zustand.stats.tagesaufgaben || 0) +
+      "</dl>" +
+      '<a class="knopf still" href="#statistik">' + SYMBOL.auge + "Lernstatistik</a>" +
       "</div></section>" +
-      '<section class="werte" aria-label="Werte">' +
-      wert(lernLek.filter(l => istErledigt(l.id)).length + " / " + lernLek.length, "Lektionen") +
-      wert(siegelVerdient + " / " + allesSiegel.length, "Siegel") +
-      wert(abzVerdient + " / " + ABZEICHEN.length, "Abzeichen") +
-      wert(serie(), "Tage in Folge") +
-      wert(zustand.stats.besteTagesserie || serie(), "Beste Serie") +
-      wert(zustand.stats.tagesaufgaben || 0, "Tagesaufgaben") +
-      "</section>" +
-      '<p><a class="knopf" href="#statistik">' + SYMBOL.auge + "Lernstatistik ansehen</a></p>" +
       '<section class="block"><h2>Porträt</h2><div class="portraet-wahl" role="radiogroup" aria-label="Porträt">' +
       PORTRAETS.map(x => '<button type="button" role="radio" class="portraet-knopf' + (x.id === p.portraet ? " aktiv" : "") + '" aria-checked="' + (x.id === p.portraet) + '" data-portraet="' + x.id + '"><span class="portraet p-klein" style="--rahmen:' + getragen("rahmen").farbe + '">' + x.svg + "</span><span>" + esc(x.name) + "</span></button>").join("") +
       "</div></section>" +
@@ -25972,6 +26342,17 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       "</div>";
 
     const sp = (feld, wertVon) => { zustand.profil = Object.assign(profil(), { [feld]: wertVon }); speichern(); zeigeKopf(); };
+    const form = $("#bogen-form"), stift = $("#bogen-stift");
+    const formAuf = auf => { form.hidden = !auf; stift.setAttribute("aria-expanded", String(auf)); if (auf) $("#profil-name").focus(); };
+    stift.addEventListener("click", () => formAuf(form.hidden));
+    $("#bogen-fertig").addEventListener("click", () => { const y = window.scrollY; zeigeProfil(); window.scrollTo(0, y); });
+    if (!p.name) formAuf(true);
+    // Ausrüstungsplätze springen zum passenden Platz im Inventar, ohne die Adresse zu ändern
+    ansicht.querySelectorAll("[data-slot]").forEach(a => a.addEventListener("click", e => {
+      e.preventDefault();
+      const ziel = $("#platz-" + a.dataset.slot);
+      if (ziel) { ziel.scrollIntoView({ behavior: "smooth", block: "center" }); ziel.classList.remove("hervor"); void ziel.offsetWidth; ziel.classList.add("hervor"); }
+    }));
     $("#profil-name").addEventListener("input", e => sp("name", e.target.value));
     $("#profil-motto").addEventListener("input", e => sp("motto", e.target.value));
     $("#profil-titel").addEventListener("change", e => sp("titel", e.target.value));
@@ -26350,36 +26731,108 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     setTimeout(() => oeffneFenster(html, "feier"), 450);
   }
 
-  function zeigeEinstellungen() {
+  /* Bausteine für das Einstellungs-Zauberbuch: Seiten mit Reitern, Zeilen mit Symbol, Text und Steuerung */
+  const zbSvg = inhalt => '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + inhalt + "</svg>";
+  const ZB_SYMBOL = {
+    zu: zbSvg('<path d="M6 6l12 12M18 6L6 18"/>'),
+    warnung: zbSvg('<path d="M12 3.5l9.5 16.5h-19z"/><path d="M12 10v4.5M12 17.5h.01"/>'),
+    wolke: zbSvg('<path d="M7 18h10.5a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.6 9.1 4.5 4.5 0 0 0 7 18z"/><path d="M12 15.5v-5M9.8 12.5l2.2-2.2 2.2 2.2"/>'),
+    hoch: zbSvg('<path d="M12 15V4M7.5 8.5L12 4l4.5 4.5"/><path d="M4.5 14.5v3.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3.5"/>'),
+    schluessel: zbSvg('<circle cx="8" cy="15" r="4.5"/><path d="M11.2 11.8L20 3M16.5 6.5l2.5 2.5M14 9l2 2"/>'),
+    handy: zbSvg('<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>'),
+    haus: zbSvg('<path d="M3.5 11L12 4l8.5 7"/><path d="M6 9.5V20h12V9.5M10 20v-5h4v5"/>'),
+    tastatur: zbSvg('<rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M9 10h.01M12 10h.01M15 10h.01M18 10h.01M7.5 14h9"/>'),
+    gross: zbSvg('<rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M9 15l6-6M10 9h5v5"/>'),
+    stift: zbSvg('<path d="M4 20l1-4.5L15.5 5a2.1 2.1 0 0 1 3 3L8 18.5z"/><path d="M13.5 7l3 3"/>')
+  };
+  let zbAktiv = "";
+  function zbSeite(id, titel, symbol, text, inhalt) {
+    return '<section class="zb-seite" id="zb-' + id + '" data-seite="' + id + '" role="tabpanel" aria-label="' + titel + '">' +
+      '<header class="zb-seite-kopf"><span class="zb-tab-symbol" hidden>' + symbol + "</span><h3>" + titel + "</h3>" + (text ? "<p>" + text + "</p>" : "") + "</header>" + inhalt + "</section>";
+  }
+  function zbZeile(symbol, titel, text, steuer, klasse) {
+    return '<div class="zb-zeile' + (klasse ? " " + klasse : "") + '"><span class="zb-symbol">' + symbol + '</span><div class="zb-text"><b>' + titel + "</b>" +
+      (text ? "<span>" + text + "</span>" : "") + "</div>" + (steuer ? '<div class="zb-steuer">' + steuer + "</div>" : "") + "</div>";
+  }
+  function zbSchalter(id, an, symbol, titel, text) {
+    return '<label class="zb-zeile zb-klick" for="' + id + '"><span class="zb-symbol">' + symbol + '</span><span class="zb-text"><b>' + titel + "</b>" +
+      (text ? "<span>" + text + "</span>" : "") + '</span><input type="checkbox" class="umschalter" id="' + id + '"' + (an ? " checked" : "") + "></label>";
+  }
+  // Baut die Reiter aus den vorhandenen Seiten, so kommen auch später eingefügte Seiten (Konto, Gerät) dazu
+  function zbReiterBinden(w, start) {
+    const seiten = [...w.querySelectorAll(".zb-seite")];
+    const leiste = $(".zb-reiter", w);
+    if (!seiten.length || !leiste) return;
+    leiste.innerHTML = seiten.map(s => '<button type="button" role="tab" class="zb-tab' + (s.dataset.seite === "gefahr" ? " gefahr" : "") + '" data-seite="' + s.dataset.seite +
+      '" aria-controls="' + s.id + '">' + $(".zb-tab-symbol", s).innerHTML + "<span>" + esc($("h3", s).textContent) + "</span></button>").join("");
+    const tabs = [...leiste.querySelectorAll(".zb-tab")];
+    const zeige = (id, fokus) => {
+      if (!seiten.some(s => s.dataset.seite === id)) id = seiten[0].dataset.seite;
+      zbAktiv = id;
+      seiten.forEach(s => { s.hidden = s.dataset.seite !== id; });
+      tabs.forEach(t => {
+        const an = t.dataset.seite === id;
+        t.setAttribute("aria-selected", an ? "true" : "false");
+        t.tabIndex = an ? 0 : -1;
+        if (an && fokus) t.focus();
+        if (an) t.scrollIntoView({ block: "nearest", inline: "nearest" });
+      });
+      $(".zb-seiten", w).scrollTop = 0;
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener("click", () => zeige(t.dataset.seite));
+      t.addEventListener("keydown", e => {
+        const schritt = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+        if (!schritt) return;
+        e.preventDefault();
+        zeige(tabs[(i + schritt + tabs.length) % tabs.length].dataset.seite, true);
+      });
+    });
+    zeige(start || zbAktiv || seiten[0].dataset.seite);
+  }
+
+  function zeigeEinstellungen(seite) {
     let sicherungHtml;
     if (!dateiApi()) {
-      sicherungHtml = '<p class="klein">Dieser Browser kann nicht selbst in eine Datei sichern (das geht in Chrome und Edge in der Datei auf deinem Laptop). Du kannst die Sicherung aber herunterladen.</p>' +
-        '<div class="fenster-zeile" style="justify-content:flex-start"><button class="knopf" type="button" id="sicherung-download">Sicherungsdatei herunterladen</button></div>';
+      sicherungHtml = '<p class="zb-info">Dieser Browser kann nicht selbst in eine Datei sichern (das geht in Chrome und Edge auf dem Laptop). Du kannst die Sicherung aber herunterladen.</p>' +
+        '<div class="zb-knoepfe"><button class="knopf" type="button" id="sicherung-download">Sicherungsdatei herunterladen</button></div>';
     } else if (SICHERUNG.status === "aktiv") {
-      sicherungHtml = '<p class="klein">Läuft. Jede Änderung wird nach wenigen Sekunden in «' + esc(SICHERUNG.handle && SICHERUNG.handle.name || "die Sicherungsdatei") + "» geschrieben" + (SICHERUNG.zuletzt ? ", zuletzt um " + SICHERUNG.zuletzt.toLocaleTimeString("de-CH") : "") + ".</p>" +
-        '<div class="fenster-zeile" style="justify-content:flex-start"><button class="knopf" type="button" id="sicherung-beenden">Sicherung beenden</button></div>';
+      sicherungHtml = '<p class="zb-info"><span class="siegel-stand" data-stand="ok"><i></i>Läuft</span> Jede Änderung landet nach wenigen Sekunden in «' + esc(SICHERUNG.handle && SICHERUNG.handle.name || "die Sicherungsdatei") + "»" + (SICHERUNG.zuletzt ? ", zuletzt um " + SICHERUNG.zuletzt.toLocaleTimeString("de-CH") : "") + ".</p>" +
+        '<div class="zb-knoepfe"><button class="knopf" type="button" id="sicherung-beenden">Sicherung beenden</button></div>';
     } else if (SICHERUNG.status === "pausiert") {
-      sicherungHtml = '<p class="klein">Pausiert. Der Browser braucht nach einem Neustart einmal deine Erlaubnis.</p><div class="fenster-zeile" style="justify-content:flex-start"><button class="knopf haupt" type="button" id="sicherung-weiter2">Sicherung fortsetzen</button><button class="knopf still" type="button" id="sicherung-beenden">Beenden</button></div>';
+      sicherungHtml = '<p class="zb-info"><span class="siegel-stand" data-stand="laeuft"><i></i>Pausiert</span> Der Browser braucht nach einem Neustart einmal deine Erlaubnis.</p><div class="zb-knoepfe"><button class="knopf haupt" type="button" id="sicherung-weiter2">Sicherung fortsetzen</button><button class="knopf still" type="button" id="sicherung-beenden">Beenden</button></div>';
     } else {
-      sicherungHtml = '<p class="klein">Wähle einmal einen Speicherort, zum Beispiel deinen Zauberkodex-Ordner. Danach schreibt der Kodex jede Änderung automatisch in diese Datei. So bleibt dein Fortschritt erhalten, auch wenn der Browser seine Daten löscht.</p>' +
-        '<div class="fenster-zeile" style="justify-content:flex-start"><button class="knopf haupt" type="button" id="sicherung-einrichten">Sicherungsdatei wählen</button></div>';
+      sicherungHtml = '<p class="zb-info">Wähle einmal einen Speicherort, zum Beispiel deinen Zauberkodex-Ordner. Danach schreibt der Kodex jede Änderung automatisch in diese Datei. So bleibt dein Fortschritt erhalten, auch wenn der Browser seine Daten löscht.</p>' +
+        '<div class="zb-knoepfe"><button class="knopf haupt" type="button" id="sicherung-einrichten">Sicherungsdatei wählen</button></div>';
     }
     const html =
-      "<h2>Einstellungen</h2>" +
-      '<div class="einstellung" id="sync-bereich" hidden></div>' +
+      '<div class="zb-kopf"><div><p class="eyebrow">Dein Zauberbuch</p><h2>Einstellungen</h2></div>' +
+      '<button class="symbolknopf" type="button" data-schliessen aria-label="Schliessen">' + ZB_SYMBOL.zu + "</button></div>" +
+      '<div class="zb-raster"><div class="zb-reiter" role="tablist" aria-label="Bereiche der Einstellungen"></div><div class="zb-seiten">' +
+      zbSeite("konto", "Konto", SYMBOL.schild, "Dein Fortschritt auf Laptop und Handy, immer gleich.", '<div id="sync-bereich" hidden></div>') +
       geraetHtml() +
-      '<div class="einstellung"><h3>Automatische Sicherung</h3>' + sicherungHtml + "</div>" +
-      '<div class="einstellung"><h3>Aus einer Sicherungsdatei laden</h3><p class="klein">Ersetzt deinen aktuellen Fortschritt durch den aus der Datei.</p><input type="file" id="sicherung-datei" accept=".json,application/json"><p class="klein" id="datei-meldung"></p></div>' +
-      '<div class="einstellung"><h3>Sicherungscode</h3><p class="klein">Ein Text zum Kopieren, etwa um den Stand zwischen Chat-Fenster und Laptop-Datei mitzunehmen.</p><div class="fenster-zeile" style="justify-content:flex-start"><button class="knopf" type="button" id="sichern">Code erstellen</button></div><div id="sicherung"></div>' +
-      '<textarea id="laden-feld" placeholder="Sicherungscode hier einfügen"></textarea><div class="fenster-zeile"><button class="knopf" type="button" id="laden-knopf">Code laden</button></div><p class="klein" id="laden-meldung"></p></div>' +
-      '<div class="einstellung"><h3>Freie Wahl</h3><label class="schalter"><input type="checkbox" id="alle-offen"' + (zustand.alleOffen ? " checked" : "") + "> Alle Lektionen freischalten, auch ohne die vorherigen zu lösen</label></div>" +
-      '<div class="einstellung"><h3>Neu beginnen</h3><p class="klein">Löscht alle EP, Siegel, Abzeichen, Projekte und deinen Code.</p><div class="fenster-zeile" style="justify-content:flex-start"><button class="knopf" type="button" id="zuruecksetzen-alles">Fortschritt löschen</button></div></div>' +
-      '<div class="fenster-zeile"><button class="knopf haupt" type="button" data-schliessen>Schliessen</button></div>';
-    const f = oeffneFenster(html);
+      zbSeite("sicherung", "Sicherung", SYMBOL.truhe, "Damit dein Fortschritt nie verloren geht.",
+        '<div class="zb-gruppe">' +
+        zbZeile(ZB_SYMBOL.wolke, "Automatische Sicherung", "", sicherungHtml, "zb-breit") +
+        zbZeile(ZB_SYMBOL.hoch, "Aus einer Sicherungsdatei laden", 'Ersetzt deinen Fortschritt durch den aus der Datei.<span class="zb-meldung" id="datei-meldung"></span>',
+          '<label class="knopf" for="sicherung-datei">Datei wählen</label><input class="unsichtbar" type="file" id="sicherung-datei" accept=".json,application/json">') +
+        zbZeile(ZB_SYMBOL.schluessel, "Sicherungscode", "Ein Text zum Kopieren, um den Stand auf ein anderes Gerät mitzunehmen.",
+          '<button class="knopf" type="button" id="sichern">Code erstellen</button>') +
+        '<div class="zb-unter"><div id="sicherung"></div><details class="zb-mehr"><summary>Einen Code einfügen und laden</summary>' +
+        '<textarea id="laden-feld" placeholder="Sicherungscode hier einfügen"></textarea><div class="fenster-zeile"><button class="knopf" type="button" id="laden-knopf">Code laden</button></div><p class="zb-meldung" id="laden-meldung"></p></details></div>' +
+        "</div>") +
+      zbSeite("lernen", "Lernen", SYMBOL.buch, "Wie du dich durch den Kodex bewegst.",
+        '<div class="zb-gruppe">' + zbSchalter("alle-offen", zustand.alleOffen, SYMBOL.schleife, "Freie Wahl", "Alle Lektionen freischalten, auch ohne die vorherigen zu lösen.") + "</div>") +
+      zbSeite("gefahr", "Gefahrenzone", ZB_SYMBOL.warnung, "Was du hier tust, lässt sich nicht rückgängig machen.",
+        '<div class="zb-gruppe zb-gefahr">' + zbZeile(ZB_SYMBOL.warnung, "Neu beginnen", "Löscht alle EP, Siegel, Abzeichen, Projekte und deinen Code.",
+          '<button class="knopf gefahr" type="button" id="zuruecksetzen-alles">Fortschritt löschen</button>') + "</div>") +
+      "</div></div>";
+    const f = oeffneFenster(html, "zb");
     const w = f.wurzel;
     const neu = () => { f.schliessen(); zeigeEinstellungen(); };
     if (typeof window.__kodexSyncUi === "function") window.__kodexSyncUi($("#sync-bereich", w));
     geraetBinden(w);
+    zbReiterBinden(w, seite);
     const bind = (id, fn) => { const e = $("#" + id, w); if (e) e.addEventListener("click", fn); };
     bind("sicherung-einrichten", async () => { await sicherungEinrichten(); neu(); });
     bind("sicherung-weiter2", async () => { await sicherungFortsetzen(); neu(); });
@@ -26419,7 +26872,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     const rk = $("#zuruecksetzen-alles", w);
     let scharf = false;
     rk.addEventListener("click", () => {
-      if (!scharf) { scharf = true; rk.textContent = "Wirklich alles löschen?"; return; }
+      if (!scharf) { scharf = true; rk.textContent = "Wirklich alles löschen?"; rk.classList.add("scharf"); return; }
       zustand = leer(); speichern(); ausruestungAnwenden(); zeigeKopf(); f.schliessen(); location.hash = "karte"; route();
       toast("Fortschritt gelöscht");
     });
@@ -26481,13 +26934,14 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     wurzel.insertAdjacentElement("afterend", leiste);
   }
   function geraetHtml() {
-    const wahl = (wert, text) => '<label class="schalter"><input type="radio" name="geraet-start" value="' + wert + '"' + (GERAET.start === wert ? " checked" : "") + "> " + text + "</label>";
-    const schalter = (id, an, text) => '<label class="schalter"><input type="checkbox" id="' + id + '"' + (an ? " checked" : "") + "> " + text + "</label>";
-    return '<div class="einstellung"><h3>Dieses Gerät</h3><p class="klein">Diese Einstellungen gelten nur hier und werden nicht abgeglichen.</p>' +
-      '<p class="klein"><b>Startseite</b></p><div class="geraet-wahl">' + wahl("heute", "Heute") + wahl("karte", "Karte") + "</div>" +
-      schalter("geraet-schlank", GERAET.schlank, "Handy-Modus: ohne Werkstatt und Python, Kapitel als einfache Liste") +
-      schalter("geraet-leiste", GERAET.leiste, "Leiste mit Sonderzeichen über dem Code") +
-      schalter("geraet-gross", GERAET.gross, "Grössere Knöpfe") + "</div>";
+    const wahl = (wert, text) => '<label><input type="radio" name="geraet-start" value="' + wert + '"' + (GERAET.start === wert ? " checked" : "") + "><span>" + text + "</span></label>";
+    return zbSeite("geraet", "Dieses Gerät", ZB_SYMBOL.handy, "Gilt nur hier und wird nicht abgeglichen.",
+      '<div class="zb-gruppe">' +
+      zbZeile(ZB_SYMBOL.haus, "Startseite", "Womit der Kodex beim Öffnen beginnt.",
+        '<div class="zb-segment" role="radiogroup" aria-label="Startseite">' + wahl("heute", "Heute") + wahl("karte", "Karte") + "</div>") +
+      zbSchalter("geraet-schlank", GERAET.schlank, ZB_SYMBOL.handy, "Handy-Modus", "Ohne Werkstatt und Python, Kapitel als einfache Liste.") +
+      zbSchalter("geraet-leiste", GERAET.leiste, ZB_SYMBOL.tastatur, "Sonderzeichen-Leiste", "Klammern und Zeichen über dem Code, praktisch auf dem Handy.") +
+      zbSchalter("geraet-gross", GERAET.gross, ZB_SYMBOL.gross, "Grössere Knöpfe", "Mehr Platz zum Tippen.") + "</div>");
   }
   function geraetBinden(w) {
     const speichereGeraet = () => {
@@ -26547,7 +27001,8 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
   }
   window.addEventListener("hashchange", route);
   $("#zur-karte").addEventListener("click", () => { if (location.hash === "#karte") route(); else location.hash = "karte"; });
-  $("#menue").addEventListener("click", zeigeEinstellungen);
+  $("#menue").addEventListener("click", () => zeigeEinstellungen());
+  window.__kodexEinstellungen = seite => zeigeEinstellungen(seite);
   /* Abzeichen auch für Fortschritt, der vor ihrer Einführung entstanden ist */
   function nachtraeglich() {
     const s = zustand.stats;
