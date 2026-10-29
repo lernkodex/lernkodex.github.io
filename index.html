@@ -1,4 +1,4 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content"><title>Zauberkodex</title><meta name="description" content="Programmieren lernen mit Aufgaben aus der Welt von D&amp;D."><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="theme-color" content="#fbfaff" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#161838" media="(prefers-color-scheme: dark)"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content"><title>Zauberkodex</title><meta name="description" content="Programmieren lernen mit Aufgaben aus der Welt von D&amp;D."><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="theme-color" content="#fbfaff" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#161838" media="(prefers-color-scheme: dark)"><script>if (window.top !== window.self) { try { window.top.location = window.self.location.href; } catch (e) { document.documentElement.innerHTML = ''; } }</script><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -320,7 +320,9 @@ pre.code-block code { font-size: inherit; }
 .merk-liste li { display: grid; }
 .merk-liste a { font-weight: 700; color: var(--tinte); }
 .merk-liste small { color: var(--leise); }
-.spick { display: grid; gap: 16px; }
+.spick, .bauen { display: grid; gap: 16px; }
+.bauen { max-width: 720px; }
+.bauen textarea { font-family: var(--schrift-code); font-size: 14px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--linie); background: var(--code-grund); color: var(--tinte); width: 100%; resize: vertical; }
 .spick .schatz-kopf { margin-bottom: 0; }
 .spick-suche { max-width: 420px; }
 .spick-kapitel { display: grid; gap: 8px; }
@@ -1057,6 +1059,19 @@ body::after {
 .gross-knoepfe .schalter input { width: 22px; height: 22px; }
 .gross-knoepfe .editor { font-size: 15px; }
 .geraet-wahl { display: flex; flex-wrap: wrap; gap: 6px; }
+.gilde { display: grid; gap: 16px; max-width: 760px; }
+.gilde .schatz-kopf { margin-bottom: 0; }
+.gilde-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.gilde-liste li { display: grid; grid-template-columns: auto 44px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--linie); background: var(--blatt); }
+.gilde-liste li.ich { border-color: var(--gold); background: var(--gold-grund); }
+.gilde-liste .platz { font-family: var(--schrift-zier); font-size: 1.3rem; color: var(--leise); min-width: 1.4em; text-align: center; }
+.gilde-liste .bild { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--mulde); color: var(--gold); }
+.gilde-liste .bild svg { width: 30px; height: 30px; }
+.gilde-liste .wer { display: grid; min-width: 0; }
+.gilde-liste .wer b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gilde-liste .wer small, .gilde-liste .zahlen small { color: var(--leise); }
+.gilde-liste .zahlen { display: grid; justify-items: end; font-variant-numeric: tabular-nums; }
+.gilde-reiter { display: flex; gap: 6px; flex-wrap: wrap; }
 </style>
 
 <header class="kopf">
@@ -18619,6 +18634,52 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     if (!Array.isArray(z.tage)) z.tage = [];
     if (!z.werkstatt || !Array.isArray(z.werkstatt.projekte)) z.werkstatt = { projekte: [], aktiv: null };
     if (!PFAD_NACH_ID[z.pfad]) z.pfad = "js";
+    return saeubern(z);
+  }
+  /* Ein Spielstand kann aus einem fremden Sicherungscode stammen. Darum gilt: Zahlen sind Zahlen,
+     Daten sehen aus wie Daten, Texte sind Texte. So kann nie HTML oder Code in die Anzeige gelangen. */
+  function saeubern(z) {
+    const zahl = v => { const n = Math.floor(Number(v)); return Number.isFinite(n) ? Math.max(0, Math.min(n, 1e9)) : 0; };
+    const istDatum = v => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+    const text = (v, max) => typeof v === "string" ? v.slice(0, max) : "";
+    // Läuft schon beim ersten Laden, darum ohne heute() und andere Helfer, die erst später entstehen
+    const d = new Date(), jetzt = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    const jeEintrag = (obj, fn) => { const neu = {}; for (const [k, v] of Object.entries(obj || {})) { const w = fn(v, k); if (w !== undefined) neu[k] = w; } return neu; };
+    z.ep = zahl(z.ep);
+    z.alleOffen = z.alleOffen === true;
+    z.tage = z.tage.filter(istDatum);
+    z.erledigt = jeEintrag(z.erledigt, e => e && typeof e === "object" ? { ep: zahl(e.ep), datum: istDatum(e.datum) ? e.datum : jetzt } : undefined);
+    z.versuche = jeEintrag(z.versuche, zahl);
+    z.hinweise = jeEintrag(z.hinweise, zahl);
+    z.loesung = jeEintrag(z.loesung, v => !!v);
+    z.stats = jeEintrag(z.stats, zahl);
+    z.code = jeEintrag(z.code, v => typeof v === "string" ? v : undefined);
+    z.abzeichen = jeEintrag(z.abzeichen, v => istDatum(v) ? v : undefined);
+    z.kapitelDatum = jeEintrag(z.kapitelDatum, v => istDatum(v) ? v : undefined);
+    z.tagesErledigt = jeEintrag(z.tagesErledigt, (v, k) => istDatum(k) && typeof v === "string" ? v : undefined);
+    z.kapitelWahl = jeEintrag(z.kapitelWahl, v => typeof v === "string" ? v : undefined);
+    z.ausruestung = jeEintrag(z.ausruestung, v => typeof v === "string" ? v : undefined);
+    z.wdh = jeEintrag(z.wdh, e => e && istDatum(e.faellig) ? { stufe: zahl(e.stufe), faellig: e.faellig } : undefined);
+    z.verlauf = jeEintrag(z.verlauf, (e, k) => istDatum(k) && e && typeof e === "object" ? { ep: zahl(e.ep), geloest: zahl(e.geloest), versuche: zahl(e.versuche) } : undefined);
+    z.gemerkt = jeEintrag(z.gemerkt, e => e && typeof e === "object" ? { an: e.an === true, zeit: zahl(e.zeit) } : undefined);
+    z.tagesaufgabe = z.tagesaufgabe && istDatum(z.tagesaufgabe.datum) && typeof z.tagesaufgabe.id === "string" ? { datum: z.tagesaufgabe.datum, id: z.tagesaufgabe.id } : null;
+    if (z.schatz && typeof z.schatz === "object") {
+      const s = z.schatz;
+      z.schatz = { ausgegeben: zahl(s.ausgegeben), traenkeGekauft: zahl(s.traenkeGekauft),
+        besitz: jeEintrag(s.besitz, v => istDatum(v) ? v : jetzt),
+        gerettet: (Array.isArray(s.gerettet) ? s.gerettet : []).filter(istDatum),
+        wochen: jeEintrag(s.wochen, (v, k) => istDatum(k) ? Math.min(zahl(v), 100) : undefined) };
+    } else delete z.schatz;
+    if (z.woche && typeof z.woche === "object" && istDatum(z.woche.id) && Array.isArray(z.woche.ziele)) {
+      z.woche = { id: z.woche.id, ziele: z.woche.ziele.filter(x => typeof x === "string").slice(0, 3), belohnt: z.woche.belohnt === true,
+        start: { tagesaufgaben: zahl((z.woche.start || {}).tagesaufgaben), wdhRichtig: zahl((z.woche.start || {}).wdhRichtig) } };
+    } else z.woche = null;
+    if (z.profil && typeof z.profil === "object") {
+      z.profil = { name: text(z.profil.name, 40), portraet: text(z.profil.portraet, 20), titel: text(z.profil.titel, 60), motto: text(z.profil.motto, 120) };
+    }
+    z.werkstatt.projekte = z.werkstatt.projekte.filter(p => p && typeof p === "object").map(p => ({ id: text(p.id, 40).replace(/[^\w-]/g, "") || "p" + Math.random().toString(36).slice(2, 10), name: text(p.name, 60), art: ["js", "seite", "python"].includes(p.art) ? p.art : "js", code: typeof p.code === "string" ? p.code : "", geaendert: istDatum(p.geaendert) ? p.geaendert : jetzt }));
+    if (!z.werkstatt.projekte.some(p => p.id === z.werkstatt.aktiv)) z.werkstatt.aktiv = null;
+    z.gildeMitglied = z.gildeMitglied === true;
     return z;
   }
   let zustand = laden();
@@ -19179,6 +19240,10 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
      Code ausführen (in einem Web Worker, mit Zeitlimit)
      ========================================================= */
   function workerHaupt() {
+    // Code im Worker kommt nie an die gespeicherte Anmeldung (IndexedDB) und startet keine weiteren Worker
+    for (const name of ["indexedDB", "Worker", "SharedWorker"]) {
+      for (let o = self; o; o = Object.getPrototypeOf(o)) { try { delete o[name]; } catch (e) { /* nicht löschbar */ } }
+    }
     const originalZufall = Math.random;
     let sammler = [];
     function fmt(v, tief) {
@@ -19780,6 +19845,10 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     "https://cdn.jsdelivr.net/npm/pyodide@0.26.2/"
   ];
   function pythonWorkerHaupt(HELFER, QUELLEN) {
+    // Wie beim JavaScript-Worker: kein Zugriff auf die gespeicherte Anmeldung
+    for (const name of ["indexedDB", "Worker", "SharedWorker"]) {
+      for (let o = self; o; o = Object.getPrototypeOf(o)) { try { delete o[name]; } catch (e) { /* nicht löschbar */ } }
+    }
     let py = null;
     async function laden() {
       let letzter = null;
@@ -20298,7 +20367,8 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       "<div><b>" + kapitel.filter(kapitelFertig).length + " / " + kapitel.length + "</b><span>Siegel im Pfad</span></div>" +
       "<div><b>" + serie() + "</b><span>Tage in Folge</span></div></div>" +
       '<div class="aktionen-zeile"><a class="knopf still klein-knopf" href="#statistik">' + SYMBOL.auge + "Lernstatistik ansehen</a>" +
-      '<a class="knopf still klein-knopf" href="#spickzettel">' + SYMBOL.rolle + "Spickzettel</a></div></div>";
+      '<a class="knopf still klein-knopf" href="#spickzettel">' + SYMBOL.rolle + "Spickzettel</a>" +
+      '<a class="knopf still klein-knopf" href="#gilde">' + SYMBOL.schild + "Gilde</a></div></div>";
 
     ansicht.innerHTML =
       '<div class="seite karte"><section class="auftakt">' + auftakt + brett + "</section>" +
@@ -20508,7 +20578,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     if (!alle.length) return "";
     if (!l) return '<article class="kachel erledigt">' + kopf + "<h3>Alle Rätsel gelöst</h3><p>Du kannst sie jederzeit nochmals üben.</p>" + '<a class="knopf still" href="#' + alle[0].id + '">Von vorne</a></article>';
     return '<article class="kachel">' + kopf + "<h3>" + esc(l.titel) + "</h3><p>" + esc(RAETSEL_ARTEN[l.art]) + " · " + alle.filter(x => istErledigt(x.id)).length + " von " + alle.length + " gelöst</p>" +
-      '<a class="knopf" href="#' + l.id + '">Rätseln · bis 10 EP</a></article>';
+      '<div class="aktionen-zeile"><a class="knopf" href="#' + l.id + '">Rätseln · bis 10 EP</a><a class="knopf still" href="#raetsel-bauen">Selbst bauen</a></div></article>';
   }
   function karteSchatz() {
     const t = traenke();
@@ -21053,8 +21123,11 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
   /* ---------- Rätsel: Fehlerjagd, Code-Puzzle, Lückentext, Code-Duell ---------- */
   function raetselRahmen(l, inhalt) {
     const bereits = istErledigt(l.id);
+    const nav = l.geteilt
+      ? '<nav class="lek-nav"><a class="knopf still" href="#karte">' + ICON.zurueck + 'Karte</a><span class="wo">Geteiltes Rätsel' + (l.von ? " von " + esc(l.von) : "") + "</span></nav>"
+      : lektionsNavigation(l);
     ansicht.innerHTML =
-      '<div class="seite">' + lektionsNavigation(l) +
+      '<div class="seite">' + nav +
       '<div class="lek-raster einspaltig"><article class="buch raetsel">' +
       '<div class="titelblock"><p class="eyebrow">' + RAETSEL_ARTEN[l.art] + (bereits ? " · gemeistert" : "") + "</p><h1>" + esc(l.titel) + "</h1></div>" +
       (l.frage ? '<div class="prosa"><p>' + inline(l.frage) + "</p></div>" : "") + inhalt +
@@ -21063,6 +21136,12 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     if (bereits) $("#pruefung").innerHTML = '<p class="klein">Dieses Rätsel hast du schon gelöst. Du kannst es zur Übung nochmals lösen.</p>';
   }
   function raetselGeloest(l, fehler) {
+    if (l.geteilt) {
+      $("#pruefung").innerHTML = '<div class="erfolg"><div><strong>Gelöst!</strong><span>' + (fehler === 0 ? "Im ersten Versuch." : "Nach " + (fehler + 1) + " Versuchen.") + "</span></div>" +
+        '<a class="knopf haupt" href="#raetsel-bauen">Selbst eins bauen' + ICON.weiter + "</a></div>" +
+        (l.erklaerung ? '<div class="prosa"><p>' + inline(l.erklaerung) + "</p></div>" : "");
+      return;
+    }
     const belohnung = abschliessen(l, { ersterVersuch: fehler === 0 });
     const n = naechsteNach(l);
     $("#pruefung").innerHTML =
@@ -21074,9 +21153,112 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
   }
   function raetselFalsch(l, text) {
     $("#pruefung").innerHTML = '<p class="melde-nein">' + esc(text) + "</p>";
+    if (l.geteilt) return;
     fehlversuch(l, null);
     zeigeKopf();
   }
+
+  /* ---------- Eigene Rätsel bauen und als Link teilen ---------- */
+  const linkText = {
+    hin: o => btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""),
+    her: s => JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g, "+").replace(/_/g, "/")))))
+  };
+  // Aus den Daten eines Links ein Rätsel machen. Nur bekannte Felder, mit Längengrenzen.
+  function geteiltesRaetsel(d) {
+    d = d && typeof d === "object" ? d : {};
+    const text = (v, max) => String(v == null ? "" : v).slice(0, max);
+    const l = { id: "geteilt", geteilt: true, pfad: "geteilt", art: d.art === "luecke" ? "luecke" : "fehlerjagd", hinweise: [], tests: [],
+      titel: text(d.titel, 80).trim() || "Ein Rätsel für dich", frage: text(d.frage, 400), code: text(d.code, 2000).replace(/\r/g, ""),
+      erklaerung: text(d.erklaerung, 600), von: text(d.von, 40) };
+    if (l.art === "fehlerjagd") {
+      const n = l.code.split("\n").length;
+      l.zeile = String(Math.min(n, Math.max(1, Math.round(Number(d.zeile)) || 1)));
+      if (n < 2) throw new Error("zu kurz");
+    } else {
+      const richtig = text(d.richtig, 60).trim();
+      const falsch = (Array.isArray(d.falsch) ? d.falsch : []).map(o => text(o, 60).trim()).filter(o => o && o !== richtig).slice(0, 3);
+      if (!richtig || !falsch.length || !l.code.includes("___")) throw new Error("unvollständig");
+      const alle = [richtig].concat(falsch), zz = zufall(l.code + richtig);
+      for (let i = alle.length - 1; i > 0; i--) { const j = Math.floor(zz() * (i + 1)); [alle[i], alle[j]] = [alle[j], alle[i]]; }
+      l.optionen = alle; l.richtig = alle.indexOf(richtig);
+    }
+    return l;
+  }
+  function zeigeGeteilt(roh) {
+    let l;
+    try { l = geteiltesRaetsel(linkText.her(roh)); } catch (e) { l = null; }
+    if (!l) {
+      document.title = "Rätsel · Zauberkodex";
+      ansicht.innerHTML = '<div class="seite"><div class="schatz-kopf"><p class="eyebrow">Geteiltes Rätsel</p><h1 class="gross">Dieser Link ist kaputt</h1>' +
+        '<p class="klein">Vielleicht wurde er beim Kopieren abgeschnitten. Bitte um einen neuen Link.</p><p><a class="knopf" href="#karte">Zur Karte</a></p></div></div>';
+      return;
+    }
+    document.title = l.titel + " · Zauberkodex";
+    if (l.art === "luecke") zeigeLuecke(l); else zeigeFehlerjagd(l);
+  }
+  const ENTWURF = "kodex-raetsel-entwurf";
+  function zeigeRaetselBauen() {
+    document.title = "Rätsel bauen · Zauberkodex";
+    let e = {};
+    try { e = JSON.parse(localStorage.getItem(ENTWURF) || "{}") || {}; } catch (err) { e = {}; }
+    e = Object.assign({ art: "fehlerjagd", titel: "", frage: "", code: "", zeile: 1, richtig: "", falsch: ["", "", ""], erklaerung: "", von: profil().name || "" }, e);
+    const feld = (id, name, wert, extra) => '<label class="feld"><span>' + name + '</span><input id="' + id + '" value="' + esc(wert) + '"' + (extra || "") + "></label>";
+    ansicht.innerHTML = '<div class="seite bauen"><div class="schatz-kopf"><p class="eyebrow">Rätsel bauen</p><h1 class="gross">Ein Rätsel für deine Gilde</h1>' +
+      '<p class="klein">Schreib ein kleines Rätsel und schick den Link weiter. Wer ihn öffnet, kann es sofort lösen, auch ohne Konto.</p></div>' +
+      '<div class="pfad-reiter" role="tablist"><button type="button" class="reiter' + (e.art === "fehlerjagd" ? " aktiv" : "") + '" data-bau-art="fehlerjagd"><span>Fehlerjagd</span></button>' +
+      '<button type="button" class="reiter' + (e.art === "luecke" ? " aktiv" : "") + '" data-bau-art="luecke"><span>Lückentext</span></button></div>' +
+      feld("bau-titel", "Titel", e.titel, ' maxlength="80" placeholder="zum Beispiel: Der störrische Goblin"') +
+      feld("bau-frage", "Frage", e.frage, ' maxlength="400" placeholder="' + (e.art === "luecke" ? "Was gehört in die Lücke?" : "In welcher Zeile steckt der Fehler?") + '"') +
+      '<label class="feld"><span>Code' + (e.art === "luecke" ? ", mit ___ an der Stelle der Lücke" : "") + '</span><textarea id="bau-code" rows="7" spellcheck="false" autocapitalize="off" autocomplete="off" maxlength="2000">' + esc(e.code) + "</textarea></label>" +
+      (e.art === "fehlerjagd"
+        ? feld("bau-zeile", "Zeile mit dem Fehler", e.zeile, ' type="number" min="1" inputmode="numeric"')
+        : feld("bau-richtig", "Richtige Antwort", e.richtig, ' maxlength="60" autocapitalize="off"') +
+          e.falsch.map((f, i) => feld("bau-falsch-" + i, "Falsche Antwort " + (i + 1), f, ' maxlength="60" autocapitalize="off"')).join("")) +
+      feld("bau-erklaerung", "Erklärung nach dem Lösen (freiwillig)", e.erklaerung, ' maxlength="600"') +
+      feld("bau-von", "Dein Name (freiwillig)", e.von, ' maxlength="40"') +
+      '<p class="melde-nein" id="bau-meldung"></p>' +
+      '<div class="aktionen-zeile"><button type="button" class="knopf" id="bau-probe">Ausprobieren</button><button type="button" class="knopf haupt" id="bau-teilen">Link teilen</button></div></div>';
+    const lies = () => {
+      const w = id => { const el = $("#" + id); return el ? el.value : ""; };
+      const neu = Object.assign({}, e, { titel: w("bau-titel"), frage: w("bau-frage"), code: w("bau-code"), erklaerung: w("bau-erklaerung"), von: w("bau-von") });
+      if (e.art === "fehlerjagd") neu.zeile = Number(w("bau-zeile")) || 1;
+      else { neu.richtig = w("bau-richtig"); neu.falsch = [0, 1, 2].map(i => w("bau-falsch-" + i)); }
+      try { localStorage.setItem(ENTWURF, JSON.stringify(neu)); } catch (err) { /* Speicher nicht verfuegbar */ }
+      return neu;
+    };
+    ansicht.querySelectorAll("input, textarea").forEach(el => el.addEventListener("input", lies));
+    ansicht.querySelectorAll("[data-bau-art]").forEach(b => b.addEventListener("click", () => {
+      const neu = lies(); neu.art = b.dataset.bauArt;
+      try { localStorage.setItem(ENTWURF, JSON.stringify(neu)); } catch (err) { /* Speicher nicht verfuegbar */ }
+      zeigeRaetselBauen();
+    }));
+    const pruefe = () => {
+      const d = lies();
+      const m = $("#bau-meldung");
+      const zeilen = d.code.replace(/\r/g, "").split("\n").length;
+      let fehler = "";
+      if (!d.code.trim()) fehler = "Schreib zuerst etwas Code.";
+      else if (d.art === "fehlerjagd" && zeilen < 2) fehler = "Für eine Fehlerjagd braucht es mindestens zwei Zeilen.";
+      else if (d.art === "fehlerjagd" && (d.zeile < 1 || d.zeile > zeilen)) fehler = "Der Code hat " + zeilen + " Zeilen. Die Fehlerzeile muss dazwischen liegen.";
+      else if (d.art === "luecke" && !d.code.includes("___")) fehler = "Markiere die Lücke im Code mit drei Unterstrichen: ___";
+      else if (d.art === "luecke" && !d.richtig.trim()) fehler = "Trag die richtige Antwort ein.";
+      else if (d.art === "luecke" && !d.falsch.some(f => f.trim())) fehler = "Trag mindestens eine falsche Antwort ein.";
+      m.textContent = fehler;
+      if (fehler) return null;
+      const daten = { art: d.art, titel: d.titel, frage: d.frage, code: d.code, erklaerung: d.erklaerung, von: d.von };
+      if (d.art === "fehlerjagd") daten.zeile = d.zeile; else { daten.richtig = d.richtig; daten.falsch = d.falsch.filter(f => f.trim()); }
+      return location.origin + location.pathname + "#teilen=" + linkText.hin(daten);
+    };
+    $("#bau-probe").addEventListener("click", () => { const url = pruefe(); if (url) location.hash = url.split("#")[1]; });
+    $("#bau-teilen").addEventListener("click", async () => {
+      const url = pruefe();
+      if (!url) return;
+      const titel = $("#bau-titel").value.trim() || "Ein Rätsel für dich";
+      if (navigator.share) { try { await navigator.share({ title: titel, text: "Löst du mein Rätsel im Zauberkodex?", url }); return; } catch (err) { if (err && err.name === "AbortError") return; } }
+      kopiere(url, "Link kopiert. Schick ihn weiter!");
+    });
+  }
+
   const bunteZeilen = (code, l) => hlSprache(code || "", spracheVon(l)).split("\n");
 
   function zeigeFehlerjagd(l) {
@@ -21873,7 +22055,17 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       '<p class="klein">' + (s ? ICON.flamme + " " + s + (s === 1 ? " Tag" : " Tage") + " in Folge" : "Heute beginnt eine neue Serie.") + " · " + esc(r.name) + ", " + zustand.ep + " EP</p></div>" +
       '<section class="alltag" aria-label="Heute">' + karteGemerkt() + karteTagesaufgabe() + karteWiederholung() + karteRaetsel() + karteWoche() + karteSchatz() + "</section>" +
       '<div class="aktionen-zeile">' + (n ? '<a class="knopf haupt" href="#' + n.id + '">Weiterlernen' + ICON.weiter + "</a>" : "") +
-      '<a class="knopf" href="#karte">Alle Lektionen</a><a class="knopf still" href="#spickzettel">' + SYMBOL.rolle + "Spickzettel</a></div></div>";
+      '<a class="knopf" href="#karte">Alle Lektionen</a><a class="knopf still" href="#spickzettel">' + SYMBOL.rolle + 'Spickzettel</a><a class="knopf still" href="#gilde">' + SYMBOL.schild + "Gilde</a></div></div>";
+  }
+  function zeigeGilde() {
+    document.title = "Gilde · Zauberkodex";
+    ansicht.innerHTML = '<div class="seite gilde"><div class="schatz-kopf"><p class="eyebrow">Gilde</p><h1 class="gross">Deine Gilde</h1>' +
+      '<p class="klein">Alle, denen du ein Konto gegeben hast, können hier ihren Fortschritt zeigen. Sichtbar sind nur Name, Porträt, Rang, EP und Serie, nie Code oder Antworten.</p></div>' +
+      '<div id="gilde-bereich"><p class="klein">Lade die Gilde …</p></div>' +
+      '<p><a class="knopf still" href="#raetsel-bauen">' + SYMBOL.lupe + "Rätsel für die Gilde bauen</a></p></div>";
+    const el = $("#gilde-bereich");
+    // Ist sync.js noch nicht geladen, füllt es den Bereich selbst, sobald es bereit ist
+    if (typeof window.__kodexGilde === "function") window.__kodexGilde(el);
   }
   function route() {
     if (fensterSchliessen) fensterSchliessen();
@@ -21886,6 +22078,9 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     if (ziel === "profil") zeigeProfil();
     else if (ziel === "schatzkammer") zeigeSchatzkammer();
     else if (ziel === "spickzettel") zeigeSpickzettel();
+    else if (ziel === "gilde") zeigeGilde();
+    else if (ziel === "raetsel-bauen") zeigeRaetselBauen();
+    else if (ziel.startsWith("teilen=")) zeigeGeteilt(ziel.slice(7));
     else if (ziel === "werkstatt") zeigeWerkstatt();
     else if (ziel === "wiederholung") zeigeWiederholung();
     else if (ziel === "statistik") zeigeStatistik();
@@ -21936,8 +22131,17 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       try { localStorage.setItem(SCHLUESSEL, JSON.stringify(zustand)); } catch (e) { /* Speicher nicht verfuegbar */ }
       ausruestungAnwenden();
       const ziel = location.hash.replace(/^#/, "");
-      if (!fensterSchliessen && !NACH_ID[ziel] && ziel !== "werkstatt") route(); else zeigeKopf();
-    } };
+      if (!fensterSchliessen && !NACH_ID[ziel] && ziel !== "werkstatt" && ziel !== "raetsel-bauen") route(); else zeigeKopf();
+    },
+    gildeInfo: () => {
+      const ab = wocheVon(heute());
+      return { name: profil().name || "Namenloser Held", portraet: profil().portraet, ep: zustand.ep, serie: serie(), rang: rangInfo(zustand.ep).name,
+        woche: Object.keys(zustand.verlauf || {}).filter(d => d >= ab).reduce((a, d) => a + (zustand.verlauf[d].ep || 0), 0), wocheAb: ab,
+        abzeichen: Object.keys(zustand.abzeichen).length };
+    },
+    portraetSvg: id => (PORTRAET_NACH_ID[id] || PORTRAETS[0]).svg,
+    wocheAb: () => wocheVon(heute())
+  };
 })();
 </script>
 <script type="module" src="sync.js"></script>

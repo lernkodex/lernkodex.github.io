@@ -92,6 +92,7 @@ function schreiben(sofort) {
       await fb.F.setDoc(fb.F.doc(fb.db, "kodex", nutzer.uid), { zustand: text, geaendert: fb.F.serverTimestamp() });
       stand.zuletzt = new Date();
       zeige("ok");
+      gildeEintragen().catch(() => { /* Gilde ist freiwillig, der Abgleich läuft trotzdem */ });
     } catch (e) {
       zuletzt = "";
       zeige("fehler", meldung(e));
@@ -170,6 +171,81 @@ function ui(el) {
   }));
 }
 
+/* ---------- Gilde: ein öffentliches Kärtchen pro Konto ---------- */
+let gildeEnde = null, gildeAlt = "", gildeEl = null;
+async function gildeEintragen() {
+  if (!fb || !nutzer || !kodex.zustandHolen().gildeMitglied) return;
+  const roh = kodex.gildeInfo();
+  // Passend zu den Firestore-Regeln: ganze Zahlen und kurze Texte
+  const info = { name: String(roh.name).slice(0, 40), portraet: String(roh.portraet).slice(0, 20), rang: String(roh.rang).slice(0, 40), wocheAb: String(roh.wocheAb).slice(0, 10),
+    ep: Math.floor(roh.ep) || 0, serie: Math.floor(roh.serie) || 0, woche: Math.floor(roh.woche) || 0, abzeichen: Math.floor(roh.abzeichen) || 0 };
+  const text = JSON.stringify(info);
+  if (text === gildeAlt) return;
+  await fb.F.setDoc(fb.F.doc(fb.db, "gilde", nutzer.uid), Object.assign(info, { geaendert: fb.F.serverTimestamp() }));
+  gildeAlt = text;
+}
+function gildeMitglied(an) {
+  const z = kodex.zustandHolen();
+  z.gildeMitglied = an;
+  kodex.zustandSetzen(z);
+  zuletzt = "";
+  schreiben(true);
+}
+function gilde(el) {
+  if (gildeEnde) { gildeEnde(); gildeEnde = null; }
+  gildeEl = el;
+  if (konfiguriert && !fb) { el.innerHTML = '<p class="klein">Verbinde …</p>'; return; }
+  if (!konfiguriert) { el.innerHTML = '<p class="klein">Die Gilde braucht den Abgleich. Er ist hier noch nicht eingerichtet.</p>'; return; }
+  if (!nutzer) {
+    el.innerHTML = '<p class="klein">Melde dich zuerst an: <b>⋯ → Synchronisieren</b>.</p>';
+    return;
+  }
+  if (!kodex.zustandHolen().gildeMitglied) {
+    el.innerHTML = '<div class="kachel"><h3>Der Gilde beitreten</h3><p>Dann sehen die anderen deinen Namen, dein Porträt, Rang, EP und deine Serie. Du siehst ihre. Austreten geht jederzeit.</p>' +
+      '<button type="button" class="knopf haupt" id="gilde-bei">Beitreten</button></div>';
+    el.querySelector("#gilde-bei").addEventListener("click", () => { gildeMitglied(true); });
+    return;
+  }
+  let sortierung = "ep", liste = [];
+  const zeichne = () => {
+    const ab = kodex.wocheAb();
+    const wert = m => sortierung === "woche" ? (m.wocheAb === ab ? m.woche || 0 : 0) : sortierung === "serie" ? m.serie || 0 : m.ep || 0;
+    const sortiert = liste.slice().sort((a, b) => wert(b) - wert(a));
+    el.innerHTML = '<div class="gilde-reiter">' + [["ep", "Gesamt"], ["woche", "Diese Woche"], ["serie", "Serie"]].map(([id, name]) =>
+      '<button type="button" class="reiter' + (id === sortierung ? " aktiv" : "") + '" data-sort="' + id + '"><span>' + name + "</span></button>").join("") + "</div>" +
+      '<ol class="gilde-liste">' + sortiert.map((m, i) => '<li class="' + (m.id === nutzer.uid ? "ich" : "") + '"><span class="platz">' + (i + 1) + '</span><span class="bild">' + kodex.portraetSvg(m.portraet) + "</span>" +
+        '<span class="wer"><b>' + esc(m.name || "Namenloser Held") + (m.id === nutzer.uid ? " (du)" : "") + "</b><small>" + esc(m.rang || "") + " · " + (m.abzeichen || 0) + " Abzeichen</small></span>" +
+        '<span class="zahlen"><b>' + wert(m) + (sortierung === "serie" ? " Tage" : " EP") + "</b><small>" + (sortierung === "serie" ? (m.ep || 0) + " EP" : "Serie " + (m.serie || 0)) + "</small></span></li>").join("") + "</ol>" +
+      '<p><button type="button" class="knopf still" id="gilde-aus">Aus der Gilde austreten</button></p>';
+    el.querySelectorAll("[data-sort]").forEach(b => b.addEventListener("click", () => { sortierung = b.dataset.sort; zeichne(); }));
+    el.querySelector("#gilde-aus").addEventListener("click", async () => {
+      try { await fb.F.deleteDoc(fb.F.doc(fb.db, "gilde", nutzer.uid)); } catch (e) { /* schon weg */ }
+      gildeAlt = "";
+      gildeMitglied(false);
+    });
+  };
+  gildeEintragen().catch(() => {});
+  gildeEnde = fb.F.onSnapshot(fb.F.collection(fb.db, "gilde"), snap => {
+    if (!document.body.contains(el)) { if (gildeEnde) { gildeEnde(); gildeEnde = null; } return; }
+    // Fremde Kärtchen nie ungeprüft anzeigen: nur bekannte Felder, Zahlen als Zahlen, Texte gekürzt
+    const zahl = v => Math.max(0, Math.min(1e7, Math.floor(Number(v)) || 0));
+    const text = (v, max) => String(v == null ? "" : v).slice(0, max);
+    liste = snap.docs.map(d => {
+      const m = d.data() || {};
+      return { id: d.id, name: text(m.name, 40), portraet: text(m.portraet, 20), rang: text(m.rang, 40), ep: zahl(m.ep), serie: zahl(m.serie),
+        woche: zahl(m.woche), wocheAb: text(m.wocheAb, 10), abzeichen: zahl(m.abzeichen) };
+    });
+    zeichne();
+  }, e => {
+    el.innerHTML = '<p class="melde-nein">' + (e && e.code === "permission-denied"
+      ? "Firebase lässt die Gilde noch nicht zu. Ergänze die Firestore-Regeln, wie in der Anleitung beschrieben."
+      : esc(meldung(e))) + "</p>";
+  });
+}
+
+window.__kodexGilde = gilde;
+// Wurde die Gilde schon geöffnet, bevor dieses Modul geladen war, jetzt füllen
+if (document.getElementById("gilde-bereich")) gilde(document.getElementById("gilde-bereich"));
 window.__kodexSyncUi = ui;
 window.__kodexNachSpeichern = () => schreiben(false);
 if (knopf) knopf.addEventListener("click", () => document.getElementById("menue").click());
@@ -184,6 +260,7 @@ if (konfiguriert && kodex) {
       nutzer = u;
       zuletzt = "";
       if (u) verbinden(u); else zeige("aus", "Nicht angemeldet");
+      if (gildeEl && document.body.contains(gildeEl)) gilde(gildeEl);
     });
   }).catch(() => zeige("fehler", "Firebase konnte nicht geladen werden. Bist du online?"));
   addEventListener("online", () => schreiben(true));
