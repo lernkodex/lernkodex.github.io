@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.lernkodex.zauberkodex",
+        "sha256_cert_fingerprints": ["A9:4E:A7:FF:30:A8:B3:80:E4:73:85:88:C0:52:57:BB:8C:80:51:38:B2:AC:F7:9E:8E:1C:04:26:E4:14:79:94"]
+      }
+    }]
