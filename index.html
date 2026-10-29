@@ -1461,11 +1461,11 @@ Ein Fehler
 --- erklaerung
 Ein Vergleich ergibt immer `true` (wahr) oder `false` (falsch). `>=` heisst «grösser oder gleich», und 15 ist gleich 15. Weitere Vergleiche sind `>`, `<`, `<=`, `===` (gleich) und `!==` (ungleich).
 
-In D&D trifft ein Angriff, wenn der Wurf die Rüstungsklasse mindestens erreicht. Genau das ist dieser Vergleich.
+In D&D hat jeder Gegner eine **Rüstungsklasse** (kurz RK): die Zahl, die ein Angriffswurf mindestens erreichen muss, um ihn zu treffen. Gewürfelt wird mit dem **W20**, einem Würfel mit 20 Seiten. Wurf 15 gegen RK 15 trifft also. Genau das ist dieser Vergleich.
 
 === k2-4 | code | Treffer oder daneben?
 --- szene
-Kael hebt sein Schwert gegen einen Banditen. Der W20 rollt über den Tisch.
+Kael hebt sein Schwert gegen einen Banditen. Der W20, der Würfel mit 20 Seiten, rollt über den Tisch.
 --- erklaerung
 Mit `if` trifft dein Programm Entscheidungen. Die Bedingung steht in runden Klammern. Ist sie wahr, läuft der Block in den geschweiften Klammern. Sonst läuft der Block nach `else`.
 
@@ -1626,6 +1626,57 @@ pruefeSatz($lauf({hatSchluessel: true, staerke: 8}).ausgabe, "Die Tür geht auf.
 --- test Stark genug
 pruefeSatz($lauf({hatSchluessel: false, staerke: 18}).ausgabe, "Die Tür geht auf.", 'Ohne Schlüssel, Stärke 18');
 pruefeSatz($lauf({hatSchluessel: true, staerke: 20}).ausgabe, "Die Tür geht auf.", 'Mit Schlüssel, Stärke 20');
+
+=== k2-6b | code | Übung: Genug Gold?
+--- szene
+Auf dem Markt von Rabenfurt glänzt ein Dolch in der Auslage. Mira zählt ihre Münzen. «Reicht es, oder nicht?»
+--- erklaerung
+Eine kleine Übung vor der Meisterprüfung. Du kennst schon alles dafür.
+
+In einer Bedingung darfst du auch **zwei Variablen** vergleichen, nicht nur eine Variable mit einer Zahl:
+
+```
+const pfeile = 8;
+const gegner = 5;
+
+if (pfeile >= gegner) {
+  console.log("Genug Pfeile.");
+} else {
+  console.log("Zu wenig Pfeile.");
+}
+```
+
+Weil der Vergleich mit Variablen arbeitet, stimmt das Programm auch dann noch, wenn sich die Zahlen ändern.
+--- aufgabe
+Gib `Gekauft.` aus, wenn `gold` für den `preis` reicht, sonst `Zu teuer.` Genau gleich viel Gold wie der Preis reicht auch.
+--- start
+const gold = 12;
+const preis = 15;
+
+// Reicht das Gold?
+--- loesung
+const gold = 12;
+const preis = 15;
+
+// Reicht das Gold?
+if (gold >= preis) {
+  console.log("Gekauft.");
+} else {
+  console.log("Zu teuer.");
+}
+--- hinweis
+Übernimm den Aufbau aus dem Beispiel: `if (gold ... preis) { ... } else { ... }`.
+--- hinweis
+«Genau gleich viel reicht auch» heisst `>=`, also grösser oder gleich.
+--- test Mit 12 Gold für 15 ist es zu teuer
+$pruefe($ausgabe.length > 0, 'Die Konsole ist leer. Gib das Ergebnis mit console.log() aus.');
+$pruefe($enthaelt($ausgabe, "Zu teuer.") && !$enthaelt($ausgabe, "Gekauft."), 'Mit 12 Gold für 15 sollte nur "Zu teuer." erscheinen, die Konsole zeigt ' + $zeige($ausgabe) + '.');
+--- test Mit 20 Gold klappt der Kauf
+const r = $lauf({gold: 20, preis: 15});
+$pruefe($enthaelt(r.ausgabe, "Gekauft.") && !$enthaelt(r.ausgabe, "Zu teuer."), 'Mit 20 Gold für 15 sollte nur "Gekauft." erscheinen, die Konsole zeigt ' + $zeige(r.ausgabe) + '. Vergleichst du gold mit preis statt mit festen Zahlen?');
+--- test Genau gleich viel reicht
+const r = $lauf({gold: 15, preis: 15});
+$pruefe($enthaelt(r.ausgabe, "Gekauft."), 'Mit genau 15 Gold für 15 sollte "Gekauft." erscheinen, die Konsole zeigt ' + $zeige(r.ausgabe) + '. Nimm >= statt >.');
 
 === k2-7 | boss | Der Händler von Rabenfurt
 --- szene
@@ -1800,7 +1851,7 @@ for (const [g, k] of [[3, 300], [0, 0], [12, 1200]]) {
 --- szene
 Auf jedem Charakterbogen steht neben den Attributen eine kleine Zahl. Wer sie ausrechnen kann, braucht keine Tabelle mehr.
 --- erklaerung
-In D&D bestimmt jeder Attributswert einen **Modifikator**: Wert minus 10, geteilt durch 2, abgerundet.
+Jeder Held hat sechs **Attribute** wie Stärke oder Geschicklichkeit, meist mit Werten zwischen 3 und 18. Je höher, desto besser. In D&D bestimmt jeder Attributswert einen **Modifikator**, eine kleine Zahl, die man zu Würfen dazuzählt: Wert minus 10, geteilt durch 2, abgerundet.
 
 - Stärke 15: (15 − 10) / 2 = 2.5, abgerundet **+2**
 - Stärke 8: (8 − 10) / 2 = −1, also **−1**
@@ -1913,6 +1964,67 @@ for (const s of [4, 6, 8, 12]) {
   $pruefe(wuerfle(s) === s, 'wuerfle(' + s + ') kann nie ' + s + ' ergeben. Benutzt du den Parameter seiten?');
 }
 
+=== k3-5b | code | Übung: Kritisch oder Patzer?
+--- szene
+Bevor es ernst wird, lässt Orlan dich üben. «Zwei Zahlen auf dem W20 sind besonders. Bring deinem Zauber bei, sie zu erkennen.»
+--- erklaerung
+Eine kleine Übung vor der Meisterprüfung. Neu ist nur eine Kleinigkeit: Eine Funktion darf **mehrere** `return` haben. Sobald eines davon läuft, ist die Funktion sofort fertig. Was darunter steht, kommt nicht mehr dran.
+
+```
+function zustand(tp) {
+  if (tp <= 0) {
+    return "Bewusstlos";
+  }
+  return "Wach";
+}
+
+console.log(zustand(0)); // Bewusstlos
+console.log(zustand(7)); // Wach
+```
+
+Bei `zustand(0)` läuft das erste `return`, und die Funktion endet. Das zweite `return` erreicht nur, wer nicht schon vorher hinausgegangen ist.
+--- aufgabe
+Schreibe die Funktion `bewerte(wurf)`. Sie gibt `"Kritisch"` zurück, wenn der Wurf 20 ist, `"Patzer"` bei einer 1 und sonst `"Normal"`.
+--- start
+function bewerte(wurf) {
+  // dein Code
+}
+
+console.log(bewerte(20));
+console.log(bewerte(1));
+console.log(bewerte(12));
+--- loesung
+function bewerte(wurf) {
+  if (wurf === 20) {
+    return "Kritisch";
+  }
+  if (wurf === 1) {
+    return "Patzer";
+  }
+  return "Normal";
+}
+
+console.log(bewerte(20));
+console.log(bewerte(1));
+console.log(bewerte(12));
+--- hinweis
+Zwei `if` mit je einem `return`, wie im Beispiel. Ganz am Schluss steht `return "Normal";` für alle anderen Würfe.
+--- hinweis
+Gleich vergleichst du mit `===`, also `if (wurf === 20) { return "Kritisch"; }`.
+--- test bewerte ist eine Funktion
+$pruefe(typeof bewerte === "function", 'Es gibt keine Funktion bewerte.');
+--- test Eine 20 ist kritisch
+const e = bewerte(20);
+$pruefe(e === "Kritisch", 'bewerte(20) sollte "Kritisch" zurückgeben, es kam ' + $zeige(e) + '. Benutzt du return statt console.log?');
+--- test Eine 1 ist ein Patzer
+const e = bewerte(1);
+$pruefe(e === "Patzer", 'bewerte(1) sollte "Patzer" zurückgeben, es kam ' + $zeige(e) + '.');
+--- test Alles andere ist normal
+for (const w of [2, 12, 19]) {
+  const e = bewerte(w);
+  $pruefe(e === "Normal", 'bewerte(' + w + ') sollte "Normal" zurückgeben, es kam ' + $zeige(e) + '.');
+}
+
 === k3-6 | boss | Der Angriffswurf
 --- szene
 Die Gilde schickt dich in die Arena. Gegen die Übungspuppen soll jeder Angriff nach den Regeln ausgewürfelt werden.
@@ -1948,7 +2060,7 @@ function zustand(tp) {
 }
 ```
 
-Bei 0 TP endet die Funktion schon mit «Bewusstlos». Die Zeile darunter kommt gar nicht mehr dran. Darum prüfst du im Angriff die Sonderfälle 20 und 1 **zuerst**. Erst wenn beide nicht zutreffen, rechnest du mit dem Bonus.
+Bei 0 TP (Trefferpunkten) endet die Funktion schon mit «Bewusstlos». Die Zeile darunter kommt gar nicht mehr dran. Darum prüfst du im Angriff die Sonderfälle 20 und 1 **zuerst**. Erst wenn beide nicht zutreffen, rechnest du mit dem Bonus.
 
 **Schritt 3: rechnen und vergleichen.** «Erreicht die RK» heisst gleich oder grösser, also `>=`:
 
@@ -2380,6 +2492,59 @@ const leer = treffer([], 10);
 $pruefe(leer === 0, 'Bei einer leeren Liste sollte 0 herauskommen, es kam ' + $zeige(leer) + '.');
 $pruefe(treffer([1, 2], 20) === 0, 'treffer([1, 2], 20) sollte 0 ergeben.');
 
+=== k4-6b | code | Übung: Der schwächste Wurf
+--- szene
+Bran hat fünfmal gewürfelt und will wissen, welcher Wurf der schlechteste war. «Damit ich weiss, über welchen ich mich ärgern muss.»
+--- erklaerung
+Eine kleine Übung vor der Meisterprüfung. Sie ist das Gegenstück zu «Der beste Wurf».
+
+Dort hast du dir den **Rekord** gemerkt: Der erste Wurf ist der Startwert, und jeder grössere Wurf wird der neue Rekord. Für den **kleinsten** Wurf drehst du nur den Vergleich um:
+
+```
+let rekord = wuerfe[0];
+for (const w of wuerfe) {
+  if (w < rekord) {
+    rekord = w;
+  }
+}
+```
+
+Mit `<` statt `>` gewinnt jetzt immer der kleinere Wurf.
+--- aufgabe
+Schreibe die Funktion `kleinster(wuerfe)`. Sie gibt den kleinsten Wurf aus der Liste zurück. Benutze eine Schleife.
+--- start
+function kleinster(wuerfe) {
+  // dein Code
+}
+
+console.log(kleinster([5, 2, 9, 4]));
+--- loesung
+function kleinster(wuerfe) {
+  let rekord = wuerfe[0];
+  for (const w of wuerfe) {
+    if (w < rekord) {
+      rekord = w;
+    }
+  }
+  return rekord;
+}
+
+console.log(kleinster([5, 2, 9, 4]));
+--- hinweis
+Übernimm die Zeilen aus dem Beispiel in die Funktion und gib am Schluss `rekord` mit `return` zurück.
+--- hinweis
+Der Startwert ist `wuerfe[0]`, der erste Wurf aus dem Parameter.
+--- test kleinster ist eine Funktion
+$pruefe(typeof kleinster === "function", 'Es gibt keine Funktion kleinster.');
+--- test Findet den kleinsten Wurf
+const faelle = [[[5, 2, 9, 4], 2], [[9, 8, 1], 1], [[3, 6, 6], 3], [[7], 7], [[4, 4, 5], 4]];
+for (const [liste, soll] of faelle) {
+  const e = kleinster(liste.slice());
+  $pruefe(e === soll, 'kleinster(' + JSON.stringify(liste) + ') sollte ' + soll + ' ergeben, es kam ' + $zeige(e) + '.');
+}
+--- test Mit einer Schleife
+$pruefe(/for\s*\(/.test($code), 'Dein Ergebnis kann stimmen, aber in dieser Lektion übst du das Rekord-Muster: Löse es mit einer for-Schleife.');
+
 === k4-7 | boss | Die Attribute auswürfeln
 --- szene
 Ein neuer Held steht in der Gilde. Nach alter Sitte werden seine sechs Attribute ausgewürfelt, und alle schauen zu.
@@ -2806,6 +2971,71 @@ $pruefe(findeHeld(g, "Eldra") === g[2], 'Eldra steht zuunterst in der Liste und 
 --- test Unbekannte Namen
 const r = findeHeld([{ name: "Ayla" }], "Zarek");
 $pruefe(r === undefined, 'Für einen unbekannten Namen sollte undefined herauskommen, es kam ' + $zeige(r) + '.');
+
+=== k5-6b | code | Übung: Der Wert der Beute
+--- szene
+Nach dem Kampf liegt die Beute auf dem Tisch. Bevor geteilt wird, will Mira wissen, wie viel Gold das alles wert ist.
+--- erklaerung
+Eine kleine Übung vor der Meisterprüfung. Sie verbindet eine Summe aus «Der Schadenswurf» mit einer Liste von Objekten.
+
+Eine Summe beginnt bei 0. In der Schleife zählst du bei jedem Durchlauf etwas dazu. Bei Objekten greifst du mit dem Punkt auf die Zahl zu:
+
+```
+const gruppe = [
+  { name: "Kael", tp: 12 },
+  { name: "Mira", tp: 8 }
+];
+
+let summe = 0;
+for (const held of gruppe) {
+  summe = summe + held.tp;
+}
+console.log(summe); // 20
+```
+--- aufgabe
+Schreibe die Funktion `gesamtWert(beute)`. Sie zählt den `wert` aller Gegenstände zusammen und gibt die Summe zurück. Eine leere Beute ist 0 Gold wert.
+--- start
+const beute = [
+  { name: "Rubin", wert: 50 },
+  { name: "Seil", wert: 1 },
+  { name: "Silberkelch", wert: 25 }
+];
+
+function gesamtWert(beute) {
+  // dein Code
+}
+
+console.log(gesamtWert(beute));
+--- loesung
+const beute = [
+  { name: "Rubin", wert: 50 },
+  { name: "Seil", wert: 1 },
+  { name: "Silberkelch", wert: 25 }
+];
+
+function gesamtWert(beute) {
+  let summe = 0;
+  for (const ding of beute) {
+    summe = summe + ding.wert;
+  }
+  return summe;
+}
+
+console.log(gesamtWert(beute));
+--- hinweis
+Beginne in der Funktion mit `let summe = 0;` und gehe mit `for (const ding of beute)` durch die Beute.
+--- hinweis
+In der Schleife: `summe = summe + ding.wert;`. Nach der Schleife `return summe;`.
+--- test gesamtWert ist eine Funktion
+$pruefe(typeof gesamtWert === "function", 'Es gibt keine Funktion gesamtWert.');
+--- test Zählt alle Werte zusammen
+const e = gesamtWert([{ name: "Rubin", wert: 50 }, { name: "Seil", wert: 1 }, { name: "Silberkelch", wert: 25 }]);
+$pruefe(e === 76, 'Rubin (50), Seil (1) und Silberkelch (25) sollten zusammen 76 ergeben, es kam ' + $zeige(e) + '.');
+const f = gesamtWert([{ name: "Krone", wert: 300 }, { name: "Dolch", wert: 2 }]);
+$pruefe(f === 302, 'Mit einer anderen Beute (300 und 2) sollte 302 herauskommen, es kam ' + $zeige(f) + '. Zählst du die Beute aus dem Parameter zusammen?');
+--- test Leere Beute ist 0 wert
+const e = gesamtWert([]);
+$pruefe(e === 0, 'gesamtWert([]) sollte 0 ergeben, es kam ' + $zeige(e) + '. Beginnt deine Summe bei 0?');
 
 === k5-7 | boss | Das Inventar
 --- szene
@@ -3360,9 +3590,20 @@ $erwarteAusgabe($ausgabe, ["3 kampfbereit, 21 TP zusammen, am stärksten: Mira"]
 --- szene
 Orlan entrollt eine Karte auf dem Tisch. «Bisher haben deine Zauber nur in die Konsole geflüstert. Jetzt sollen alle am Tisch sie sehen.»
 --- erklaerung
-Jede Webseite besteht aus **HTML**: Elementen wie Überschriften, Knöpfen und Textfeldern. JavaScript kann diese Elemente finden und verändern.
+Jede Webseite besteht aus **HTML**: Elementen wie Überschriften, Absätzen, Knöpfen und Textfeldern. JavaScript kann diese Elemente finden und verändern.
 
-Das HTML für diese Lektion steht unter dieser Erklärung. Das Element `<h1 id="titel">` hat die **ID** `titel`. Damit findest du es:
+**Ein kurzer Blick auf HTML.** Ein Element besteht meist aus einem Anfangs-Tag, dem Inhalt und einem End-Tag mit Schrägstrich:
+
+```
+<h1 id="titel">Unbenannte Seite</h1>
+```
+
+- `<h1>` ist das Anfangs-Tag. `h1` heisst «Überschrift der Stufe 1». `<p>` wäre ein Absatz, `<button>` ein Knopf.
+- `Unbenannte Seite` ist der Inhalt, also der Text, den man auf der Seite sieht.
+- `</h1>` beendet das Element.
+- `id="titel"` ist ein **Attribut**: eine Zusatzangabe im Anfangs-Tag. Die **ID** ist ein eindeutiger Name, wie ein Namensschild. Auf der Seite sieht man sie nicht, aber JavaScript findet das Element damit.
+
+Selbst HTML schreiben lernst du in Kapitel X. Hier reicht es, die IDs zu finden. Das HTML für diese Lektion steht unter dieser Erklärung. So findest du die Überschrift mit der ID `titel`:
 
 ```
 const titel = document.querySelector("#titel");
@@ -3935,7 +4176,7 @@ const namen = Array.isArray(r) ? r.map(k => k.name) : r;
 $pruefe(!(Array.isArray(namen) && namen.includes("Mira")), 'Bei Ayla, Drache und Zombie kam ' + $zeige(namen) + ' heraus. Sortiere die Liste aus dem Parameter, nicht eine Liste ausserhalb der Funktion.');
 $pruefe(JSON.stringify(namen) === JSON.stringify(["Drache", "Ayla", "Zombie"]), 'Bei Ayla (2), Drache (22) und Zombie (-1) sollte die Reihenfolge Drache, Ayla, Zombie sein. Sie ist ' + $zeige(namen) + '.');
 
-=== k8-2 | code | Kurze Zauber: filter und map
+=== k8-2 | code | Kurze Zauber: filter
 --- szene
 Orlan blättert in einem schlanken Büchlein. «Manche Zauber passen in eine einzige Zeile. Man muss sie nur kennen.»
 --- erklaerung
@@ -3946,20 +4187,16 @@ function doppelt(x) { return x * 2; }
 const doppelt2 = x => x * 2;   // dasselbe
 ```
 
-Links vom Pfeil `=>` steht der Parameter, rechts das Ergebnis. Ein `return` braucht es dabei nicht.
+Links vom Pfeil `=>` steht der Parameter, rechts das Ergebnis. Ein `return` braucht es dabei nicht. Lies `x => x * 2` als «aus x wird x mal 2».
 
-Pfeilfunktionen passen perfekt zu zwei weiteren Listen-Werkzeugen:
-
-- `filter` behält nur die Elemente, für die die Funktion `true` ergibt.
-- `map` macht aus jedem Element etwas Neues.
+Pfeilfunktionen passen perfekt zum Listen-Werkzeug `filter`. Es geht jedes Element durch und **behält nur die, für die die Funktion `true` ergibt**:
 
 ```
-const preise = [12, 40, 7];
-const teure = preise.filter(p => p > 10);  // [12, 40]
-const inSilber = preise.map(p => p * 10);  // [120, 400, 70]
+const wuerfe = [3, 18, 7, 12];
+const hohe = wuerfe.filter(w => w > 10);  // [18, 12]
 ```
 
-Beide geben eine **neue** Liste zurück und lassen die alte unverändert. Was du in Kapitel IV mit Schleifen gebaut hast, geht damit in einer Zeile.
+Bei jedem Wurf fragt `filter`: Ist `w > 10` wahr? Bei 3 nein, bei 18 ja, bei 7 nein, bei 12 ja. `filter` gibt eine **neue** Liste zurück, `wuerfe` bleibt unverändert. Was du in Kapitel IV mit einer Schleife und `push` gebaut hast, geht damit in einer Zeile.
 
 Bei einer Liste von Objekten greifst du im Pfeil wie gewohnt mit dem Punkt auf die Eigenschaften zu:
 
@@ -3968,14 +4205,12 @@ const beute = [
   { name: "Rubin", wert: 50 },
   { name: "Seil", wert: 1 }
 ];
-const wertvolle = beute.filter(d => d.wert > 10);         // nur der Rubin
-const zeilen = beute.map(d => `${d.name}: ${d.wert} Gold`); // ["Rubin: 50 Gold", "Seil: 1 Gold"]
+const wertvolle = beute.filter(d => d.wert > 10);  // nur der Rubin
 ```
 
-Weil `filter` und `map` eine Liste zurückgeben, kann deine Funktion dieses Ergebnis direkt mit `return` weitergeben.
+Weil `filter` eine Liste zurückgibt, kann deine Funktion dieses Ergebnis direkt mit `return` weitergeben.
 --- aufgabe
-1. Schreibe `kampffaehig(kaempfer)`. Sie gibt nur die Kämpfer mit mehr als 0 TP zurück. Benutze `filter`.
-2. Schreibe `namen(kaempfer)`. Sie gibt eine Liste mit nur den Namen zurück. Benutze `map`.
+Schreibe `kampffaehig(kaempfer)`. Sie gibt nur die Kämpfer mit mehr als 0 TP (Trefferpunkten) zurück. Benutze `filter`.
 --- start
 const kaempfer = [
   { name: "Kael", tp: 8 },
@@ -3988,11 +4223,7 @@ function kampffaehig(kaempfer) {
   // dein Code
 }
 
-function namen(kaempfer) {
-  // dein Code
-}
-
-console.log(namen(kampffaehig(kaempfer)));
+console.log(kampffaehig(kaempfer));
 --- loesung
 const kaempfer = [
   { name: "Kael", tp: 8 },
@@ -4005,15 +4236,11 @@ function kampffaehig(kaempfer) {
   return kaempfer.filter(k => k.tp > 0);
 }
 
-function namen(kaempfer) {
-  return kaempfer.map(k => k.name);
-}
-
-console.log(namen(kampffaehig(kaempfer)));
+console.log(kampffaehig(kaempfer));
 --- hinweis
-Die erste Funktion ist eine einzige Zeile: `return kaempfer.filter(k => ...);` Was muss für `k` wahr sein, damit er bleibt?
+Die Funktion ist eine einzige Zeile: `return kaempfer.filter(k => ...);` Was muss für `k` wahr sein, damit er bleibt?
 --- hinweis
-Die zweite: `return kaempfer.map(k => k.name);`
+Die Trefferpunkte eines Kämpfers sind `k.tp`. Er bleibt, wenn sie grösser als 0 sind.
 --- test kampffaehig behält die Richtigen
 $pruefe(typeof kampffaehig === "function", 'Es gibt keine Funktion kampffaehig mehr.');
 const r = kampffaehig([{ name: "Kael", tp: 8 }, { name: "Oger", tp: 0 }, { name: "Mira", tp: 11 }]);
@@ -4025,12 +4252,70 @@ $pruefe(JSON.stringify(n) === JSON.stringify(["Kael", "Mira"]), 'Von Kael (8), O
 const liste = [{ name: "A", tp: 0 }, { name: "B", tp: 4 }];
 kampffaehig(liste);
 $pruefe(liste.length === 2, 'kampffaehig hat die ursprüngliche Liste verändert. filter gibt eine neue Liste zurück und lässt die alte stehen.');
+--- test Mit filter
+$pruefe(/\.\s*filter\s*\(/.test($code), 'Dein Ergebnis kann stimmen, aber in dieser Lektion übst du filter. Löse es darum mit kaempfer.filter(...) statt mit einer Schleife.');
+
+=== k8-2b | code | Kurze Zauber: map
+--- szene
+Der Herold will nur die Namen der Kämpfer ausrufen, keine Trefferpunkte. Orlan nickt: «Ein zweiter Einzeiler. Er verwandelt statt auszusortieren.»
+--- erklaerung
+`filter` sortiert aus. Das zweite Werkzeug, `map`, **macht aus jedem Element etwas Neues**. Die neue Liste ist darum immer gleich lang wie die alte:
+
+```
+const preise = [12, 40, 7];
+const inSilber = preise.map(p => p * 10);  // [120, 400, 70]
+```
+
+Bei jedem Preis fragt `map`: Was wird aus `p`? Aus 12 wird 120, aus 40 wird 400, aus 7 wird 70.
+
+Bei Objekten kannst du so eine einzelne Eigenschaft herausziehen oder einen Satz bauen:
+
+```
+const beute = [
+  { name: "Rubin", wert: 50 },
+  { name: "Seil", wert: 1 }
+];
+const dinge = beute.map(d => d.name);                        // ["Rubin", "Seil"]
+const zeilen = beute.map(d => `${d.name}: ${d.wert} Gold`);  // ["Rubin: 50 Gold", "Seil: 1 Gold"]
+```
+
+Merksatz: `filter` entscheidet ja oder nein, `map` verwandelt.
+--- aufgabe
+Schreibe `namen(kaempfer)`. Sie gibt eine Liste mit nur den Namen der Kämpfer zurück. Benutze `map`.
+--- start
+const kaempfer = [
+  { name: "Kael", tp: 8 },
+  { name: "Oger", tp: 0 },
+  { name: "Mira", tp: 11 }
+];
+
+function namen(kaempfer) {
+  // dein Code
+}
+
+console.log(namen(kaempfer));
+--- loesung
+const kaempfer = [
+  { name: "Kael", tp: 8 },
+  { name: "Oger", tp: 0 },
+  { name: "Mira", tp: 11 }
+];
+
+function namen(kaempfer) {
+  return kaempfer.map(k => k.name);
+}
+
+console.log(namen(kaempfer));
+--- hinweis
+Auch das ist eine einzige Zeile: `return kaempfer.map(k => ...);` Was soll aus jedem Kämpfer `k` werden?
+--- hinweis
+Aus jedem Kämpfer soll nur sein Name werden, also `k.name`.
 --- test namen gibt nur die Namen
 $pruefe(typeof namen === "function", 'Es gibt keine Funktion namen mehr.');
 const r = namen([{ name: "Ayla", tp: 3 }, { name: "Thorin", tp: 1 }]);
 $pruefe(JSON.stringify(r) === JSON.stringify(["Ayla", "Thorin"]), 'namen sollte ["Ayla", "Thorin"] ergeben, es kam ' + $zeige(r) + '.');
---- test Mit filter und map
-$pruefe(/\.\s*filter\s*\(/.test($code) && /\.\s*map\s*\(/.test($code), 'Dein Ergebnis kann stimmen, aber in dieser Lektion übst du filter und map. Löse es darum mit kaempfer.filter(...) und kaempfer.map(...) statt mit Schleifen.');
+--- test Mit map
+$pruefe(/\.\s*map\s*\(/.test($code), 'Dein Ergebnis kann stimmen, aber in dieser Lektion übst du map. Löse es darum mit kaempfer.map(...) statt mit einer Schleife.');
 
 === k8-3 | quiz | Was bleibt übrig?
 --- frage
@@ -7875,11 +8160,11 @@ Ein Vergleich ergibt immer `True` (wahr) oder `False` (falsch). In Python beginn
 
 `>=` heisst «grösser oder gleich», und 15 ist gleich 15. Weitere Vergleiche sind `>`, `<`, `<=`, `==` (gleich) und `!=` (ungleich).
 
-In D&D trifft ein Angriff, wenn der Wurf die Rüstungsklasse mindestens erreicht. Genau das ist dieser Vergleich.
+In D&D hat jeder Gegner eine **Rüstungsklasse** (kurz RK): die Zahl, die ein Angriffswurf mindestens erreichen muss, um ihn zu treffen. Gewürfelt wird mit dem **W20**, einem Würfel mit 20 Seiten. Wurf 15 gegen RK 15 trifft also. Genau das ist dieser Vergleich.
 
 === p2-4 | code | Treffer oder daneben?
 --- szene
-Kael hebt sein Schwert gegen einen Banditen. Der W20 rollt über den Tisch.
+Kael hebt sein Schwert gegen einen Banditen. Der W20, der Würfel mit 20 Seiten, rollt über den Tisch.
 --- erklaerung
 Mit `if` trifft dein Programm Entscheidungen. Ist die Bedingung wahr, läuft der eingerückte Block darunter. Sonst läuft der Block nach `else`.
 
@@ -8187,7 +8472,7 @@ for g, k in ((3, 300), (0, 0), (12, 1200)):
 --- szene
 Auf jedem Charakterbogen steht neben den Attributen eine kleine Zahl. Wer sie ausrechnen kann, braucht keine Tabelle mehr.
 --- erklaerung
-In D&D bestimmt jeder Attributswert einen **Modifikator**: Wert minus 10, geteilt durch 2, abgerundet.
+Jeder Held hat sechs **Attribute** wie Stärke oder Geschicklichkeit, meist mit Werten zwischen 3 und 18. Je höher, desto besser. In D&D bestimmt jeder Attributswert einen **Modifikator**, eine kleine Zahl, die man zu Würfen dazuzählt: Wert minus 10, geteilt durch 2, abgerundet.
 
 - Stärke 15: (15 − 10) / 2 = 2.5, abgerundet **+2**
 - Stärke 8: (8 − 10) / 2 = −1, also **−1**
@@ -8422,7 +8707,7 @@ def zustand(tp):
     return "Kampfbereit"
 ```
 
-Bei 0 TP endet die Funktion schon mit «Bewusstlos». Die Zeile darunter kommt gar nicht mehr dran. Darum prüfst du im Angriff die Sonderfälle 20 und 1 **zuerst**. Erst wenn beide nicht zutreffen, rechnest du mit dem Bonus.
+Bei 0 TP (Trefferpunkten) endet die Funktion schon mit «Bewusstlos». Die Zeile darunter kommt gar nicht mehr dran. Darum prüfst du im Angriff die Sonderfälle 20 und 1 **zuerst**. Erst wenn beide nicht zutreffen, rechnest du mit dem Bonus.
 
 **Schritt 3: rechnen und vergleichen.** «Erreicht die RK» heisst gleich oder grösser, also `>=`:
 
