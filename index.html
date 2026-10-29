@@ -470,6 +470,39 @@ pre.code-block code { font-size: inherit; }
 .option.richtig .buchstabe { background: var(--gut); color: var(--blatt); }
 .option:disabled { cursor: default; }
 .wackeln { animation: wackeln .35s; }
+.code-flaeche {
+  display: grid; padding: 6px 0; background: var(--code-grund); border: 1px solid var(--linie); border-radius: 10px;
+  font-family: var(--schrift-code); font-size: 14px; line-height: 1.5; font-variant-ligatures: none; overflow-x: auto;
+}
+.code-flaeche button {
+  display: flex; align-items: center; min-height: 38px; padding: 4px 12px; border: 0; border-left: 3px solid transparent;
+  background: transparent; color: var(--tinte); font: inherit; text-align: left; white-space: pre; cursor: pointer;
+}
+.code-flaeche button:hover:not(:disabled) { background: var(--mulde); }
+.code-flaeche button:disabled { cursor: default; }
+.code-flaeche button.falsch { background: var(--schlecht-grund); border-left-color: var(--schlecht); }
+.code-flaeche button.richtig { background: var(--gut-grund); border-left-color: var(--gut); }
+.code-flaeche .zn { display: inline-block; width: 2.2em; flex: none; color: var(--t-kom); user-select: none; }
+.code-flaeche code { font: inherit; }
+.code-flaeche .leer { padding: 10px 14px; color: var(--t-kom); font-family: var(--schrift); font-size: .95rem; }
+.puzzle-ziel { min-height: 120px; align-content: start; }
+.puzzle-vorrat { display: grid; gap: 8px; }
+.puzzle-vorrat button {
+  text-align: left; padding: 10px 14px; min-height: 46px; border-radius: 10px; border: 1px solid var(--linie);
+  background: var(--code-grund); color: var(--tinte); font-family: var(--schrift-code); font-size: 14px; cursor: pointer; white-space: pre; overflow-x: auto;
+}
+.puzzle-vorrat button:hover { border-color: var(--arkan); }
+.luecke-feld { display: inline-block; min-width: 2.5em; padding: 0 6px; border-radius: 6px; text-align: center; background: var(--arkan-grund); color: var(--arkan); outline: 1px dashed var(--arkan); }
+.luecke-feld.richtig { background: var(--gut-grund); color: var(--gut); outline-color: var(--gut); }
+.luecke-wahl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.luecke-wahl .option { justify-content: center; font-family: var(--schrift-code); }
+.duell { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .duell { grid-template-columns: minmax(0, 1fr); } }
+.duell-seite { display: grid; gap: 8px; align-content: start; padding: 12px; border-radius: 14px; border: 1px solid var(--linie); background: var(--blatt); min-width: 0; }
+.duell-seite pre { overflow-x: auto; }
+.duell-seite.sieger { border-color: var(--gut); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gut) 20%, transparent); }
+#duell-warum { display: grid; gap: 10px; }
+#duell-warum[hidden] { display: none; }
 @keyframes wackeln { 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
 
 /* Toast und Fenster */
@@ -17794,6 +17827,652 @@ In die Regel für `body`
 In ein `style`-Attribut jeder Karte
 --- erklaerung
 Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umschliessende Kasten `display: flex`, die Karten selbst höchstens `flex: 1`.
+
+### r1 | Fehlerjagd | Tippe auf die Zeile mit dem Fehler | Jägersiegel | pfad:raetsel
+
+=== r1-1 | fehlerjagd | Der lahme Würfel
+--- frage
+Dieser Zauber soll einen W20 werfen, also eine Zahl von 1 bis 20. In welcher Zeile steckt der Fehler?
+--- code
+function wuerfle() {
+  return Math.floor(Math.random() * 20);
+}
+console.log(wuerfle());
+--- zeile 2
+--- erklaerung
+`Math.floor(Math.random() * 20)` ergibt 0 bis 19. Erst mit `+ 1` am Ende wird daraus 1 bis 20.
+
+=== r1-2 | fehlerjagd | Der Treffer, der keiner war
+--- frage
+Ab einem Wurf von 13 trifft der Angriff. Wo ist der Fehler?
+--- code
+const wurf = 15;
+const ruestungsklasse = 13;
+if (wurf = ruestungsklasse) {
+  console.log("Treffer!");
+}
+--- zeile 3
+--- erklaerung
+Ein einzelnes `=` weist einen Wert zu, es vergleicht nicht. Richtig wäre `wurf >= ruestungsklasse`.
+
+=== r1-3 | fehlerjagd | Das verlorene Gold
+--- frage
+Die Summe soll 47 sein, der Code gibt aber 35 aus. Welche Zeile ist schuld?
+--- code
+const beutel = [12, 5, 30];
+let summe = 0;
+for (let i = 1; i < beutel.length; i++) {
+  summe = summe + beutel[i];
+}
+console.log(summe);
+--- zeile 3
+--- erklaerung
+Listen beginnen bei Index 0. Mit `let i = 1` wird die erste Münze (12) übersprungen.
+
+=== r1-4 | fehlerjagd | Unverwundbar
+--- frage
+Nach dem Treffer soll der Held 13 Leben haben. Die Konsole zeigt aber 20.
+--- code
+let leben = 20;
+const schaden = 7;
+leben - schaden;
+console.log(leben);
+--- zeile 3
+--- erklaerung
+`leben - schaden` rechnet zwar, speichert das Ergebnis aber nirgends. Richtig wäre `leben = leben - schaden;`.
+
+=== r1-5 | fehlerjagd | Der stumme Wechsler
+--- frage
+Die Funktion soll 500 Kupfer in 5 Gold umrechnen. Die Konsole zeigt aber `undefined`.
+--- code
+function inGold(kupfer) {
+  kupfer / 100;
+}
+console.log(inGold(500));
+--- zeile 2
+--- erklaerung
+Ohne `return` gibt eine Funktion nichts zurück, also `undefined`. Richtig wäre `return kupfer / 100;`.
+
+=== r1-6 | fehlerjagd | Der letzte in der Reihe
+--- frage
+Der Code soll «Bran» ausgeben, den letzten der Gruppe. Er gibt aber `undefined` aus.
+--- code
+const gruppe = ["Kael", "Mira", "Bran"];
+const letzter = gruppe[gruppe.length];
+console.log(letzter);
+--- zeile 2
+--- erklaerung
+Bei drei Einträgen gibt es die Indizes 0, 1 und 2. `gruppe.length` ist 3, der letzte Eintrag ist also `gruppe[gruppe.length - 1]`.
+
+=== r1-7 | fehlerjagd | Die namenlose Klasse
+--- frage
+Der Code soll «Mira ist Magierin» ausgeben. Es erscheint aber «Mira ist undefined».
+--- code
+const held = { name: "Mira", klasse: "Magierin" };
+const text = held.name + " ist " + held.Klasse;
+console.log(text);
+--- zeile 2
+--- erklaerung
+Gross- und Kleinschreibung zählt. Die Eigenschaft heisst `klasse`, nicht `Klasse`.
+
+=== r1-8 | fehlerjagd | Die ewige Fackel
+--- frage
+Die Fackel soll dreimal brennen. Dieser Code hört aber nie auf.
+--- code
+let fackeln = 3;
+while (fackeln > 0) {
+  console.log("Die Fackel brennt.");
+  fackeln + 1;
+}
+--- zeile 4
+--- erklaerung
+`fackeln + 1` ändert nichts, und selbst `fackeln++` würde die Zahl grösser machen. Damit die Schleife endet, braucht es `fackeln--;`.
+
+=== r1-9 | fehlerjagd | Die verschlossene Tür
+--- frage
+Die Tür ist offen, trotzdem erscheint keine Meldung. Wo liegt der Fehler?
+--- code
+const tuer = "offen";
+if (tuer === "Offen") {
+  console.log("Du trittst ein.");
+}
+--- zeile 2
+--- erklaerung
+Texte müssen genau übereinstimmen. «offen» und «Offen» sind für JavaScript zwei verschiedene Texte.
+
+=== r1-10 | fehlerjagd | Der falsche Griff in die Tasche
+--- frage
+Nach dem Einpacken sollen 3 Gegenstände in der Tasche sein. Welche Zeile stimmt nicht?
+--- code
+const inventar = ["Seil", "Fackel"];
+inventar.push["Trank"];
+console.log(inventar.length);
+--- zeile 2
+--- erklaerung
+`push` ist eine Methode und wird mit runden Klammern aufgerufen: `inventar.push("Trank")`.
+
+### r2 | Code-Puzzle | Bring die Zeilen in die richtige Reihenfolge | Puzzlesiegel | pfad:raetsel
+
+=== r2-1 | puzzle | Der Willkommensgruss
+--- frage
+Begrüsse Mira. Zuerst braucht es ihren Namen, dann den Gruss, dann die Ausgabe.
+--- code
+const name = "Mira";
+const gruss = "Willkommen, " + name;
+console.log(gruss);
+--- erklaerung
+Eine Variable muss erstellt sein, bevor man sie benutzt. Darum kommt `name` zuerst.
+
+=== r2-2 | puzzle | Der Heiltrank
+--- frage
+Baue eine Funktion, die 5 Leben dazugibt, und rufe sie danach auf.
+--- code
+function heile(leben) {
+  return leben + 5;
+}
+console.log(heile(10));
+--- erklaerung
+Die Funktion beginnt mit `function`, ihr Inhalt steht zwischen `{` und `}`. Der Aufruf steht danach ausserhalb.
+
+=== r2-3 | puzzle | Treffer oder daneben
+--- frage
+Ab 15 trifft der Pfeil, sonst geht er daneben.
+--- code
+const wurf = 17;
+if (wurf >= 15) {
+  console.log("Treffer!");
+} else {
+  console.log("Daneben!");
+}
+--- erklaerung
+Der Block direkt nach `if` läuft, wenn die Bedingung stimmt. Der Block nach `else` läuft sonst.
+
+=== r2-4 | puzzle | Münzen zählen
+--- frage
+Zähle alle Münzen zusammen und gib die Summe aus.
+--- code
+let summe = 0;
+for (const muenze of [3, 7, 5]) {
+  summe = summe + muenze;
+}
+console.log(summe);
+--- erklaerung
+Die Summe startet bei 0, wächst in der Schleife und wird erst nach der Schleife ausgegeben.
+
+=== r2-5 | puzzle | Verstärkung
+--- frage
+Die Gruppe besteht aus Kael. Dann stösst Mira dazu, und am Ende wird die Gruppe ausgegeben.
+--- code
+const gruppe = ["Kael"];
+gruppe.push("Mira");
+console.log(gruppe);
+--- erklaerung
+Erst die Liste erstellen, dann mit `push` ergänzen, dann ausgeben.
+
+=== r2-6 | puzzle | Ein harter Schlag
+--- frage
+Bran verliert 4 Leben. Danach sollen seine restlichen Leben erscheinen.
+--- code
+const held = { name: "Bran", leben: 12 };
+held.leben = held.leben - 4;
+console.log(held.leben);
+--- erklaerung
+Auch bei `const` kann man Eigenschaften eines Objekts ändern. Nur das Objekt selbst bleibt dasselbe.
+
+=== r2-7 | puzzle | Der Countdown
+--- frage
+Die Ausgabe soll «Fackel 3», «Fackel 2», «Fackel 1» sein.
+--- code
+let fackeln = 3;
+while (fackeln > 0) {
+  console.log("Fackel " + fackeln);
+  fackeln--;
+}
+--- erklaerung
+Zuerst ausgeben, dann verkleinern. Andersherum würde die Ausgabe bei «Fackel 2» beginnen und bei «Fackel 0» enden.
+
+=== r2-8 | puzzle | Der eigene Würfel
+--- frage
+Baue einen Würfel mit beliebig vielen Seiten, wirf einen W20 und gib das Ergebnis aus.
+--- code
+function wuerfle(seiten) {
+  return Math.floor(Math.random() * seiten) + 1;
+}
+const wurf = wuerfle(20);
+console.log("Du würfelst " + wurf);
+--- erklaerung
+Erst die Funktion bauen, dann damit würfeln, dann das Ergebnis zeigen.
+
+=== r2-9 | puzzle | Der Angriffsknopf
+--- frage
+Hole den Knopf mit der ID `angriff` und lass ihn beim Klicken «Angriff!» melden.
+--- code
+const knopf = document.querySelector("#angriff");
+knopf.addEventListener("click", () => {
+  console.log("Angriff!");
+});
+--- erklaerung
+Zuerst braucht es das Element. Danach hängst du mit `addEventListener` eine Funktion an, die beim Klick läuft.
+
+=== r2-10 | puzzle | Teure Waren
+--- frage
+Siebe alle Preise über 6 heraus und gib sie aus.
+--- code
+const preise = [5, 12, 8];
+const teuer = preise.filter(p => p > 6);
+console.log(teuer);
+--- erklaerung
+`filter` behält nur die Einträge, für die die Bedingung stimmt. Hier sind das 12 und 8.
+
+### r3 | Lückentext | Ein Stück fehlt: Wähle das passende | Lückensiegel | pfad:raetsel
+
+=== r3-1 | luecke | Ab 15 trifft es
+--- frage
+Ab einem Wurf von 15 soll der Angriff treffen. Was gehört in die Lücke?
+--- code
+const wurf = 18;
+if (wurf ___ 15) {
+  console.log("Treffer!");
+}
+--- option*
+>=
+--- option
+=
+--- option
+<
+--- option
+=>
+--- erklaerung
+`>=` heisst «grösser oder gleich». `=>` sieht ähnlich aus, gehört aber zu Pfeilfunktionen.
+
+=== r3-2 | luecke | Das doppelte Gold
+--- frage
+Die Funktion soll den doppelten Wert zurückgeben.
+--- code
+function verdopple(x) {
+  ___ x * 2;
+}
+--- option*
+return
+--- option
+console.log
+--- option
+const
+--- option
+function
+--- erklaerung
+Mit `return` gibt eine Funktion einen Wert zurück, den man weiterverwenden kann.
+
+=== r3-3 | luecke | Wie viele sind wir?
+--- frage
+Der Code soll die Anzahl der Helden ausgeben.
+--- code
+const gruppe = ["Kael", "Mira", "Bran"];
+console.log(gruppe.___);
+--- option*
+length
+--- option
+size
+--- option
+count
+--- option
+laenge
+--- erklaerung
+Bei Listen heisst die Anzahl in JavaScript `length`.
+
+=== r3-4 | luecke | Leben, das sich ändert
+--- frage
+Die Leben sollen sich später ändern können.
+--- code
+___ leben = 20;
+leben = leben - 5;
+--- option*
+let
+--- option
+const
+--- option
+function
+--- option
+return
+--- erklaerung
+Eine Variable, die einen neuen Wert bekommt, braucht `let`. Bei `const` gäbe es in der zweiten Zeile einen Fehler.
+
+=== r3-5 | luecke | Drei Runden
+--- frage
+Die Konsole soll «Runde 0», «Runde 1» und «Runde 2» zeigen.
+--- code
+for (let i = 0; i ___ 3; i++) {
+  console.log("Runde " + i);
+}
+--- option*
+<
+--- option
+<=
+--- option
+>
+--- option
+===
+--- erklaerung
+Mit `<` läuft die Schleife für 0, 1 und 2. Mit `<=` käme noch «Runde 3» dazu.
+
+=== r3-6 | luecke | Der Name des Helden
+--- frage
+Der Code soll «Mira» ausgeben.
+--- code
+const held = { name: "Mira" };
+console.log(held___name);
+--- option*
+.
+--- option
+,
+--- option
+:
+--- option
+#
+--- erklaerung
+Eine Eigenschaft eines Objekts erreichst du mit einem Punkt: `held.name`.
+
+=== r3-7 | luecke | Ab in die Tasche
+--- frage
+Die Fackel soll ans Ende der Tasche.
+--- code
+const tasche = ["Seil"];
+tasche.___("Fackel");
+--- option*
+push
+--- option
+add
+--- option
+append
+--- option
+pop
+--- erklaerung
+`push` hängt etwas ans Ende einer Liste. `pop` macht das Gegenteil und nimmt das letzte heraus.
+
+=== r3-8 | luecke | Das Element finden
+--- frage
+Hole das Element mit der ID `titel` aus der Seite.
+--- code
+const titel = document.___("#titel");
+--- option*
+querySelector
+--- option
+getElement
+--- option
+select
+--- option
+find
+--- erklaerung
+`document.querySelector` findet das erste Element, das zum Selektor passt. `#titel` steht für die ID «titel».
+
+=== r3-9 | luecke | Stockdunkel
+--- frage
+Die Meldung soll nur erscheinen, wenn es Nacht ist **und** keine Fackel da ist.
+--- code
+const istNacht = true;
+const hatFackel = false;
+if (istNacht ___ !hatFackel) {
+  console.log("Es ist stockdunkel.");
+}
+--- option*
+&&
+--- option
+||
+--- option
++
+--- option
+==
+--- erklaerung
+`&&` heisst «und»: Beide Seiten müssen stimmen. `||` heisst «oder»: Eine Seite reicht.
+
+=== r3-10 | luecke | Gerade oder ungerade
+--- frage
+Der Code soll prüfen, ob eine Zahl gerade ist.
+--- code
+const zahl = 7;
+if (zahl ___ 2 === 0) {
+  console.log("gerade");
+}
+--- option*
+%
+--- option
+/
+--- option
+*
+--- option
+-
+--- erklaerung
+`%` gibt den Rest einer Division. Bleibt beim Teilen durch 2 kein Rest, ist die Zahl gerade.
+
+### r4 | Code-Duelle | Zwei Zauber, einer ist besser: Welcher, und warum? | Duellsiegel | pfad:raetsel
+
+=== r4-1 | duell | Helden zählen
+--- frage
+Beide Zauber geben die Anzahl der Helden aus. Welcher ist besser?
+--- a
+const gruppe = ["Kael", "Mira", "Bran"];
+let anzahl = 0;
+for (const held of gruppe) {
+  anzahl++;
+}
+console.log(anzahl);
+--- b
+const gruppe = ["Kael", "Mira", "Bran"];
+console.log(gruppe.length);
+--- besser b
+--- option*
+B nutzt, was die Liste schon weiss, und ist darum kürzer und klarer.
+--- option
+A gibt eine falsche Zahl aus.
+--- option
+B funktioniert nur bei genau drei Helden.
+--- option
+B ist besser, weil es keine Variablen benutzt.
+--- erklaerung
+Beide sind richtig. Aber jede Liste kennt ihre Länge schon. Wer das Rad nicht neu erfindet, macht weniger Fehler.
+
+=== r4-2 | duell | Die geheimnisvolle 100
+--- frage
+Beide rechnen Gold in Kupfer um. Welcher ist besser?
+--- a
+const kupfer = gold * 100;
+--- b
+const KUPFER_PRO_GOLD = 100;
+const kupfer = gold * KUPFER_PRO_GOLD;
+--- besser b
+--- option*
+Der Name erklärt, wofür die 100 steht.
+--- option
+B rechnet genauer.
+--- option
+A erzeugt einen Fehler.
+--- option
+Grossbuchstaben machen den Code schneller.
+--- erklaerung
+Eine nackte Zahl im Code heisst «magische Zahl». Mit einem Namen versteht man sie sofort und kann sie an einer Stelle ändern.
+
+=== r4-3 | duell | Gute Namen
+--- frage
+Beide Funktionen rechnen dasselbe. Welche ist besser?
+--- a
+function f(a, b) {
+  return a - b;
+}
+--- b
+function restLeben(leben, schaden) {
+  return leben - schaden;
+}
+--- besser b
+--- option*
+Die Namen sagen, was die Funktion tut und was sie bekommt.
+--- option
+Lange Namen machen den Code schneller.
+--- option
+A gibt ein falsches Ergebnis.
+--- option
+Funktionen dürfen nicht f heissen.
+--- erklaerung
+Code wird viel öfter gelesen als geschrieben. Gute Namen sparen später viel Rätselraten.
+
+=== r4-4 | duell | Der genaue Vergleich
+--- frage
+Beide prüfen auf einen kritischen Wurf. Welcher ist besser?
+--- a
+if (wurf == "20") {
+  console.log("Kritisch!");
+}
+--- b
+if (wurf === 20) {
+  console.log("Kritisch!");
+}
+--- besser b
+--- option*
+`===` vergleicht auch die Art des Werts. So gibt es keine Überraschungen.
+--- option
+`==` ist in JavaScript verboten.
+--- option
+B ist kürzer.
+--- option
+A prüft auf 20 oder mehr.
+--- erklaerung
+`==` wandelt Werte vorher um, darum ist `20 == "20"` wahr. `===` ist strenger und darum sicherer.
+
+=== r4-5 | duell | Zweimal derselbe Wurf
+--- frage
+Beide lassen Kael und Mira angreifen. Welcher ist besser?
+--- a
+console.log("Kael: " + (Math.floor(Math.random() * 20) + 1));
+console.log("Mira: " + (Math.floor(Math.random() * 20) + 1));
+--- b
+function w20() {
+  return Math.floor(Math.random() * 20) + 1;
+}
+console.log("Kael: " + w20());
+console.log("Mira: " + w20());
+--- besser b
+--- option*
+Der Wurf steht nur einmal im Code und hat einen Namen.
+--- option
+B würfelt fairer.
+--- option
+A würfelt für beide dieselbe Zahl.
+--- option
+B braucht weniger Zeilen.
+--- erklaerung
+Wenn derselbe Code zweimal dasteht, gehört er in eine Funktion. Soll später ein W12 her, änderst du nur eine Stelle.
+
+=== r4-6 | duell | Was sich nie ändert
+--- frage
+Der Name wird nirgends geändert. Welche Zeile ist besser?
+--- a
+let name = "Mira";
+--- b
+const name = "Mira";
+--- besser b
+--- option*
+`const` zeigt, dass sich der Wert nie ändern soll.
+--- option
+`const` spart Speicher.
+--- option
+`let` ist veraltet.
+--- option
+Mit `let` kann man den Namen nicht ausgeben.
+--- erklaerung
+Nimm `const`, wenn sich ein Wert nicht ändert. Dann merkst du sofort, falls du ihn aus Versehen überschreibst.
+
+=== r4-7 | duell | Die Tür zum Verlies
+--- frage
+Beide prüfen, ob der Held eintreten darf. Welcher ist besser?
+--- a
+function darfEintreten(held) {
+  if (held.hatSchluessel) {
+    if (held.leben > 0) {
+      return true;
+    }
+  }
+  return false;
+}
+--- b
+function darfEintreten(held) {
+  return held.hatSchluessel && held.leben > 0;
+}
+--- besser b
+--- option*
+B sagt dieselbe Regel in einer Zeile, ohne Verschachtelung.
+--- option
+A gibt nie `true` zurück.
+--- option
+B ist schneller, weil es kein `if` gibt.
+--- option
+A stürzt ab, wenn der Schlüssel fehlt.
+--- erklaerung
+Eine Bedingung ist selbst schon `true` oder `false`. Du kannst sie direkt zurückgeben.
+
+=== r4-8 | duell | Die Überlebenden
+--- frage
+Beide sammeln alle Helden, die noch leben. Welcher ist besser?
+--- a
+const lebendig = [];
+for (const h of helden) {
+  if (h.leben > 0) {
+    lebendig.push(h);
+  }
+}
+--- b
+const lebendig = helden.filter(h => h.leben > 0);
+--- besser b
+--- option*
+`filter` sagt direkt, was passiert: Es siebt aus.
+--- option
+A verändert die Liste `helden`.
+--- option
+B funktioniert auch ohne Helden nicht.
+--- option
+Schleifen sind in JavaScript verboten.
+--- erklaerung
+Beide sind richtig. `filter` ist aber genau für «behalte nur die, die ...» gemacht und darum leichter zu lesen.
+
+=== r4-9 | duell | Der Steckbrief
+--- frage
+Beide geben denselben Satz aus. Welcher ist besser?
+--- a
+console.log(name + " hat " + gold + " Gold und " + leben + " Leben.");
+--- b
+console.log(`${name} hat ${gold} Gold und ${leben} Leben.`);
+--- besser b
+--- option*
+Der Satz ist am Stück lesbar, ohne viele `+` und Anführungszeichen.
+--- option
+A gibt die Zahlen falsch aus.
+--- option
+Backticks sind schneller.
+--- option
+B funktioniert nur mit Zahlen.
+--- erklaerung
+In einem Text mit Backticks setzt `${...}` Werte direkt ein. Vergessene Leerzeichen fallen so viel eher auf.
+
+=== r4-10 | duell | Alle der Reihe nach
+--- frage
+Beide begrüssen jeden Helden der Gruppe. Welcher ist besser?
+--- a
+for (let i = 0; i <= gruppe.length - 1; i++) {
+  console.log("Hallo " + gruppe[i]);
+}
+--- b
+for (const held of gruppe) {
+  console.log("Hallo " + held);
+}
+--- besser b
+--- option*
+B braucht keinen Zähler, so kann man sich nicht verzählen.
+--- option
+A lässt den letzten Helden aus.
+--- option
+B ist nur für Texte erlaubt.
+--- option
+A läuft endlos.
+--- erklaerung
+Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
 </script>
 
 <script>
@@ -17855,7 +18534,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
       l.optionen.push(t);
     } else if (sek.name === "kapitel") {
       l.bezug = (sek.arg || t).trim();
-    } else if (sek.name === "ab" || sek.name === "modus" || sek.name === "sprache" || sek.name === "speicher") {
+    } else if (["ab", "modus", "sprache", "speicher", "zeile", "besser"].includes(sek.name)) {
       l[sek.name] = (sek.arg || t).trim();
     } else l[sek.name] = t;
   }
@@ -17863,11 +18542,14 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
   const PFADE = [
     { id: "js", name: "JavaScript", kurz: "Der Hauptweg: vom ersten Zauber bis zur eigenen Webseite" },
     { id: "lesen", name: "Code lesen", kurz: "Fremden Code verstehen und KI-Code prüfen, bevor du ihm vertraust" },
+    { id: "raetsel", name: "Rätsel", kurz: "Kurze Knobeleien, auch fürs Handy: Fehler finden, Zeilen ordnen, Lücken füllen, Zauber vergleichen" },
     { id: "elektro", name: "Blitzrunen", kurz: "Elektrotechnik aus der Lehre, mit JavaScript gerechnet" },
     { id: "python", name: "Python", kurz: "Dieselben Abenteuer in einer zweiten Sprache" },
     { id: "weltenweber", name: "Weltenweber", kurz: "Deine eigene App von innen verstehen, mit echtem Code aus dem Weltenweber" }
   ];
   const PFAD_NACH_ID = Object.fromEntries(PFADE.map(p => [p.id, p]));
+  const RAETSEL_ARTEN = { fehlerjagd: "Fehlerjagd", puzzle: "Code-Puzzle", luecke: "Lückentext", duell: "Code-Duell" };
+  const istQuizArt = l => l.art === "quiz" || !!RAETSEL_ARTEN[l.art];
   const KAPITEL = leseInhalt(document.getElementById("kodex-inhalt").textContent);
   const AKTIVE_KAPITEL = KAPITEL.filter(k => !k.bald);
   const LEKTIONEN = [];
@@ -17978,7 +18660,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
     };
   }
   function maxEp(l) {
-    if (l.art === "quiz" || l.art === "lesen") return 10;
+    if (istQuizArt(l) || l.art === "lesen") return 10;
     if (l.art === "boss" || l.art === "lesenboss") return 40;
     return 15;
   }
@@ -17986,6 +18668,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
   const kapitelFertig = k => k.lektionen.length > 0 && k.lektionen.every(l => istErledigt(l.id));
   function istOffen(l) {
     if (l.pfad === "wdh") return false;
+    if (l.pfad === "raetsel") return true;
     if (l.pfad === "tag") return istErledigt(l.id) || tagesaufgabeHeute() === l;
     if (zustand.alleOffen || !l.vorige || istErledigt(l.id)) return true;
     return istErledigt(l.vorige.id);
@@ -18006,7 +18689,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
     if (!istTag && istErledigt(l.id)) return null;
     let ep;
     const ohneHilfe = !zustand.loesung[l.id] && (zustand.hinweise[l.id] || 0) === 0;
-    if (l.art === "quiz") ep = info.ersterVersuch ? 10 : 5;
+    if (istQuizArt(l)) ep = info.ersterVersuch ? 10 : 5;
     else if (l.art === "lesen" || l.art === "lesenboss") {
       const boss = l.art === "lesenboss";
       if (info.aufgeloest) ep = boss ? 10 : 3;
@@ -18404,7 +19087,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
     weiter: '<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg>',
     abspielen: '<svg viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M5 3.2v9.6L12.5 8z"/></svg>'
   };
-  const artText = l => l.pfad === "tag" ? "Tagesaufgabe" : (l.art === "boss" || l.art === "lesenboss") ? "Meisterprüfung" : l.art === "quiz" ? "Quiz" : l.art === "lesen" ? "Code lesen" : "Lektion";
+  const artText = l => l.pfad === "tag" ? "Tagesaufgabe" : (l.art === "boss" || l.art === "lesenboss") ? "Meisterprüfung" : RAETSEL_ARTEN[l.art] || (l.art === "quiz" ? "Quiz" : l.art === "lesen" ? "Code lesen" : "Lektion");
 
   function toast(text) {
     const t = $("#toast");
@@ -19757,7 +20440,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
       const aktuell = naechste && naechste.id === l.id;
       const boss = l.art === "boss" || l.art === "lesenboss";
       const klassen = ["wegpunkt", boss ? "boss" : "", erledigt ? "erledigt" : "", aktuell ? "aktuell" : ""].join(" ");
-      const icon = erledigt ? ICON.haken : !offen ? ICON.schloss : boss ? ICON.stern : (l.art === "quiz" || l.art === "lesen") ? ICON.frage : ICON.punkt;
+      const icon = erledigt ? ICON.haken : !offen ? ICON.schloss : boss ? ICON.stern : (istQuizArt(l) || l.art === "lesen") ? ICON.frage : ICON.punkt;
       const art = artText(l) + " · " + (erledigt ? zustand.erledigt[l.id].ep + " EP erhalten" : "bis " + maxEp(l) + " EP");
       return '<li><button type="button" class="' + klassen + '" data-lektion="' + l.id + '"' + (offen ? "" : " disabled") + ">" +
         '<span class="punkt">' + icon + '</span><span class="wp-text"><span class="wp-titel">' + esc(l.titel) + '</span><span class="wp-art">' + art + "</span></span></button></li>";
@@ -19800,6 +20483,14 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
     const titel = q.w.belohnt ? "Geschafft! +" + WOCHEN_GOLD + " Gold" : q.resttage === 0 ? "Letzter Tag" : "Noch " + (q.resttage + 1) + " Tage";
     return '<article class="kachel' + (q.w.belohnt ? " erledigt" : "") + '">' + kopf + "<h3>" + titel + "</h3>" + liste +
       (q.w.belohnt ? "" : '<p class="klein">Alle drei erfüllen: ' + WOCHEN_GOLD + " Gold.</p>") + "</article>";
+  }
+  function karteRaetsel() {
+    const alle = lektionenImPfad("raetsel"), l = alle.find(x => !istErledigt(x.id));
+    const kopf = '<div class="kachel-kopf"><span class="kachel-symbol">' + SYMBOL.lupe + '</span><span class="eyebrow">Rätsel</span></div>';
+    if (!alle.length) return "";
+    if (!l) return '<article class="kachel erledigt">' + kopf + "<h3>Alle Rätsel gelöst</h3><p>Du kannst sie jederzeit nochmals üben.</p>" + '<a class="knopf still" href="#' + alle[0].id + '">Von vorne</a></article>';
+    return '<article class="kachel">' + kopf + "<h3>" + esc(l.titel) + "</h3><p>" + esc(RAETSEL_ARTEN[l.art]) + " · " + alle.filter(x => istErledigt(x.id)).length + " von " + alle.length + " gelöst</p>" +
+      '<a class="knopf" href="#' + l.id + '">Rätseln · bis 10 EP</a></article>';
   }
   function karteSchatz() {
     const t = traenke();
@@ -20029,6 +20720,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
   function zeigeLektion(l) {
     document.title = l.titel + " · Zauberkodex";
     if (l.art === "quiz") return zeigeQuiz(l);
+    if (RAETSEL_ARTEN[l.art]) return { fehlerjagd: zeigeFehlerjagd, puzzle: zeigePuzzle, luecke: zeigeLuecke, duell: zeigeDuell }[l.art](l);
     if (l.art === "lesen" || l.art === "lesenboss") return zeigeLesen(l);
     const bereits = bereitsGeloest(l);
     const gespeichert = zustand.code[l.id];
@@ -20277,6 +20969,151 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
       zeigeKopf();
     }));
     if (bereits) $("#pruefung").innerHTML = '<p class="klein">Diese Frage hast du schon richtig beantwortet. Du kannst sie zur Übung nochmals lösen.</p>';
+  }
+
+  /* ---------- Rätsel: Fehlerjagd, Code-Puzzle, Lückentext, Code-Duell ---------- */
+  function raetselRahmen(l, inhalt) {
+    const bereits = istErledigt(l.id);
+    ansicht.innerHTML =
+      '<div class="seite">' + lektionsNavigation(l) +
+      '<div class="lek-raster einspaltig"><article class="buch raetsel">' +
+      '<div class="titelblock"><p class="eyebrow">' + RAETSEL_ARTEN[l.art] + (bereits ? " · gemeistert" : "") + "</p><h1>" + esc(l.titel) + "</h1></div>" +
+      (l.frage ? '<div class="prosa"><p>' + inline(l.frage) + "</p></div>" : "") + inhalt +
+      '<section class="pruefung" id="pruefung" aria-live="polite"></section>' +
+      "</article></div></div>";
+    if (bereits) $("#pruefung").innerHTML = '<p class="klein">Dieses Rätsel hast du schon gelöst. Du kannst es zur Übung nochmals lösen.</p>';
+  }
+  function raetselGeloest(l, fehler) {
+    const belohnung = abschliessen(l, { ersterVersuch: fehler === 0 });
+    const n = naechsteNach(l);
+    $("#pruefung").innerHTML =
+      '<div class="erfolg"><div><strong>Richtig!</strong><span>' + (belohnung ? "+" + belohnung.ep + " EP." : "Dieses Rätsel hattest du schon gelöst.") + "</span></div>" +
+      (n ? '<a class="knopf haupt" href="#' + n.id + '">Nächstes Rätsel' + ICON.weiter + "</a>" : '<a class="knopf haupt" href="#karte">Zur Karte' + ICON.weiter + "</a>") + "</div>" +
+      (l.erklaerung ? '<div class="prosa">' + md(l.erklaerung, spracheVon(l)) + "</div>" : "");
+    belohnungZeigen(belohnung, $("#pruefung"));
+    zeigeKopf();
+  }
+  function raetselFalsch(l, text) {
+    $("#pruefung").innerHTML = '<p class="melde-nein">' + esc(text) + "</p>";
+    fehlversuch(l, null);
+    zeigeKopf();
+  }
+  const bunteZeilen = (code, l) => hlSprache(code || "", spracheVon(l)).split("\n");
+
+  function zeigeFehlerjagd(l) {
+    raetselRahmen(l, '<div class="code-flaeche zeilen-wahl" role="group" aria-label="Codezeilen">' +
+      bunteZeilen(l.code, l).map((z, i) => '<button type="button" data-z="' + (i + 1) + '"><span class="zn">' + (i + 1) + "</span><code>" + (z || " ") + "</code></button>").join("") + "</div>");
+    let fehler = 0;
+    const knoepfe = ansicht.querySelectorAll(".zeilen-wahl button");
+    knoepfe.forEach(b => b.addEventListener("click", () => {
+      if (Number(b.dataset.z) === Number(l.zeile)) {
+        knoepfe.forEach(x => { x.disabled = true; });
+        b.classList.add("richtig");
+        raetselGeloest(l, fehler);
+        return;
+      }
+      fehler++;
+      b.disabled = true;
+      b.classList.add("falsch", "wackeln");
+      raetselFalsch(l, "Diese Zeile ist in Ordnung. Such weiter.");
+    }));
+  }
+
+  function zeigePuzzle(l) {
+    const zeilen = (l.code || "").split("\n");
+    const bunt = bunteZeilen(l.code, l);
+    // Gemischt, aber nie schon in der richtigen Reihenfolge
+    const zz = zufall(l.id);
+    const vorrat = zeilen.map((_, i) => i);
+    for (let n = 0; n < 20; n++) {
+      for (let i = vorrat.length - 1; i > 0; i--) { const j = Math.floor(zz() * (i + 1)); [vorrat[i], vorrat[j]] = [vorrat[j], vorrat[i]]; }
+      if (vorrat.some((v, i) => zeilen[v].trim() !== zeilen[i].trim())) break;
+    }
+    raetselRahmen(l, '<p class="klein">Tippe die Zeilen in der richtigen Reihenfolge an. Tippst du oben auf eine Zeile, kommt sie zurück.</p>' +
+      '<div class="code-flaeche puzzle-ziel" id="puzzle-ziel"></div><div class="puzzle-vorrat" id="puzzle-vorrat"></div>' +
+      '<div class="aktionen"><button type="button" class="knopf still" id="puzzle-leeren">Alles zurück</button><span class="luecke"></span><button type="button" class="knopf haupt" id="puzzle-pruefen">Prüfen</button></div>');
+    const gelegt = [];
+    let fehler = 0, fertig = false;
+    function zeichne() {
+      $("#puzzle-ziel").innerHTML = gelegt.length
+        ? gelegt.map((i, pos) => '<button type="button" data-pos="' + pos + '"' + (fertig ? " disabled" : "") + '><span class="zn">' + (pos + 1) + "</span><code>" + (bunt[i] || " ") + "</code></button>").join("")
+        : '<p class="leer">Hier entsteht dein Programm.</p>';
+      $("#puzzle-vorrat").innerHTML = vorrat.filter(i => !gelegt.includes(i))
+        .map(i => '<button type="button" data-i="' + i + '"><code>' + (bunt[i].replace(/^\s+/, "") || " ") + "</code></button>").join("");
+      $("#puzzle-pruefen").disabled = fertig || gelegt.length !== zeilen.length;
+      $("#puzzle-leeren").disabled = fertig || !gelegt.length;
+      ansicht.querySelectorAll("#puzzle-vorrat button").forEach(b => b.addEventListener("click", () => { gelegt.push(Number(b.dataset.i)); zeichne(); }));
+      ansicht.querySelectorAll("#puzzle-ziel button").forEach(b => b.addEventListener("click", () => { gelegt.splice(Number(b.dataset.pos), 1); zeichne(); }));
+    }
+    $("#puzzle-leeren").addEventListener("click", () => { gelegt.length = 0; zeichne(); });
+    $("#puzzle-pruefen").addEventListener("click", () => {
+      let richtig = 0;
+      while (richtig < zeilen.length && zeilen[gelegt[richtig]].trim() === zeilen[richtig].trim()) richtig++;
+      if (richtig === zeilen.length) { fertig = true; zeichne(); raetselGeloest(l, fehler); return; }
+      fehler++;
+      $("#puzzle-ziel").classList.remove("wackeln"); void $("#puzzle-ziel").offsetWidth; $("#puzzle-ziel").classList.add("wackeln");
+      raetselFalsch(l, richtig === 0 ? "Schon die erste Zeile stimmt nicht. Was muss es geben, bevor man es benutzt?" :
+        "Die ersten " + (richtig === 1 ? "Zeile stimmt" : richtig + " Zeilen stimmen") + ", danach geht es anders weiter.");
+    });
+    zeichne();
+  }
+
+  function zeigeLuecke(l) {
+    const code = bunteZeilen(l.code, l).join("\n").replace("___", '<span class="luecke-feld" id="luecke-feld">?</span>');
+    raetselRahmen(l, '<pre class="code-block"><code>' + code + "</code></pre>" +
+      '<div class="luecke-wahl" role="group" aria-label="Antworten">' + l.optionen.map((o, i) => '<button type="button" class="option" data-i="' + i + '"><code>' + esc(o) + "</code></button>").join("") + "</div>");
+    let fehler = 0;
+    const knoepfe = ansicht.querySelectorAll(".luecke-wahl .option");
+    knoepfe.forEach(b => b.addEventListener("click", () => {
+      const feld = $("#luecke-feld");
+      feld.textContent = l.optionen[Number(b.dataset.i)];
+      if (Number(b.dataset.i) === l.richtig) {
+        knoepfe.forEach(x => { x.disabled = true; });
+        b.classList.add("richtig"); feld.classList.add("richtig");
+        raetselGeloest(l, fehler);
+        return;
+      }
+      fehler++;
+      b.disabled = true;
+      b.classList.add("falsch", "wackeln");
+      raetselFalsch(l, "Das passt hier nicht. Lies die Zeile mit diesem Stück noch einmal.");
+    }));
+  }
+
+  function zeigeDuell(l) {
+    const seite = (s, code) => '<div class="duell-seite"><div class="duell-kopf"><b>Zauber ' + s.toUpperCase() + '</b></div><pre class="code-block"><code>' + hlSprache(code || "", spracheVon(l)) + "</code></pre>" +
+      '<button type="button" class="knopf" data-seite="' + s + '">' + s.toUpperCase() + " ist besser</button></div>";
+    raetselRahmen(l, '<div class="duell">' + seite("a", l.a) + seite("b", l.b) + "</div>" +
+      '<div id="duell-warum" hidden><div class="prosa"><p><b>Genau. Und warum?</b></p></div><div class="optionen">' +
+      l.optionen.map((o, i) => '<button type="button" class="option" data-i="' + i + '"><span class="buchstabe">' + "ABCD"[i] + "</span><span>" + inline(o) + "</span></button>").join("") + "</div></div>");
+    let fehler = 0;
+    ansicht.querySelectorAll("[data-seite]").forEach(b => b.addEventListener("click", () => {
+      if (b.dataset.seite === l.besser) {
+        ansicht.querySelectorAll("[data-seite]").forEach(x => { x.disabled = true; });
+        b.closest(".duell-seite").classList.add("sieger");
+        $("#pruefung").innerHTML = "";
+        $("#duell-warum").hidden = false;
+        $("#duell-warum").scrollIntoView({ behavior: "smooth", block: "nearest" });
+        return;
+      }
+      fehler++;
+      b.disabled = true;
+      b.closest(".duell-seite").classList.add("wackeln");
+      raetselFalsch(l, "Beide funktionieren. Aber welcher ist leichter zu lesen und zu ändern?");
+    }));
+    const gruende = ansicht.querySelectorAll("#duell-warum .option");
+    gruende.forEach(b => b.addEventListener("click", () => {
+      if (Number(b.dataset.i) === l.richtig) {
+        gruende.forEach(x => { x.disabled = true; });
+        b.classList.add("richtig");
+        raetselGeloest(l, fehler);
+        return;
+      }
+      fehler++;
+      b.disabled = true;
+      b.classList.add("falsch", "wackeln");
+      raetselFalsch(l, "Das ist nicht der Grund. Stimmt die Aussage überhaupt?");
+    }));
   }
 
   /* ---------- Code lesen: Ausgabe vorhersagen ---------- */
@@ -20955,7 +21792,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
     const datum = new Date().toLocaleDateString("de-CH", { weekday: "long", day: "numeric", month: "long" });
     ansicht.innerHTML = '<div class="seite heute"><div class="heute-kopf"><p class="eyebrow">' + esc(datum) + '</p><h1 class="gross">Dein Tag im Kodex</h1>' +
       '<p class="klein">' + (s ? ICON.flamme + " " + s + (s === 1 ? " Tag" : " Tage") + " in Folge" : "Heute beginnt eine neue Serie.") + " · " + esc(r.name) + ", " + zustand.ep + " EP</p></div>" +
-      '<section class="alltag" aria-label="Heute">' + karteTagesaufgabe() + karteWiederholung() + karteWoche() + karteSchatz() + "</section>" +
+      '<section class="alltag" aria-label="Heute">' + karteTagesaufgabe() + karteWiederholung() + karteRaetsel() + karteWoche() + karteSchatz() + "</section>" +
       '<div class="aktionen-zeile">' + (n ? '<a class="knopf haupt" href="#' + n.id + '">Weiterlernen' + ICON.weiter + "</a>" : "") +
       '<a class="knopf" href="#karte">Alle Lektionen</a></div></div>';
   }
