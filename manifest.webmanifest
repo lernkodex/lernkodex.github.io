@@ -1,0 +1,18 @@
+{
+  "id": "./",
+  "name": "Zauberkodex",
+  "short_name": "Zauberkodex",
+  "description": "Programmieren lernen mit Aufgaben aus der Welt von D&D.",
+  "lang": "de",
+  "start_url": "./?app=handy",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#161838",
+  "theme_color": "#161838",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
