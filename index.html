@@ -378,6 +378,15 @@ pre.code-block code { font-size: inherit; }
 .term-ziele li.ok { color: inherit; }
 .term-ziele li .marke-i { width: 1.2em; flex: none; text-align: center; }
 .term-ziele li.ok .marke-i { color: #3f9a4a; font-weight: 700; }
+.datei-reiter { display: flex; flex-wrap: wrap; gap: 4px; margin: 14px 0 0; }
+.datei-tab { font: inherit; font-size: 14px; padding: 6px 12px; border: 1px solid var(--linie); border-bottom: 0; border-radius: 8px 8px 0 0; background: transparent; color: var(--leise); cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+.datei-tab.aktiv { color: var(--tinte); font-weight: 700; background: var(--code-grund); border-color: var(--gold-hell); }
+.datei-weg { opacity: .6; padding: 0 2px; }
+.datei-weg:hover, .datei-weg.scharf { opacity: 1; color: var(--schlecht); }
+.datei-neu { border-style: dashed; }
+.datei-neu-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+.datei-neu-form input { font: inherit; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--linie); background: transparent; color: inherit; min-width: 200px; }
+#dateien-bereich .editor, .werkstatt-arbeit .datei-reiter + form + .editor { margin-top: 0; }
 .hinweis {
   background: var(--gold-grund); border-radius: 12px; padding: 12px 14px; display: grid; gap: 4px;
 }
@@ -8353,6 +8362,283 @@ $pruefe(typeof aushang === "function", 'Es gibt keine Funktion aushang.');
 $botschaft("https://rabenfurt.ch/api/auftraege", [{ titel: "Wölfe vertreiben", belohnung: 40 }, { titel: "Drachenei bewachen", belohnung: 250 }, { titel: "Brief nach Nordmark", belohnung: 15 }]);
 const e = await aushang();
 $pruefe(JSON.stringify(e) === JSON.stringify(["Wölfe vertreiben: 40 Gold", "Drachenei bewachen: 250 Gold", "Brief nach Nordmark: 15 Gold"]), 'aushang() sollte drei Zeilen wie "Wölfe vertreiben: 40 Gold" zurückgeben, es kam ' + $zeige(e) + '.');
+
+### k14 | Die Bibliothek | Code auf mehrere Dateien verteilen mit import und export | Bibliothekssiegel
+
+=== k14-1 | code | Zwei Schriftrollen
+--- modus dateien
+--- dateien
+{
+  "spiel.js": "// Hole hier den Zauber wuerfle aus wuerfel.js\n\nconsole.log(`Du würfelst eine ${wuerfle(20)}.`);\n",
+  "wuerfel.js": "function wuerfle(seiten) {\n  return Math.floor(Math.random() * seiten) + 1;\n}\n"
+}
+--- szene
+Orlans Zauberbuch ist so dick geworden, dass es kaum noch zugeht. «Zeit für eine Bibliothek», sagt er. «Jede Schriftrolle bekommt ihr eigenes Thema.»
+--- erklaerung
+Echte Programme bestehen aus vielen Dateien. Jede Datei kümmert sich um eine Sache. So findet man sich zurecht, und mehrere Leute können gleichzeitig daran arbeiten. Eine solche Datei heisst **Modul**.
+
+Oben im Editor siehst du jetzt **Reiter**, einen pro Datei. Klick darauf, um die Datei zu wechseln.
+
+Damit eine Datei einen Zauber einer anderen benutzen darf, braucht es zwei Schritte:
+
+1. Die Datei, die etwas **anbietet**, schreibt `export` davor:
+
+```
+// wuerfel.js
+export function wuerfle(seiten) { ... }
+```
+
+2. Die Datei, die es **benutzen** will, holt es mit `import`:
+
+```
+// spiel.js
+import { wuerfle } from "./wuerfel.js";
+```
+
+`./` heisst «im selben Ordner». Der Name in den geschweiften Klammern muss genau so heissen wie beim `export`.
+
+Ohne `export` bleibt eine Funktion privat in ihrer Datei. Das ist gewollt: So entscheidet jede Datei selbst, was andere sehen dürfen.
+
+Gestartet wird das Programm mit `spiel.js`, der **Einstiegsdatei**.
+--- aufgabe
+1. Biete in `wuerfel.js` die Funktion `wuerfle` mit `export` an.
+2. Hole sie in `spiel.js` mit `import`, dort, wo der Kommentar steht.
+--- loesung
+{
+  "spiel.js": "import { wuerfle } from \"./wuerfel.js\";\n\nconsole.log(`Du würfelst eine ${wuerfle(20)}.`);\n",
+  "wuerfel.js": "export function wuerfle(seiten) {\n  return Math.floor(Math.random() * seiten) + 1;\n}\n"
+}
+--- hinweis
+In `wuerfel.js` kommt nur das Wort `export` vor `function`.
+--- hinweis
+In `spiel.js` ersetzt du den Kommentar durch `import { wuerfle } from "./wuerfel.js";`
+--- test wuerfel.js bietet wuerfle an
+$pruefe(/export\s+function\s+wuerfle\b/.test($dateien["wuerfel.js"]), 'Schreibe export vor function wuerfle in wuerfel.js.');
+--- test spiel.js holt wuerfle
+$pruefe(/import\s*\{\s*wuerfle\s*\}\s*from\s*["']\.\/wuerfel(\.js)?["']/.test($dateien["spiel.js"]), 'In spiel.js fehlt import { wuerfle } from "./wuerfel.js";');
+--- test Der Wurf erscheint in der Konsole
+const m = $ausgabe.map(z => /^Du würfelst eine (\d+)\.$/.exec(z)).find(Boolean);
+$pruefe(m && Number(m[1]) >= 1 && Number(m[1]) <= 20, 'Erwartet war ein Satz wie «Du würfelst eine 14.», die Konsole zeigt ' + $zeige($ausgabe) + '.');
+
+=== k14-2 | code | Mehrere Zauber auf einmal
+--- modus dateien
+--- dateien
+{
+  "spiel.js": "// Hole hier MAX_TP und heile aus regeln.js\n\nconsole.log(`Höchstens ${MAX_TP} TP.`);\nconsole.log(`Nach dem Trank: ${heile(15, 8)} TP.`);\n",
+  "regeln.js": "const MAX_TP = 20;\n\nfunction heile(tp, menge) {\n  return Math.min(tp + menge, MAX_TP);\n}\n"
+}
+--- szene
+In der Schriftrolle `regeln.js` stehen die Regeln des Spieltischs. Das Spiel braucht gleich zwei davon.
+--- erklaerung
+Exportieren kannst du nicht nur Funktionen, sondern auch Konstanten und andere Werte:
+
+```
+// regeln.js
+export const MAX_GOLD = 999;
+export function kaufe(preis) { ... }
+```
+
+Brauchst du mehreres aus derselben Datei, holst du es in **einem** `import`, mit Kommas getrennt:
+
+```
+import { MAX_GOLD, kaufe } from "./regeln.js";
+```
+
+Was du nicht brauchst, holst du auch nicht. Die Reihenfolge in den Klammern ist egal.
+--- aufgabe
+1. Biete in `regeln.js` die Konstante `MAX_TP` und die Funktion `heile` mit `export` an.
+2. Hole beide in `spiel.js` mit einem einzigen `import`.
+--- loesung
+{
+  "spiel.js": "import { MAX_TP, heile } from \"./regeln.js\";\n\nconsole.log(`Höchstens ${MAX_TP} TP.`);\nconsole.log(`Nach dem Trank: ${heile(15, 8)} TP.`);\n",
+  "regeln.js": "export const MAX_TP = 20;\n\nexport function heile(tp, menge) {\n  return Math.min(tp + menge, MAX_TP);\n}\n"
+}
+--- hinweis
+In `regeln.js` braucht es zweimal `export`: vor `const` und vor `function`.
+--- hinweis
+In `spiel.js`: `import { MAX_TP, heile } from "./regeln.js";`
+--- test regeln.js bietet beides an
+$pruefe(/export\s+const\s+MAX_TP\b/.test($dateien["regeln.js"]), 'Schreibe export vor const MAX_TP.');
+$pruefe(/export\s+function\s+heile\b/.test($dateien["regeln.js"]), 'Schreibe export vor function heile.');
+--- test spiel.js holt beides in einem import
+const imp = $dateien["spiel.js"].match(/import\s*\{([^}]*)\}\s*from\s*["']\.\/regeln(\.js)?["']/g) || [];
+$pruefe(imp.length === 1, 'Hole MAX_TP und heile in einem einzigen import aus "./regeln.js".');
+$pruefe(/\bMAX_TP\b/.test(imp[0]) && /\bheile\b/.test(imp[0]), 'Im import fehlt noch MAX_TP oder heile.');
+--- test Die Konsole stimmt
+$erwarteAusgabe($ausgabe, ["Höchstens 20 TP.", "Nach dem Trank: 20 TP."], 'Ausgabe');
+
+=== k14-3 | quiz | Vergessen anzubieten
+--- frage
+Was passiert, wenn du `spiel.js` startest?
+--- code
+// regeln.js
+export const MAX_TP = 20;
+function heile(tp) { return tp + 5; }
+
+// spiel.js
+import { MAX_TP, heile } from "./regeln.js";
+console.log(heile(10));
+--- option
+In der Konsole steht 15.
+--- option
+In der Konsole steht undefined.
+--- option*
+Ein Fehler: regeln.js bietet heile nicht an.
+--- option
+In der Konsole steht 20.
+--- erklaerung
+Vor `function heile` fehlt das `export`. Damit bleibt die Funktion privat in `regeln.js`, und der `import` in `spiel.js` findet sie nicht. JavaScript bricht mit einem Fehler ab, im Browser lautet er etwa «does not provide an export named 'heile'». Wenn du diese Meldung siehst, prüfe zuerst das `export` in der anderen Datei.
+
+=== k14-4 | code | Eine eigene Schriftrolle
+--- modus dateien
+--- neueDateien
+ja
+--- dateien
+{
+  "spiel.js": "function inKupfer(gold) {\n  return gold * 100;\n}\n\nconsole.log(`7 Gold sind ${inKupfer(7)} Kupfer.`);\n"
+}
+--- szene
+Der Wirt rechnet ständig Gold in Kupfer um. Diese Rechnung soll eine eigene Schriftrolle bekommen, damit auch der Händler sie benutzen kann.
+--- erklaerung
+Bisher waren die Dateien schon da. Jetzt legst du selbst eine an: Klicke im Editor auf **+ Datei**, gib einen Namen ein, zum Beispiel `waehrung.js`, und klicke **Anlegen**.
+
+Code in eine eigene Datei zu verschieben heisst **auslagern**. Du gehst so vor:
+
+1. Neue Datei anlegen.
+2. Die Funktion aus der alten Datei ausschneiden und in die neue einfügen.
+3. In der neuen Datei `export` davorschreiben.
+4. In der alten Datei oben mit `import` holen.
+
+Dateinamen schreibt man klein und ohne Leerzeichen und Umlaute: `waehrung.js` statt `Währung.js`.
+--- aufgabe
+Lagere die Funktion `inKupfer` in eine neue Datei `waehrung.js` aus und hole sie in `spiel.js` mit `import`. Die Konsole soll danach dasselbe zeigen wie vorher.
+--- loesung
+{
+  "spiel.js": "import { inKupfer } from \"./waehrung.js\";\n\nconsole.log(`7 Gold sind ${inKupfer(7)} Kupfer.`);\n",
+  "waehrung.js": "export function inKupfer(gold) {\n  return gold * 100;\n}\n"
+}
+--- hinweis
+Lege mit **+ Datei** die Datei `waehrung.js` an und verschiebe die drei Zeilen der Funktion dorthin, mit `export` davor.
+--- hinweis
+In `spiel.js` bleibt nur noch `import { inKupfer } from "./waehrung.js";` und die Zeile mit `console.log`.
+--- test Es gibt die Datei waehrung.js
+$pruefe("waehrung.js" in $dateien, 'Lege mit «+ Datei» die Datei waehrung.js an.');
+--- test waehrung.js bietet inKupfer an
+$pruefe(/export\s+function\s+inKupfer\b/.test($dateien["waehrung.js"]), 'In waehrung.js fehlt export function inKupfer.');
+$pruefe(__lade("waehrung.js").inKupfer(3) === 300, 'inKupfer(3) aus waehrung.js sollte 300 ergeben.');
+--- test spiel.js holt inKupfer, statt sie selbst zu haben
+$pruefe(!/function\s+inKupfer\b/.test($dateien["spiel.js"]), 'In spiel.js steht die Funktion noch. Verschiebe sie ganz nach waehrung.js.');
+$pruefe(/import\s*\{\s*inKupfer\s*\}\s*from\s*["']\.\/waehrung(\.js)?["']/.test($dateien["spiel.js"]), 'In spiel.js fehlt import { inKupfer } from "./waehrung.js";');
+--- test Die Konsole zeigt dasselbe wie vorher
+$erwarteAusgabe($ausgabe, ["7 Gold sind 700 Kupfer."], 'Ausgabe');
+
+=== k14-5 | code | Die Seite aus drei Dateien
+--- modus dateien
+--- dateien
+{
+  "index.html": "<h1>Der Würfeltisch</h1>\n<button id=\"wurf\">W20 werfen</button>\n<p id=\"ergebnis\">–</p>\n\n<\!-- Verbinde hier style.css und spiel.js -->\n",
+  "style.css": "#ergebnis {\n  font-size: 3rem;\n  font-weight: 800;\n}\n",
+  "spiel.js": "const ergebnis = document.querySelector(\"#ergebnis\");\n\ndocument.querySelector(\"#wurf\").addEventListener(\"click\", () => {\n  ergebnis.textContent = Math.floor(Math.random() * 20) + 1;\n});\n"
+}
+--- szene
+Der Würfeltisch aus Kapitel VII bekommt ein ordentliches Zuhause: Aufbau, Aussehen und Zauber, jedes in seiner eigenen Datei.
+--- erklaerung
+Bei Webseiten ist die Aufteilung immer gleich:
+
+- `index.html` enthält den **Aufbau**: Überschriften, Knöpfe, Absätze.
+- `style.css` enthält das **Aussehen**: Farben, Schriftgrössen, Abstände.
+- `spiel.js` enthält das **Verhalten**: was beim Klicken passiert.
+
+Die HTML-Datei ist der Chef. Sie muss die anderen zwei ausdrücklich einbinden:
+
+```
+<link rel="stylesheet" href="style.css">
+<script type="module" src="spiel.js"><\/script>
+```
+
+- `<link>` holt die CSS-Datei. `href` ist der Dateiname.
+- `<script>` mit `src` holt die JavaScript-Datei. `type="module"` erlaubt darin `import` und `export`.
+
+Fehlt eine dieser Zeilen, sieht die Seite schlicht aus, oder der Knopf tut nichts. Das ist einer der häufigsten Fehler bei echten Webseiten.
+--- aufgabe
+Binde in `index.html` die Datei `style.css` und die Datei `spiel.js` ein, dort, wo der Kommentar steht. Danach soll der Knopf würfeln und die Zahl gross erscheinen.
+--- loesung
+{
+  "index.html": "<h1>Der Würfeltisch</h1>\n<button id=\"wurf\">W20 werfen</button>\n<p id=\"ergebnis\">–</p>\n\n<link rel=\"stylesheet\" href=\"style.css\">\n<script type=\"module\" src=\"spiel.js\"><\/script>\n",
+  "style.css": "#ergebnis {\n  font-size: 3rem;\n  font-weight: 800;\n}\n",
+  "spiel.js": "const ergebnis = document.querySelector(\"#ergebnis\");\n\ndocument.querySelector(\"#wurf\").addEventListener(\"click\", () => {\n  ergebnis.textContent = Math.floor(Math.random() * 20) + 1;\n});\n"
+}
+--- hinweis
+Die zwei Zeilen stehen fast genau so in der Erklärung. Ersetze den Kommentar durch sie.
+--- hinweis
+Achte auf die Dateinamen: `href="style.css"` und `src="spiel.js"`. Das `<script>` braucht auch sein schliessendes Tag.
+--- test Das Aussehen kommt aus style.css
+$pruefe(getComputedStyle(document.querySelector("#ergebnis")).fontWeight === "800", 'Die Zahl ist noch nicht fett. Ist style.css mit <link rel="stylesheet" href="style.css"> eingebunden?');
+--- test Der Knopf würfelt
+document.querySelector("#wurf").click();
+const t = document.querySelector("#ergebnis").textContent.trim();
+$pruefe(/^\d+$/.test(t) && Number(t) >= 1 && Number(t) <= 20, 'Nach dem Klick steht «' + t + '» da statt einer Zahl. Ist spiel.js mit <script type="module" src="spiel.js"> eingebunden?');
+
+=== k14-6 | boss | Die Zauberbibliothek
+--- modus dateien
+--- neueDateien
+ja
+--- dateien
+{
+  "spiel.js": "// Alles in einer Datei. Teile es auf!\nfunction wuerfle(seiten) {\n  return Math.floor(Math.random() * seiten) + 1;\n}\n\nfunction angriff(bonus, ruestungsklasse) {\n  const wurf = wuerfle(20);\n  if (wurf === 20) return \"Kritisch\";\n  if (wurf === 1) return \"Patzer\";\n  return wurf + bonus >= ruestungsklasse ? \"Treffer\" : \"Daneben\";\n}\n\nconsole.log(`Kael greift an: ${angriff(5, 13)}`);\n"
+}
+--- szene
+Der Kampfcode der Gilde ist in einer einzigen Rolle gewachsen. Orlan legt drei leere Rollen daneben: «Würfel, Kampf, Spiel. Jede Rolle eine Aufgabe.»
+--- erklaerung
+Diese Meisterprüfung braucht alles aus dem Kapitel. Neu ist nur eines: Auch eine Datei, die selbst etwas anbietet, darf etwas aus einer anderen holen. `kampf.js` braucht den Würfel, also holt sie ihn aus `wuerfel.js`.
+
+**Der Bauplan:**
+
+```
+wuerfel.js   export function wuerfle
+     ↑
+kampf.js     import { wuerfle }, export function angriff
+     ↑
+spiel.js     import { angriff }, console.log(...)
+```
+
+Die Pfeile zeigen, wer bei wem etwas holt. `spiel.js` braucht `wuerfle` nicht direkt, darum holt sie es auch nicht.
+
+Vorgehen wie in «Eine eigene Schriftrolle»: Datei anlegen, Funktion verschieben, `export` davor, `import` dort, wo sie gebraucht wird. Teste zwischendurch mit **Ausführen**.
+--- aufgabe
+1. Lagere `wuerfle` in die neue Datei `wuerfel.js` aus.
+2. Lagere `angriff` in die neue Datei `kampf.js` aus. Sie holt `wuerfle` aus `wuerfel.js`.
+3. In `spiel.js` bleiben nur der `import` von `angriff` und die Zeile mit `console.log`.
+--- loesung
+{
+  "spiel.js": "import { angriff } from \"./kampf.js\";\n\nconsole.log(`Kael greift an: ${angriff(5, 13)}`);\n",
+  "wuerfel.js": "export function wuerfle(seiten) {\n  return Math.floor(Math.random() * seiten) + 1;\n}\n",
+  "kampf.js": "import { wuerfle } from \"./wuerfel.js\";\n\nexport function angriff(bonus, ruestungsklasse) {\n  const wurf = wuerfle(20);\n  if (wurf === 20) return \"Kritisch\";\n  if (wurf === 1) return \"Patzer\";\n  return wurf + bonus >= ruestungsklasse ? \"Treffer\" : \"Daneben\";\n}\n"
+}
+--- hinweis
+Beginne mit `wuerfel.js`: anlegen, `wuerfle` hineinschieben, `export` davor. Dann genauso `kampf.js` mit `angriff`.
+--- hinweis
+Ganz oben in `kampf.js` steht `import { wuerfle } from "./wuerfel.js";`, ganz oben in `spiel.js` steht `import { angriff } from "./kampf.js";`.
+--- test wuerfel.js bietet wuerfle an
+$pruefe("wuerfel.js" in $dateien, 'Lege die Datei wuerfel.js an.');
+$pruefe(/export\s+function\s+wuerfle\b/.test($dateien["wuerfel.js"]), 'In wuerfel.js fehlt export function wuerfle.');
+--- test kampf.js holt wuerfle und bietet angriff an
+$pruefe("kampf.js" in $dateien, 'Lege die Datei kampf.js an.');
+$pruefe(/import\s*\{\s*wuerfle\s*\}\s*from\s*["']\.\/wuerfel(\.js)?["']/.test($dateien["kampf.js"]), 'kampf.js sollte wuerfle mit import aus "./wuerfel.js" holen.');
+$pruefe(!/function\s+wuerfle\b/.test($dateien["kampf.js"]), 'In kampf.js steht eine eigene Funktion wuerfle. Hole sie stattdessen aus wuerfel.js.');
+$pruefe(/export\s+function\s+angriff\b/.test($dateien["kampf.js"]), 'In kampf.js fehlt export function angriff.');
+--- test spiel.js holt nur angriff
+$pruefe(!/function\s+(wuerfle|angriff)\b/.test($dateien["spiel.js"]), 'In spiel.js stehen noch Funktionen. Verschiebe sie in die anderen Dateien.');
+$pruefe(/import\s*\{\s*angriff\s*\}\s*from\s*["']\.\/kampf(\.js)?["']/.test($dateien["spiel.js"]), 'In spiel.js fehlt import { angriff } from "./kampf.js";');
+--- test Der Kampf funktioniert wie vorher
+const { angriff } = __lade("kampf.js");
+const faelle = [[0.99, "Kritisch"], [0, "Patzer"], [0.55, "Treffer"], [0.5, "Daneben"]];
+for (const [z, soll] of faelle) {
+  $folge([z]);
+  const e = angriff(3, 15);
+  $pruefe(e === soll, 'Mit dem Wurf ' + (Math.floor(z * 20) + 1) + ' und Bonus 3 gegen RK 15 sollte angriff "' + soll + '" ergeben, es kam ' + $zeige(e) + '.');
+}
+$pruefe($ausgabe.some(z => /^Kael greift an: (Kritisch|Patzer|Treffer|Daneben)$/.test(z)), 'In der Konsole sollte «Kael greift an: …» stehen, sie zeigt ' + $zeige($ausgabe) + '.');
 
 ### t1 | Die Kommandozeile | Mit Befehlen durch Ordner und Dateien | Befehlssiegel | pfad:werkzeug
 
@@ -20026,6 +20312,15 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
   }
   /* Ein Spielstand kann aus einem fremden Sicherungscode stammen. Darum gilt: Zahlen sind Zahlen,
      Daten sehen aus wie Daten, Texte sind Texte. So kann nie HTML oder Code in die Anzeige gelangen. */
+  // Dateien eines Werkstatt-Projekts: nur gültige Namen, nur Text, höchstens 20 Dateien
+  function projektDateienSaeubern(d) {
+    const neu = {};
+    if (!d || typeof d !== "object" || Array.isArray(d)) return neu;
+    for (const [n, inhalt] of Object.entries(d).slice(0, 20)) {
+      if (/^[\w-][\w.-]{0,39}$/.test(n) && /\.(js|html|css|txt|json)$/.test(n) && typeof inhalt === "string") neu[n] = inhalt.slice(0, 200000);
+    }
+    return neu;
+  }
   function saeubern(z) {
     const zahl = v => { const n = Math.floor(Number(v)); return Number.isFinite(n) ? Math.max(0, Math.min(n, 1e9)) : 0; };
     const istDatum = v => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
@@ -20065,7 +20360,8 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     if (z.profil && typeof z.profil === "object") {
       z.profil = { name: text(z.profil.name, 40), portraet: text(z.profil.portraet, 20), titel: text(z.profil.titel, 60), motto: text(z.profil.motto, 120) };
     }
-    z.werkstatt.projekte = z.werkstatt.projekte.filter(p => p && typeof p === "object").map(p => ({ id: text(p.id, 40).replace(/[^\w-]/g, "") || "p" + Math.random().toString(36).slice(2, 10), name: text(p.name, 60), art: ["js", "seite", "python"].includes(p.art) ? p.art : "js", code: typeof p.code === "string" ? p.code : "", geaendert: istDatum(p.geaendert) ? p.geaendert : jetzt }));
+    z.werkstatt.projekte = z.werkstatt.projekte.filter(p => p && typeof p === "object").map(p => ({ id: text(p.id, 40).replace(/[^\w-]/g, "") || "p" + Math.random().toString(36).slice(2, 10), name: text(p.name, 60), art: ["js", "seite", "python", "projekt"].includes(p.art) ? p.art : "js", code: typeof p.code === "string" ? p.code : "", geaendert: istDatum(p.geaendert) ? p.geaendert : jetzt,
+      ...(p.art === "projekt" ? { dateien: projektDateienSaeubern(p.dateien), aktiveDatei: text(p.aktiveDatei, 40) } : {}) }));
     if (!z.werkstatt.projekte.some(p => p.id === z.werkstatt.aktiv)) z.werkstatt.aktiv = null;
     z.gildeMitglied = z.gildeMitglied === true;
     return z;
@@ -21730,7 +22026,8 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
   }
   function neuesProjekt(art, name, code) {
     const id = "p" + Date.now().toString(36) + Math.floor(Math.random() * 1000);
-    const p = { id, name: name || "Neues Projekt", art, code: code != null ? code : PROJEKT_VORLAGEN[art], geaendert: heute() };
+    const p = { id, name: name || "Neues Projekt", art, code: code != null ? code : PROJEKT_VORLAGEN[art] || "", geaendert: heute() };
+    if (art === "projekt") p.dateien = Object.assign({}, PROJEKT_DATEIEN_VORLAGE);
     zustand.werkstatt.projekte.unshift(p);
     zustand.werkstatt.aktiv = id;
     speichern();
@@ -22295,6 +22592,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     if (RAETSEL_ARTEN[l.art]) return { fehlerjagd: zeigeFehlerjagd, puzzle: zeigePuzzle, luecke: zeigeLuecke, duell: zeigeDuell }[l.art](l);
     if (l.art === "lesen" || l.art === "lesenboss") return zeigeLesen(l);
     if (l.modus === "terminal") return zeigeTerminal(l);
+    if (l.modus === "dateien") return zeigeDateienLektion(l);
     const bereits = bereitsGeloest(l);
     const gespeichert = zustand.code[l.id];
     const startCode = (l.start || "") + "\n";
@@ -22827,6 +23125,261 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       b.classList.add("falsch", "wackeln");
       raetselFalsch(l, "Das ist nicht der Grund. Stimmt die Aussage überhaupt?");
     }));
+  }
+
+  /* ---------- Mehrere Dateien: import und export, zu einem Programm gebündelt ---------- */
+  // Jede Datei wird zu einer Funktion. import und export werden zeilengenau übersetzt,
+  // damit Fehlermeldungen auf die richtige Datei und Zeile zeigen.
+  function modulUmbauen(text) {
+    const exporte = [];
+    const lade = (pfad, namen) => "__lade(" + JSON.stringify(pfad) + (namen ? ", " + JSON.stringify(namen) : "") + ")";
+    let t = String(text);
+    t = t.replace(/^([ \t]*)import\s*\{([^}]*)\}\s*from\s*["']([^"']+)["'];?/gm, (m, ein, liste, pfad) => {
+      const teile = liste.split(",").map(s => s.trim()).filter(Boolean).map(s => s.split(/\s+as\s+/));
+      return ein + "const { " + teile.map(([a, b]) => b ? a + ": " + b : a).join(", ") + " } = " + lade(pfad, teile.map(x => x[0])) + ";";
+    });
+    t = t.replace(/^([ \t]*)import\s+\*\s+as\s+([\w$]+)\s+from\s*["']([^"']+)["'];?/gm, (m, ein, n, pfad) => ein + "const " + n + " = " + lade(pfad) + ";");
+    t = t.replace(/^([ \t]*)import\s+([\w$]+)\s+from\s*["']([^"']+)["'];?/gm, (m, ein, n, pfad) => ein + "const " + n + " = " + lade(pfad, ["default"]) + ".default;");
+    t = t.replace(/^([ \t]*)import\s*["']([^"']+)["'];?/gm, (m, ein, pfad) => ein + lade(pfad) + ";");
+    t = t.replace(/^([ \t]*)export\s+default\s+(async\s+function|function|class)\s+([\w$]+)/gm, (m, ein, art, n) => { exporte.push(["default", n]); return ein + art + " " + n; });
+    t = t.replace(/^([ \t]*)export\s+default\s+/gm, (m, ein) => { exporte.push(["default", "__standard"]); return ein + "const __standard = "; });
+    t = t.replace(/^([ \t]*)export\s+(async\s+function\*?|function\*?|class|const|let|var)\s+([\w$]+)/gm, (m, ein, art, n) => { exporte.push([n, n]); return ein + art + " " + n; });
+    t = t.replace(/^([ \t]*)export\s*\{([^}]*)\};?/gm, (m, ein, liste) => {
+      for (const s of liste.split(",").map(x => x.trim()).filter(Boolean)) { const [a, b] = s.split(/\s+as\s+/); exporte.push([b || a, a]); }
+      return ein;
+    });
+    const kopf = exporte.map(([aussen, innen]) => "Object.defineProperty(__exp, " + JSON.stringify(aussen) + ", { enumerable: true, get: () => " + innen + " });").join(" ");
+    return { kopf, t };
+  }
+  function buendeln(dateien, einstieg) {
+    let code = "const $dateien = " + JSON.stringify(dateien) + ";\nconst __module = {}, __fertig = {};\n" +
+      "function __lade(p, namen) {\n" +
+      "  let n = String(p).replace(/^\\.\\//, \"\");\n" +
+      "  if (!__module[n] && __module[n + \".js\"]) n += \".js\";\n" +
+      "  if (!__module[n]) throw new Error(\"Die Datei «\" + p + \"» gibt es nicht. Stimmt der Name im import?\");\n" +
+      "  if (!__fertig[n]) { __fertig[n] = {}; __module[n](__fertig[n]); }\n" +
+      "  for (const x of namen || []) if (!(x in __fertig[n])) throw new SyntaxError(\"Die Datei «\" + n + \"» exportiert «\" + x + \"» nicht. Steht dort export vor \" + x + \"?\");\n" +
+      "  return __fertig[n];\n}\n";
+    const karte = [];
+    for (const n of Object.keys(dateien).filter(x => /\.js$/.test(x))) {
+      const { kopf, t } = modulUmbauen(dateien[n]);
+      const zeilenVorher = (code.match(/\n/g) || []).length;
+      code += "__module[" + JSON.stringify(n) + "] = function (__exp) { " + kopf + "\n";
+      karte.push({ datei: n, ab: zeilenVorher + 2, anzahl: t.split("\n").length });
+      code += t + "\n};\n";
+    }
+    if (einstieg) code += "__lade(" + JSON.stringify(einstieg) + ");\n";
+    return { code, karte };
+  }
+  // Fehlerzeile im gebündelten Code zurück auf Datei und Zeile übersetzen
+  function fehlerZurueck(fehler, karte) {
+    if (!fehler || !fehler.zeile) return fehler;
+    const k = karte.find(x => fehler.zeile >= x.ab && fehler.zeile < x.ab + x.anzahl);
+    if (!k) return Object.assign({}, fehler, { zeile: null });
+    return Object.assign({}, fehler, { zeile: fehler.zeile - k.ab + 1, datei: k.datei, text: fehler.text + " (in " + k.datei + ")" });
+  }
+  // Setzt index.html mit ihren CSS- und JS-Dateien zu einer einzigen Seite zusammen
+  function seiteVerbinden(dateien) {
+    let html = dateien["index.html"] || "";
+    html = html.replace(/<link\b[^>]*\bhref=["']([^"']+)["'][^>]*>/gi, (m, href) => {
+      const n = href.replace(/^\.\//, "");
+      return n in dateien && /\.css$/.test(n) ? "<style>\n" + dateien[n] + "\n</style>" : m;
+    });
+    html = html.replace(/<script\b([^>]*)\bsrc=["']([^"']+)["']([^>]*)>\s*<\/script>/gi, (m, a, src) => {
+      const n = src.replace(/^\.\//, "");
+      if (!(n in dateien)) return S_AUF + "console.error(" + JSON.stringify("Die Datei «" + src + "» gibt es nicht. Stimmt der Name in src?") + ");" + S_ZU;
+      // Ein schliessendes Script-Tag im Code würde das eingebettete Script vorzeitig beenden
+      return S_AUF + "\n" + buendeln(dateien, n).code.replace(/<\/(script)/gi, "<\\/$1") + S_ZU;
+    });
+    return html;
+  }
+  const dateiSprache = n => /\.(html|css)$/.test(n) ? "html" : "js";
+  const gueltigerDateiname = n => /^[\w-][\w.-]{0,39}$/.test(n) && /\.(js|html|css|txt|json)$/.test(n);
+
+  // Editor mit Reitern für mehrere Dateien
+  function dateienEditor(wurzel, dateien, optionen) {
+    let aktiv = optionen.aktiv && optionen.aktiv in dateien ? optionen.aktiv : Object.keys(dateien)[0];
+    let editor = null;
+    function zeichne() {
+      wurzel.innerHTML = '<div class="datei-reiter" role="tablist">' +
+        Object.keys(dateien).map(n => '<button type="button" role="tab" class="datei-tab' + (n === aktiv ? " aktiv" : "") + '" aria-selected="' + (n === aktiv) + '" data-datei="' + esc(n) + '">' + esc(n) +
+          (optionen.loeschbar && optionen.loeschbar(n) ? '<span class="datei-weg" data-weg="' + esc(n) + '" title="Datei löschen" aria-label="' + esc(n) + ' löschen">×</span>' : "") + "</button>").join("") +
+        (optionen.neu ? '<button type="button" class="datei-tab datei-neu" id="datei-neu">+ Datei</button>' : "") + "</div>" +
+        '<form class="datei-neu-form" id="datei-neu-form" hidden><input type="text" id="datei-neu-name" placeholder="zum Beispiel werte.js" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="knopf klein-knopf" type="submit">Anlegen</button><span class="klein" id="datei-neu-meldung"></span></form>' +
+        '<div class="editor" id="datei-editor"></div>';
+      editor = baueEditor($("#datei-editor", wurzel), dateien[aktiv] || "", {
+        sprache: dateiSprache(aktiv),
+        aenderung: wert => { dateien[aktiv] = wert; optionen.aenderung(dateien, aktiv); },
+        pruefen: () => optionen.pruefen && optionen.pruefen()
+      });
+      wurzel.querySelectorAll("[data-datei]").forEach(b => b.addEventListener("click", e => {
+        if (e.target.dataset.weg) return;
+        dateien[aktiv] = editor.wert(); aktiv = b.dataset.datei; zeichne();
+      }));
+      wurzel.querySelectorAll("[data-weg]").forEach(x => x.addEventListener("click", () => {
+        const n = x.dataset.weg;
+        if (!x.classList.contains("scharf")) { x.classList.add("scharf"); x.textContent = "löschen?"; setTimeout(() => { if (document.body.contains(x)) { x.classList.remove("scharf"); x.textContent = "×"; } }, 3000); return; }
+        delete dateien[n];
+        if (aktiv === n) aktiv = Object.keys(dateien)[0];
+        optionen.aenderung(dateien, aktiv); zeichne();
+      }));
+      const neuKnopf = $("#datei-neu", wurzel);
+      if (neuKnopf) {
+        const form = $("#datei-neu-form", wurzel), feld = $("#datei-neu-name", wurzel);
+        neuKnopf.addEventListener("click", () => { form.hidden = !form.hidden; if (!form.hidden) feld.focus(); });
+        form.addEventListener("submit", e => {
+          e.preventDefault();
+          const n = feld.value.trim();
+          const meldung = $("#datei-neu-meldung", wurzel);
+          if (!gueltigerDateiname(n)) { meldung.textContent = "Erlaubt sind Namen ohne Leerzeichen und Umlaute, die auf .js, .html, .css, .txt oder .json enden, zum Beispiel waehrung.js."; return; }
+          if (n in dateien) { meldung.textContent = "Diese Datei gibt es schon."; return; }
+          if (Object.keys(dateien).length >= 20) { meldung.textContent = "Mehr als 20 Dateien gehen nicht."; return; }
+          dateien[aktiv] = editor.wert();
+          dateien[n] = "";
+          aktiv = n;
+          optionen.aenderung(dateien, aktiv); zeichne(); editor.fokus();
+        });
+      }
+    }
+    zeichne();
+    return {
+      dateien: () => { dateien[aktiv] = editor.wert(); return dateien; },
+      aktiv: () => aktiv,
+      zeige: (n, zeile) => { if (n && n in dateien && n !== aktiv) { dateien[aktiv] = editor.wert(); aktiv = n; zeichne(); } editor.markiere(zeile || null); },
+      ersetze: neu => { for (const k of Object.keys(dateien)) delete dateien[k]; Object.assign(dateien, neu); aktiv = Object.keys(dateien)[0]; zeichne(); optionen.aenderung(dateien, aktiv); }
+    };
+  }
+
+  // Lektion mit mehreren Dateien (--- modus dateien)
+  function zeigeDateienLektion(l) {
+    const bereits = istErledigt(l.id);
+    const boss = l.art === "boss";
+    const start = JSON.parse(l.dateien || "{}");
+    let dateien;
+    try { dateien = JSON.parse(zustand.code[l.id] || "null"); } catch (e) { dateien = null; }
+    if (!dateien || typeof dateien !== "object" || Array.isArray(dateien)) dateien = Object.assign({}, start);
+    const web = "index.html" in start;
+    ansicht.innerHTML =
+      '<div class="seite">' + lektionsNavigation(l) +
+      '<div class="lek-raster einspaltig"><article class="buch">' +
+      '<div class="titelblock"><p class="eyebrow' + (boss ? " boss" : "") + '">' + artText(l) + (bereits ? " · gemeistert" : "") + "</p><h1>" + esc(l.titel) + "</h1></div>" +
+      (l.szene ? '<p class="szene">' + inline(l.szene) + "</p>" : "") +
+      (l.erklaerung ? '<div class="prosa">' + md(l.erklaerung, "js") + "</div>" : "") +
+      '<section class="aufgabe"><h2>Aufgabe</h2><div class="prosa">' + md(l.aufgabe || "", "js") + "</div></section>" +
+      '<div id="dateien-bereich"></div>' +
+      '<div class="aktionen"><button type="button" class="knopf still" id="zuruecksetzen">Zurücksetzen</button><span class="luecke"></span>' +
+      '<button type="button" class="knopf" id="ausfuehren">' + ICON.abspielen + 'Ausführen</button><button type="button" class="knopf haupt" id="pruefen">Prüfen</button></div>' +
+      (web ? '<div class="vorschau"><div class="konsole-kopf">Vorschau</div><div class="vorschau-flaeche" id="vorschau-flaeche"></div></div>' : "") +
+      '<div class="konsole"><div class="konsole-kopf">Konsole<span class="stand" id="konsole-stand"></span></div><div class="konsole-inhalt" id="konsole"><span class="leer">Drücke «Ausführen», um dein Programm zu starten.</span></div></div>' +
+      '<section class="hilfe" id="hilfe"></section>' +
+      '<section class="pruefung" id="pruefung" aria-live="polite"></section>' +
+      "</article></div></div>";
+    let speicherZeit = null;
+    const ed = dateienEditor($("#dateien-bereich"), dateien, {
+      neu: !!l.neueDateien,
+      loeschbar: n => !!l.neueDateien && !(n in start),
+      aenderung: d => { clearTimeout(speicherZeit); speicherZeit = setTimeout(() => { zustand.code[l.id] = JSON.stringify(d); speichern(); }, 250); },
+      pruefen: () => pruefen()
+    });
+    const konsole = $("#konsole");
+    const einstieg = l.einstieg || "spiel.js";
+    function konsoleZeigen(r, karte) {
+      let html = (r.ausgabe || []).map(z => '<div class="zeile">' + esc(z) + "</div>").join("");
+      if (!html && !r.fehler && !r.zeitUeberschritten) html = '<span class="leer">Keine Ausgabe. Dein Code lief, hat aber nichts ausgegeben.</span>';
+      if (r.zeitUeberschritten) html += '<div class="fehlerbox"><strong>Abgebrochen</strong><span>Dein Code läuft zu lange. Steckt eine Schleife fest?</span></div>';
+      const f = r.fehler ? fehlerZurueck(r.fehler, karte) : null;
+      if (f) { html += fehlerHtml(f); ed.zeige(f.datei, f.zeile); }
+      konsole.innerHTML = html;
+      $("#konsole-stand").textContent = "ausgeführt um " + uhrzeit();
+    }
+    function webStarten() {
+      konsole.innerHTML = '<span class="leer">Die Seite ist geladen. Was dein Code mit console.log() ausgibt, erscheint hier.</span>';
+      let leer = true;
+      webLauf({ id: l.id, modus: "seite" }, seiteVerbinden(ed.dateien()), {
+        ziel: $("#vorschau-flaeche"), modus: "seite",
+        an: d => {
+          if (!document.body.contains(konsole)) return;
+          if (leer) { konsole.innerHTML = ""; leer = false; }
+          if (d.art === "log") konsole.insertAdjacentHTML("beforeend", '<div class="zeile">' + esc(d.text) + "</div>");
+          else if (d.art === "fehler") konsole.insertAdjacentHTML("beforeend", fehlerHtml(d.fehler));
+        }
+      });
+    }
+    async function ausfuehrenKnopf() {
+      if (web) { webStarten(); return; }
+      const b = buendeln(ed.dateien(), einstieg);
+      konsoleZeigen(await ausfuehren(b.code, null), b.karte);
+    }
+    function terminalLoseHilfe() {
+      const genutzt = zustand.hinweise[l.id] || 0, versuche = zustand.versuche[l.id] || 0, offen = !!zustand.loesung[l.id];
+      let html = "";
+      for (let i = 0; i < genutzt && i < l.hinweise.length; i++) html += '<div class="hinweis"><b>Hinweis ' + (i + 1) + "</b><div>" + inline(l.hinweise[i]) + "</div></div>";
+      if (offen) {
+        const loes = JSON.parse(l.loesung || "{}");
+        html += '<div class="loesung-box"><p class="eyebrow">Musterlösung</p>' + Object.entries(loes).map(([n, t]) => '<p class="klein"><b>' + esc(n) + '</b></p><pre class="code-block"><code>' + hlSprache(t, dateiSprache(n)) + "</code></pre>").join("") +
+          '<p class="klein">Tippe sie selbst ab, statt sie zu kopieren.</p></div>';
+      }
+      const k = [];
+      if (genutzt < l.hinweise.length) k.push('<button class="knopf" type="button" id="d-hinweis">Hinweis zeigen (' + (genutzt + 1) + " von " + l.hinweise.length + ")</button>");
+      if (!offen && (versuche >= 3 || bereits)) k.push('<button class="knopf still" type="button" id="d-loesung">Lösung ansehen</button>');
+      if (k.length) html += '<div class="hilfe-knoepfe">' + k.join("") + "</div>";
+      $("#hilfe").innerHTML = html;
+      const hb = $("#d-hinweis"); if (hb) hb.addEventListener("click", () => { zustand.hinweise[l.id] = genutzt + 1; speichern(); terminalLoseHilfe(); });
+      const lb = $("#d-loesung"); if (lb) lb.addEventListener("click", () => { zustand.loesung[l.id] = true; speichern(); terminalLoseHilfe(); });
+    }
+    let laeuft = false;
+    async function pruefen() {
+      if (laeuft) return;
+      laeuft = true;
+      $("#pruefen").disabled = true;
+      const d = ed.dateien();
+      let ergebnis, karte = [];
+      if (web) ergebnis = await pruefeWeb(Object.assign({}, l, { modus: "seite" }), seiteVerbinden(d), null);
+      else { const b = buendeln(d, einstieg); karte = b.karte; ergebnis = await ausfuehren(b.code, l.tests.map(t => t.code)); }
+      $("#pruefen").disabled = false;
+      laeuft = false;
+      if (!web || ergebnis.fehler || ergebnis.zeitUeberschritten) konsoleZeigen(ergebnis, karte);
+      const zeilen = (ergebnis.zeitUeberschritten || ergebnis.fehler || !ergebnis.tests)
+        ? l.tests.map((t, i) => ({ name: t.name, status: i === 0 ? "nein" : "offen", text: i === 0 ? "Dein Code bricht mit einem Fehler ab, siehe Konsole." : "" }))
+        : l.tests.map((t, i) => { const r = ergebnis.tests[i] || { status: "offen" }; const f = r.fehler ? fehlerZurueck(r.fehler, karte) : null; return { name: t.name, status: r.status, text: f ? fehlerTitel(f) + ": " + f.text : r.text || "" }; });
+      const ok = zeilen.every(z => z.status === "ok");
+      let html = '<div class="pruef-kopf">Prüfung<span class="zahl">' + zeilen.filter(z => z.status === "ok").length + " von " + zeilen.length + " bestanden</span></div>" +
+        '<ol class="pruef-liste">' + zeilen.map(z => '<li class="pruef-zeile ' + z.status + '"><span class="marke-i">' + (z.status === "ok" ? "✓" : z.status === "nein" ? "✗" : "–") + "</span>" +
+          '<div><div class="name">' + esc(z.name) + "</div>" + (z.text ? '<div class="grund">' + esc(z.text) + "</div>" : "") + "</div></li>").join("") + "</ol>";
+      const p = $("#pruefung");
+      if (ok) {
+        const belohnung = abschliessen(l, {});
+        const n = naechsteNach(l);
+        p.innerHTML = '<div class="erfolg"><div><strong>' + (boss ? "Meisterprüfung bestanden!" : "Zauber gelungen!") + "</strong><span>" +
+          (belohnung ? "+" + belohnung.ep + " EP" + (belohnung.ep >= maxEp(l) ? ", ganz ohne Hilfe." : ".") : "Diese Lektion hattest du schon gemeistert.") + "</span></div>" +
+          (n ? '<a class="knopf haupt" href="#' + n.id + '">Nächste Lektion' + ICON.weiter + "</a>" : '<a class="knopf haupt" href="#karte">Zur Karte' + ICON.weiter + "</a>") + "</div>" + html;
+        belohnungZeigen(belohnung, p);
+      } else {
+        fehlversuch(l, ergebnis);
+        p.innerHTML = html;
+        terminalLoseHilfe();
+        zeigeKopf();
+      }
+    }
+    $("#ausfuehren").addEventListener("click", ausfuehrenKnopf);
+    $("#pruefen").addEventListener("click", () => pruefen());
+    const zr = $("#zuruecksetzen");
+    let scharf = false;
+    zr.addEventListener("click", () => {
+      if (!scharf) { scharf = true; zr.textContent = "Wirklich zurücksetzen?"; setTimeout(() => { scharf = false; zr.textContent = "Zurücksetzen"; }, 3000); return; }
+      ed.ersetze(JSON.parse(l.dateien || "{}")); scharf = false; zr.textContent = "Zurücksetzen";
+    });
+    terminalLoseHilfe();
+    if (web) webStarten();
+  }
+  // Selbsttest: Musterlösung besteht, Startdateien bestehen nicht
+  async function dateienSelbsttest(l) {
+    const lauf = async d => "index.html" in d
+      ? await pruefeWeb(Object.assign({}, l, { modus: "seite" }), seiteVerbinden(d), null)
+      : await ausfuehren(buendeln(d, l.einstieg || "spiel.js").code, l.tests.map(t => t.code));
+    const alleOk = r => !!r.tests && r.tests.length === l.tests.length && r.tests.every(t => t.status === "ok");
+    const a = await lauf(JSON.parse(l.loesung)), b = await lauf(JSON.parse(l.dateien));
+    return { ok: alleOk(a) && !alleOk(b), loesung: a, start: alleOk(b) };
   }
 
   /* ---------- Terminal: eine nachgebaute Kommandozeile mit Dateien und Git ---------- */
@@ -23629,7 +24182,14 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
   const PROJEKT_ARTEN = {
     js: { name: "JavaScript", text: "Konsole, wie in den ersten Kapiteln", endung: ".js", typ: "text/javascript", sprache: "js" },
     seite: { name: "Webseite", text: "HTML, CSS und JavaScript mit Vorschau", endung: ".html", typ: "text/html", sprache: "html" },
-    python: { name: "Python", text: "Python mit print, läuft in der Laptop-Datei", endung: ".py", typ: "text/x-python", sprache: "python" }
+    python: { name: "Python", text: "Python mit print, läuft in der Laptop-Datei", endung: ".py", typ: "text/x-python", sprache: "python" },
+    projekt: { name: "Projekt mit Dateien", text: "Mehrere Dateien wie im echten Leben: HTML, CSS und JavaScript mit import", endung: ".html", typ: "text/html", sprache: "js" }
+  };
+  const PROJEKT_DATEIEN_VORLAGE = {
+    "index.html": '<h1>Mein Würfeltisch</h1>\n<button id="wurf">W20 werfen</button>\n<p id="ergebnis">–</p>\n\n<link rel="stylesheet" href="style.css">\n<scr' + 'ipt type="module" src="spiel.js"></scr' + 'ipt>\n',
+    "style.css": "#ergebnis {\n  font-size: 3rem;\n  font-weight: 800;\n}\n",
+    "spiel.js": 'import { wuerfle } from "./wuerfel.js";\n\nconst ergebnis = document.querySelector("#ergebnis");\n\ndocument.querySelector("#wurf").addEventListener("click", () => {\n  ergebnis.textContent = wuerfle(20);\n});\n',
+    "wuerfel.js": "// Diese Datei stellt einen Zauber für andere Dateien bereit\nexport function wuerfle(seiten) {\n  return Math.floor(Math.random() * seiten) + 1;\n}\n"
   };
   const PROJEKT_VORLAGEN = {
     js: "// Dein eigenes Projekt\nfunction wuerfle(seiten) {\n  return Math.floor(Math.random() * seiten) + 1;\n}\n\nconsole.log(`Du würfelst eine ${wuerfle(20)}.`);\n",
@@ -23652,10 +24212,10 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       arbeit =
         '<div class="werkstatt-kopf"><label class="feld breit"><span>Projektname</span><input type="text" id="projekt-name" maxlength="60" value="' + esc(p.name) + '"></label>' +
         '<span class="art-marke">' + esc(art.name) + "</span></div>" +
-        '<div class="editor" id="editor"></div>' +
+        (p.art === "projekt" ? '<div id="dateien-bereich"></div>' : '<div class="editor" id="editor"></div>') +
         '<div class="aktionen"><button type="button" class="knopf still" id="projekt-loeschen">Löschen</button><span class="luecke"></span>' +
         '<button type="button" class="knopf" id="projekt-export">' + SYMBOL.truhe + 'Als Datei speichern</button><button type="button" class="knopf haupt" id="projekt-lauf">' + ICON.abspielen + "Ausführen <span class=\"taste\">Strg+Enter</span></button></div>" +
-        (p.art === "seite" ? '<div class="vorschau"><div class="konsole-kopf">Vorschau<span class="stand"><button type="button" class="mini" id="speicher-leeren">Speicher leeren</button></span></div><div class="vorschau-flaeche gross" id="vorschau-flaeche"></div></div>' : "") +
+        (p.art === "seite" || (p.art === "projekt" && p.dateien && "index.html" in p.dateien) ? '<div class="vorschau"><div class="konsole-kopf">Vorschau<span class="stand"><button type="button" class="mini" id="speicher-leeren">Speicher leeren</button></span></div><div class="vorschau-flaeche gross" id="vorschau-flaeche"></div></div>' : "") +
         '<div class="konsole"><div class="konsole-kopf">Konsole<span class="stand" id="konsole-stand"></span></div><div class="konsole-inhalt" id="konsole"><span class="leer">Drücke «Ausführen», um dein Projekt zu starten.</span></div></div>';
     }
     ansicht.innerHTML = '<div class="seite werkstatt"><aside class="werkstatt-seite"><h2>Projekte</h2>' +
@@ -23665,11 +24225,12 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
 
     ansicht.querySelectorAll("[data-neu]").forEach(b => b.addEventListener("click", () => {
       const art = b.dataset.neu;
-      neuesProjekt(art, "Mein " + (art === "seite" ? "Webseiten" : art === "python" ? "Python" : "JavaScript") + "-Projekt");
+      neuesProjekt(art, art === "projekt" ? "Mein Würfeltisch" : "Mein " + (art === "seite" ? "Webseiten" : art === "python" ? "Python" : "JavaScript") + "-Projekt");
       zeigeWerkstatt();
     }));
     ansicht.querySelectorAll("[data-projekt]").forEach(b => b.addEventListener("click", () => { w.aktiv = b.dataset.projekt; speichern(); zeigeWerkstatt(); }));
     if (!p) return;
+    if (p.art === "projekt") { werkstattDateien(p, w); return; }
 
     let zeit = null;
     const editor = baueEditor($("#editor"), p.code, {
@@ -23745,6 +24306,88 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     const sl = $("#speicher-leeren");
     if (sl) sl.addEventListener("click", () => { delete zustand.vorschauSpeicher[schluessel]; speichern(); lauf(); toast("Speicher der Vorschau geleert"); });
     if (p.art === "seite") lauf();
+  }
+  // Werkstatt-Projekt mit mehreren Dateien
+  function werkstattDateien(p, w) {
+    if (!p.dateien || typeof p.dateien !== "object") p.dateien = Object.assign({}, PROJEKT_DATEIEN_VORLAGE);
+    const schluessel = "werkstatt:" + p.id;
+    const konsole = $("#konsole");
+    let zeit = null, hatteSeite = "index.html" in p.dateien;
+    const ed = dateienEditor($("#dateien-bereich"), p.dateien, {
+      aktiv: p.aktiveDatei,
+      neu: true,
+      loeschbar: () => Object.keys(p.dateien).length > 1,
+      aenderung: (d, aktiv) => {
+        p.aktiveDatei = aktiv;
+        clearTimeout(zeit);
+        zeit = setTimeout(() => { p.geaendert = heute(); speichern(); }, 300);
+        if (("index.html" in d) !== hatteSeite) { speichern(); zeigeWerkstatt(); }
+      },
+      pruefen: () => lauf()
+    });
+    const einstieg = () => ["spiel.js", "main.js", "index.js"].find(n => n in p.dateien) || Object.keys(p.dateien).find(n => /\.js$/.test(n));
+    async function lauf() {
+      const d = ed.dateien();
+      p.geaendert = heute();
+      statPlus("werkstattLaeufe");
+      zeigeNeueAbzeichen(pruefeAbzeichen());
+      speichern();
+      if ("index.html" in d) {
+        konsole.innerHTML = '<span class="leer">Die Seite ist geladen. Was dein Code mit console.log() ausgibt, erscheint hier.</span>';
+        let leer = true;
+        webLauf({ id: schluessel }, seiteVerbinden(d), {
+          ziel: $("#vorschau-flaeche"), modus: "seite",
+          speicher: zustand.vorschauSpeicher[schluessel] || {},
+          speicherAn: x => { zustand.vorschauSpeicher[schluessel] = x; speichern(); },
+          an: x => {
+            if (!document.body.contains(konsole)) return;
+            if (leer) { konsole.innerHTML = ""; leer = false; }
+            if (x.art === "log") konsole.insertAdjacentHTML("beforeend", '<div class="zeile">' + esc(x.text) + "</div>");
+            else if (x.art === "fehler") konsole.insertAdjacentHTML("beforeend", fehlerHtml(x.fehler));
+          }
+        });
+        $("#konsole-stand").textContent = "geladen um " + uhrzeit();
+        return;
+      }
+      const start = einstieg();
+      if (!start) { konsole.innerHTML = '<span class="leer">Lege eine JavaScript-Datei an, zum Beispiel spiel.js.</span>'; return; }
+      const b = buendeln(d, start);
+      $("#projekt-lauf").disabled = true;
+      const r = await ausfuehren(b.code, null);
+      $("#projekt-lauf").disabled = false;
+      let html = (r.ausgabe || []).map(z => '<div class="zeile">' + esc(z) + "</div>").join("");
+      if (!html && !r.fehler && !r.zeitUeberschritten) html = '<span class="leer">Keine Ausgabe.</span>';
+      if (r.zeitUeberschritten) html += '<div class="fehlerbox"><strong>Abgebrochen</strong><span>Dein Code läuft zu lange. Steckt eine Schleife fest?</span></div>';
+      if (r.fehler) { const f = fehlerZurueck(r.fehler, b.karte); html += fehlerHtml(f); ed.zeige(f.datei, f.zeile); }
+      konsole.innerHTML = html;
+      $("#konsole-stand").textContent = "ausgeführt um " + uhrzeit() + " · gestartet mit " + start;
+    }
+    $("#projekt-lauf").addEventListener("click", lauf);
+    $("#projekt-name").addEventListener("input", e => {
+      p.name = e.target.value; speichern();
+      const b = ansicht.querySelector('[data-projekt="' + p.id + '"] b');
+      if (b) b.textContent = p.name || "Ohne Namen";
+    });
+    $("#projekt-export").addEventListener("click", () => {
+      const d = ed.dateien(); speichern();
+      if ("index.html" in d) exportDialog(dateiname(p.name, ".html"), eigeneSeite(p.name, seiteVerbinden(d), "seite"), "text/html");
+      else exportDialog(dateiname(p.name, ".js"), buendeln(d, einstieg()).code, "text/javascript");
+    });
+    const loe = $("#projekt-loeschen");
+    let scharf = false, sz = null;
+    loe.addEventListener("click", () => {
+      if (!scharf) { scharf = true; loe.textContent = "Wirklich löschen?"; sz = setTimeout(() => { scharf = false; loe.textContent = "Löschen"; }, 3000); return; }
+      clearTimeout(sz);
+      w.projekte = w.projekte.filter(x => x.id !== p.id);
+      w.aktiv = w.projekte[0] ? w.projekte[0].id : null;
+      delete zustand.vorschauSpeicher[schluessel];
+      speichern();
+      toast("Projekt gelöscht");
+      zeigeWerkstatt();
+    });
+    const sl = $("#speicher-leeren");
+    if (sl) sl.addEventListener("click", () => { delete zustand.vorschauSpeicher[schluessel]; speichern(); lauf(); toast("Speicher der Vorschau geleert"); });
+    if ("index.html" in p.dateien) lauf();
   }
 
   /* =========================================================
@@ -24127,7 +24770,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
   if (nachgereicht.length) setTimeout(() => zeigeNeueAbzeichen(nachgereicht), 600);
   sicherungStart();
 
-  window.__kodex = { LEKTIONEN, ausfuehren, asyncZusatz, terminalSelbsttest, ausfuehrenPython, namensToleranz, pruefeWeb, sichereSchleifen, pythonErwartet, zustandHolen: () => zustand,
+  window.__kodex = { LEKTIONEN, ausfuehren, asyncZusatz, terminalSelbsttest, dateienSelbsttest, buendeln, seiteVerbinden, ausfuehrenPython, namensToleranz, pruefeWeb, sichereSchleifen, pythonErwartet, zustandHolen: () => zustand,
     zustandSetzen: z => {
       zustand = normalisiere(z);
       try { localStorage.setItem(SCHLUESSEL, JSON.stringify(zustand)); } catch (e) { /* Speicher nicht verfuegbar */ }
