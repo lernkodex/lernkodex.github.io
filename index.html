@@ -517,6 +517,17 @@ pre.code-block code { font-size: inherit; }
 :root[data-theme="dark"][data-akzent="smaragd"] { --gold: #6fd3a6; --gold-hell: #4fbf8d; --gold-grund: #173328; --knopf: #4fbf8d; --knopf-text: #0f1f18; }
 :root[data-theme="dark"][data-akzent="arkan"] { --gold: #a5b8ff; --gold-hell: #7d97ff; --gold-grund: #222a4d; --knopf: #7d97ff; --knopf-text: #10142a; }
 :root[data-theme="dark"][data-akzent="glut"] { --gold: #ff9f86; --gold-hell: #e8705a; --gold-grund: #3a1f1a; --knopf: #e8705a; --knopf-text: #1f0f0b; }
+:root[data-akzent="nacht"] { --gold: #5b3aa8; --gold-hell: #7a4fd0; --gold-grund: #ebe2fa; --knopf: #7a4fd0; --knopf-text: #ffffff; }
+:root[data-akzent="eis"] { --gold: #1f6e85; --gold-hell: #3aa6c4; --gold-grund: #dcf1f7; --knopf: #2f97b5; --knopf-text: #ffffff; }
+:root[data-akzent="rose"] { --gold: #9c2f5f; --gold-hell: #c94f86; --gold-grund: #f8e0ea; --knopf: #c94f86; --knopf-text: #ffffff; }
+@media (prefers-color-scheme: dark) {
+  :root[data-akzent="nacht"]:not([data-theme="light"]) { --gold: #c7a8ff; --gold-hell: #a07ef0; --gold-grund: #2b2250; --knopf: #a07ef0; --knopf-text: #160f2a; }
+  :root[data-akzent="eis"]:not([data-theme="light"]) { --gold: #8fdcf0; --gold-hell: #5cc2dc; --gold-grund: #16323c; --knopf: #5cc2dc; --knopf-text: #0b1d23; }
+  :root[data-akzent="rose"]:not([data-theme="light"]) { --gold: #ff9cc6; --gold-hell: #e070a2; --gold-grund: #3b1b2b; --knopf: #e070a2; --knopf-text: #24101a; }
+}
+:root[data-theme="dark"][data-akzent="nacht"] { --gold: #c7a8ff; --gold-hell: #a07ef0; --gold-grund: #2b2250; --knopf: #a07ef0; --knopf-text: #160f2a; }
+:root[data-theme="dark"][data-akzent="eis"] { --gold: #8fdcf0; --gold-hell: #5cc2dc; --gold-grund: #16323c; --knopf: #5cc2dc; --knopf-text: #0b1d23; }
+:root[data-theme="dark"][data-akzent="rose"] { --gold: #ff9cc6; --gold-hell: #e070a2; --gold-grund: #3b1b2b; --knopf: #e070a2; --knopf-text: #24101a; }
 
 /* ---------- Zauberbuch-Einband (Editorfarben) ---------- */
 :root[data-editor="kerzenlicht"] .editor, :root[data-editor="kerzenlicht"] pre.code-block {
@@ -621,6 +632,21 @@ h1.gross { font-family: var(--schrift-zier); font-weight: 700; font-size: clamp(
 .kachel-kopf { display: flex; align-items: center; gap: 8px; }
 .kachel-symbol { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: var(--gold-grund); color: var(--gold); }
 .kachel-symbol svg { width: 17px; height: 17px; }
+.quest { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; width: 100%; }
+.quest li { display: grid; gap: 4px; }
+.quest-zeile { display: flex; justify-content: space-between; gap: 8px; font-size: .92rem; }
+.quest-zeile small { color: var(--leise); font-variant-numeric: tabular-nums; }
+.quest li.fertig .quest-zeile span { color: var(--gut); }
+.gold-zahl { display: inline-flex; align-items: center; gap: 6px; }
+.gold-zahl svg { width: 20px; height: 20px; color: var(--gold); }
+.schatz-kopf { display: grid; gap: 6px; margin-bottom: 22px; max-width: 640px; }
+.schatz-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.ware { display: grid; gap: 8px; align-content: start; padding: 16px; border-radius: 16px; border: 1px solid var(--linie); background: var(--blatt); }
+.ware-kopf { display: flex; align-items: center; gap: 12px; }
+.ware .muster { flex: none; width: 40px; height: 40px; border-radius: 10px; background: var(--muster, var(--mulde)); display: grid; place-items: center; color: var(--gold); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tinte) 15%, transparent); }
+.ware .muster svg { width: 22px; height: 22px; }
+.ware p { color: var(--leise); font-size: .95rem; }
+.ware.besitz { border-color: color-mix(in srgb, var(--gold) 45%, var(--linie)); }
 .pfadwahl { display: grid; gap: 8px; }
 .pfad-reiter { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px; background: var(--mulde); border-radius: 14px; width: fit-content; max-width: 100%; }
 .reiter {
@@ -18124,7 +18150,10 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
     { id: "orakelpruefer", name: "Orakelprüfer", text: "Kapitel «KI-Code prüfen» abgeschlossen.", symbol: "lupe", pruef: () => !!KAPITEL_NACH_ID.l2 && kapitelFertig(KAPITEL_NACH_ID.l2) },
     { id: "schmiedemeister", name: "Schmiedemeister", text: "Kapitel «Die Drehstromschmiede» abgeschlossen.", symbol: "blitz", pruef: () => !!KAPITEL_NACH_ID.e2 && kapitelFertig(KAPITEL_NACH_ID.e2) },
     { id: "weber", name: "Kenner der eigenen Schmiede", text: "Den Weltenweber-Pfad gemeistert: deine App von innen verstanden.", symbol: "rolle", pruef: () => !!KAPITEL_NACH_PFAD.weltenweber && pfadFertig("weltenweber") },
-    { id: "gut-verwahrt", name: "Gut verwahrt", text: "Die automatische Sicherung eingerichtet.", symbol: "schild", pruef: () => !!zustand.stats.sicherung }
+    { id: "gut-verwahrt", name: "Gut verwahrt", text: "Die automatische Sicherung eingerichtet.", symbol: "schild", pruef: () => !!zustand.stats.sicherung },
+    { id: "wochenheld", name: "Wochenheld", text: "Eine Wochenquest erfüllt.", symbol: "krone", pruef: () => (zustand.stats.wochenquests || 0) >= 1 },
+    { id: "erster-einkauf", name: "Kundschaft der Schatzkammer", text: "Zum ersten Mal in der Schatzkammer eingekauft.", symbol: "muenze", pruef: () => Object.keys(schatz().besitz).length > 0 || schatz().traenkeGekauft > 0 },
+    { id: "gerettet", name: "Im letzten Moment", text: "Ein Trank hat deine Serie gerettet.", symbol: "trank", pruef: () => schatz().gerettet.length > 0 }
   ];
   function pruefeAbzeichen() {
     zustand.stats.besteTagesserie = Math.max(zustand.stats.besteTagesserie || 0, serie());
@@ -18162,10 +18191,16 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
     { platz: "rahmen", id: "holz", name: "Holzrahmen", ep: 0, farbe: "#8b6a46", text: "Aus dem Holz der Taverne von Rabenfurt." },
     { platz: "rahmen", id: "silber", name: "Silberrahmen", ep: 450, farbe: "#a9b1bd", text: "Für alle, die den Rang Magier erreicht haben." },
     { platz: "rahmen", id: "gold", name: "Goldrahmen", ep: 900, farbe: "#d6a740", text: "Für Erzmagier und alle darüber." },
-    { platz: "rahmen", id: "runen", name: "Runenrahmen", ep: 2000, farbe: "#8a6cff", text: "Nur Legenden tragen ihn." }
+    { platz: "rahmen", id: "runen", name: "Runenrahmen", ep: 2000, farbe: "#8a6cff", text: "Nur Legenden tragen ihn." },
+    // Aus der Schatzkammer, mit Gold gekauft
+    { platz: "umhang", id: "nacht", name: "Umhang der Mitternacht", ep: 0, gold: 300, farbe: "#7a4fd0", text: "Violett wie der Himmel kurz vor dem Morgengrauen." },
+    { platz: "umhang", id: "rose", name: "Rosenumhang der Bardin", ep: 0, gold: 400, farbe: "#c94f86", text: "Duftet leicht nach Taverne und Liedern." },
+    { platz: "umhang", id: "eis", name: "Frostumhang", ep: 0, gold: 500, farbe: "#3aa6c4", text: "Aus dem Eis der Nordberge gewebt." },
+    { platz: "rahmen", id: "drache", name: "Drachenschuppen-Rahmen", ep: 0, gold: 600, farbe: "#2f9a70", text: "Jede Schuppe ein bestandener Kampf." },
+    { platz: "rahmen", id: "sternen", name: "Sternenrahmen", ep: 0, gold: 800, farbe: "#5ad1e6", text: "Funkelt, wenn niemand hinschaut." }
   ];
   const STANDARD_AUSRUESTUNG = { umhang: "gold", einband: "standard", stab: "keiner", amulett: "keins", rahmen: "holz" };
-  const freigeschaltet = g => zustand.ep >= g.ep;
+  const freigeschaltet = g => g.gold ? !!schatz().besitz[g.platz + ":" + g.id] : zustand.ep >= g.ep;
   function getragen(platz) {
     const id = (zustand.ausruestung || {})[platz] || STANDARD_AUSRUESTUNG[platz];
     const g = GEGENSTAENDE.find(x => x.platz === platz && x.id === id);
@@ -18179,6 +18214,86 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
     r.classList.toggle("mit-zauberstab", getragen("stab").id === "esche");
   }
   const funkenAn = () => getragen("amulett").id === "funken";
+
+  /* ---------- Gold, Schatzkammer und Tränke ---------- */
+  // Gold wächst mit jedem EP. Ausgeben senkt den Rang nicht.
+  const TRANK_PREIS = 150, TRANK_MAX = 2, WOCHEN_GOLD = 100;
+  function schatz() {
+    const s = zustand.schatz = Object.assign({ ausgegeben: 0, besitz: {}, traenkeGekauft: 0, gerettet: [], wochen: {} }, zustand.schatz || {});
+    return s;
+  }
+  function goldStand() {
+    const s = schatz();
+    return zustand.ep + Object.values(s.wochen).reduce((a, n) => a + (Number(n) || 0), 0) - s.ausgegeben;
+  }
+  const traenke = () => Math.max(0, schatz().traenkeGekauft - schatz().gerettet.length);
+  function kaufe(preis) {
+    if (goldStand() < preis) return false;
+    schatz().ausgegeben += preis;
+    return true;
+  }
+  /* Ein Trank füllt verpasste Tage auf, damit die Serie nicht reisst */
+  function serieRetten() {
+    if (!zustand.tage.length) return 0;
+    const tage = new Set(zustand.tage), h = heute(), gestern = plusTage(h, -1);
+    if (tage.has(h) || tage.has(gestern)) return 0;
+    const letzter = zustand.tage.slice().sort().pop();
+    const fehlend = [];
+    for (let d = plusTage(letzter, 1); d <= gestern && fehlend.length <= TRANK_MAX; d = plusTage(d, 1)) fehlend.push(d);
+    if (!fehlend.length || fehlend.length > traenke()) return 0;
+    const s = schatz();
+    for (const d of fehlend) { zustand.tage.push(d); s.gerettet.push(d); }
+    zustand.tage.sort();
+    pruefeAbzeichen();
+    speichern();
+    return fehlend.length;
+  }
+
+  /* ---------- Wochenquest ---------- */
+  function wocheVon(datum) {
+    const t = datum.split("-").map(Number);
+    return plusTage(datum, -((new Date(t[0], t[1] - 1, t[2]).getDay() + 6) % 7));
+  }
+  const WOCHEN_ZIELE = [
+    { id: "tage", text: n => "An " + n + " Tagen lernen", n: 4, wert: w => w.tage },
+    { id: "ep", text: n => n + " EP sammeln", n: 120, wert: w => w.ep },
+    { id: "geloest", text: n => n + " Aufgaben lösen", n: 8, wert: w => w.geloest },
+    { id: "tagesaufgaben", text: n => n + " Tagesaufgaben lösen", n: 3, wert: w => w.plus("tagesaufgaben"), moeglich: () => tagesaufgabenVerfuegbar().length > 0 },
+    { id: "wdh", text: n => n + " Wiederholungsfragen richtig", n: 10, wert: w => w.plus("wdhRichtig"), moeglich: () => wdhAlle().length > 0 }
+  ];
+  function woche() {
+    const id = wocheVon(heute());
+    let w = zustand.woche;
+    if (!w || w.id !== id) {
+      const moeglich = WOCHEN_ZIELE.filter(z => !z.moeglich || z.moeglich());
+      const zz = zufall(id), ziele = [];
+      while (ziele.length < 3 && moeglich.length) ziele.push(moeglich.splice(Math.floor(zz() * moeglich.length), 1)[0].id);
+      w = zustand.woche = { id, ziele, start: { tagesaufgaben: zustand.stats.tagesaufgaben || 0, wdhRichtig: zustand.stats.wdhRichtig || 0 }, belohnt: false };
+      speichern();
+    }
+    const ende = plusTage(id, 6), gerettet = new Set(schatz().gerettet);
+    const inWoche = d => d >= id && d <= ende;
+    const tage = Object.keys(zustand.verlauf || {}).filter(inWoche);
+    const daten = {
+      tage: new Set(zustand.tage.filter(d => inWoche(d) && !gerettet.has(d))).size,
+      ep: tage.reduce((a, d) => a + (zustand.verlauf[d].ep || 0), 0),
+      geloest: tage.reduce((a, d) => a + (zustand.verlauf[d].geloest || 0), 0),
+      plus: name => Math.max(0, (zustand.stats[name] || 0) - (w.start[name] || 0))
+    };
+    const ziele = w.ziele.map(zid => WOCHEN_ZIELE.find(z => z.id === zid)).filter(Boolean)
+      .map(z => ({ text: z.text(z.n), n: z.n, wert: Math.min(z.n, z.wert(daten)) }));
+    return { w, ziele, fertig: ziele.length > 0 && ziele.every(z => z.wert >= z.n), resttage: Math.round((Date.parse(ende) - Date.parse(heute())) / 86400000) };
+  }
+  function wocheBelohnen() {
+    const q = woche();
+    if (!q.fertig || q.w.belohnt) return false;
+    q.w.belohnt = true;
+    schatz().wochen[q.w.id] = WOCHEN_GOLD;
+    statPlus("wochenquests");
+    zeigeNeueAbzeichen(pruefeAbzeichen());
+    speichern();
+    return true;
+  }
 
   /* ---------- Profil ---------- */
   function profil() {
@@ -18343,7 +18458,9 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
     buch: svg24('<path d="M5 4.5h11a3 3 0 0 1 3 3v12H8a3 3 0 0 1-3-3z"/><path d="M5 16.5a3 3 0 0 1 3-3h11M12 7.5l.9 1.8 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z"/>'),
     stab: svg24('<path d="M4 20L15 9"/><path d="M17.5 3.5l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8z"/><path d="M13.5 7.5l3 3"/>'),
     amulett: svg24('<path d="M6 3c0 4 2.5 6 6 6s6-2 6-6"/><circle cx="12" cy="15" r="5"/><path d="M12 12.5l.8 1.6 1.7.2-1.3 1.2.3 1.7-1.5-.8-1.5.8.3-1.7-1.3-1.2 1.7-.2z"/>'),
-    rahmen: svg24('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5.5"/><path d="M12 2v1.5M12 20.5V22M2 12h1.5M20.5 12H22"/>')
+    rahmen: svg24('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5.5"/><path d="M12 2v1.5M12 20.5V22M2 12h1.5M20.5 12H22"/>'),
+    muenze: svg24('<circle cx="12" cy="12" r="8.5"/><path d="M14.5 9.3c-.5-.8-1.4-1.3-2.5-1.3-1.5 0-2.6.8-2.6 2s1.1 1.7 2.6 2 2.6.8 2.6 2-1.1 2-2.6 2c-1.1 0-2-.5-2.5-1.3M12 6.5V8M12 16v1.5"/>'),
+    trank: svg24('<path d="M10 3h4M10.5 3v5.2L6.2 15.6A3.6 3.6 0 0 0 9.3 21h5.4a3.6 3.6 0 0 0 3.1-5.4L13.5 8.2V3"/><path d="M7.6 14.5h8.8"/><circle cx="11" cy="17.5" r=".7" fill="currentColor"/><circle cx="13.5" cy="16.5" r=".5" fill="currentColor"/>')
   };
 
   const svg48 = inhalt => '<svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + inhalt + "</svg>";
@@ -19484,7 +19601,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
 
     ansicht.innerHTML =
       '<div class="seite karte"><section class="auftakt">' + auftakt + brett + "</section>" +
-      '<section class="alltag" aria-label="Jeden Tag">' + karteTagesaufgabe() + karteWiederholung() + karteWerkstatt() + "</section>" +
+      '<section class="alltag" aria-label="Jeden Tag">' + karteTagesaufgabe() + karteWiederholung() + karteWoche() + karteSchatz() + karteWerkstatt() + "</section>" +
       '<section class="pfadwahl" aria-label="Lernpfade"><div class="pfad-reiter" role="tablist">' +
       LERNPFADE.filter(p => !(GERAET.schlank && p.id === "python")).map(p => {
         const alle = lektionenImPfad(p.id), fertig = alle.filter(l => istErledigt(l.id)).length;
@@ -19674,6 +19791,66 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
       "<h3>" + (n ? n + (n === 1 ? " eigenes Projekt" : " eigene Projekte") : "Dein freier Arbeitsplatz") + "</h3>" +
       "<p>Probiere eigene Ideen aus, mit JavaScript, Webseiten oder Python, und speichere sie als Datei.</p>" +
       '<a class="knopf" href="#werkstatt">Werkstatt öffnen</a></article>';
+  }
+  function karteWoche() {
+    const q = woche();
+    const kopf = '<div class="kachel-kopf"><span class="kachel-symbol">' + SYMBOL.krone + '</span><span class="eyebrow">Wochenquest</span></div>';
+    const liste = '<ul class="quest">' + q.ziele.map(z => '<li class="' + (z.wert >= z.n ? "fertig" : "") + '"><div class="quest-zeile"><span>' + esc(z.text) + "</span><small>" + z.wert + " / " + z.n + "</small></div>" +
+      '<div class="ep-leiste"><i style="width:' + Math.round(z.wert / z.n * 100) + '%"></i></div></li>').join("") + "</ul>";
+    const titel = q.w.belohnt ? "Geschafft! +" + WOCHEN_GOLD + " Gold" : q.resttage === 0 ? "Letzter Tag" : "Noch " + (q.resttage + 1) + " Tage";
+    return '<article class="kachel' + (q.w.belohnt ? " erledigt" : "") + '">' + kopf + "<h3>" + titel + "</h3>" + liste +
+      (q.w.belohnt ? "" : '<p class="klein">Alle drei erfüllen: ' + WOCHEN_GOLD + " Gold.</p>") + "</article>";
+  }
+  function karteSchatz() {
+    const t = traenke();
+    return '<article class="kachel">' + '<div class="kachel-kopf"><span class="kachel-symbol">' + SYMBOL.truhe + '</span><span class="eyebrow">Schatzkammer</span></div>' +
+      '<h3 class="gold-zahl">' + SYMBOL.muenze + goldStand() + " Gold</h3>" +
+      "<p>" + (t ? t + (t === 1 ? " Trank schützt" : " Tränke schützen") + " deine Serie." : "Ein Trank rettet deine Serie, wenn du einen Tag verpasst.") + " Dazu neue Umhänge und Rahmen.</p>" +
+      '<a class="knopf" href="#schatzkammer">Schatzkammer öffnen</a></article>';
+  }
+  function zeigeSchatzkammer() {
+    document.title = "Schatzkammer · Zauberkodex";
+    const s = schatz(), gold = goldStand(), t = traenke();
+    const ware = (id, muster, name, text, knopf) => '<article class="ware' + (knopf.besitz ? " besitz" : "") + '"><div class="ware-kopf"><span class="muster"' + muster + "</span><div><h3>" + esc(name) + "</h3></div></div><p>" + esc(text) + "</p>" + knopf.html + "</article>";
+    const trank = ware("trank", ">" + SYMBOL.trank, "Trank der Beständigkeit",
+      "Verpasst du einen oder zwei Tage, rettet er deine Serie. Er wirkt von selbst. Du kannst höchstens " + TRANK_MAX + " besitzen.",
+      { besitz: t > 0, html: '<p class="klein">Im Besitz: ' + t + " / " + TRANK_MAX + "</p>" + (t >= TRANK_MAX ? "" : '<button type="button" class="knopf haupt" data-kauf="trank"' + (gold < TRANK_PREIS ? " disabled" : "") + ">Kaufen · " + TRANK_PREIS + " Gold</button>") });
+    const sachen = GEGENSTAENDE.filter(g => g.gold).map(g => {
+      const hat = !!s.besitz[g.platz + ":" + g.id], an = getragen(g.platz).id === g.id;
+      const platz = PLAETZE.find(p => p.id === g.platz);
+      const knopf = hat
+        ? (an ? '<p class="klein">Angelegt</p>' : '<button type="button" class="knopf" data-anlegen="' + g.platz + ":" + g.id + '">Anlegen</button>')
+        : '<button type="button" class="knopf haupt" data-kauf="' + g.platz + ":" + g.id + '"' + (gold < g.gold ? " disabled" : "") + ">Kaufen · " + g.gold + " Gold</button>";
+      return ware(g.id, ' style="--muster:' + g.farbe + '">', g.name, platz.name + ". " + g.text, { besitz: hat, html: knopf });
+    }).join("");
+    ansicht.innerHTML = '<div class="seite"><div class="schatz-kopf"><p class="eyebrow">Schatzkammer</p><h1 class="gross gold-zahl">' + SYMBOL.muenze + gold + " Gold</h1>" +
+      '<p class="klein">Jeder EP bringt dir auch ein Gold. Ausgeben senkt deinen Rang nicht. Eine erfüllte Wochenquest bringt ' + WOCHEN_GOLD + " Gold extra.</p></div>" +
+      '<div class="schatz-raster">' + trank + sachen + "</div></div>";
+    ansicht.querySelectorAll("[data-kauf]").forEach(b => b.addEventListener("click", () => {
+      const k = b.dataset.kauf;
+      if (k === "trank") {
+        if (traenke() >= TRANK_MAX || !kaufe(TRANK_PREIS)) return;
+        schatz().traenkeGekauft++;
+        toast("Trank gekauft");
+      } else {
+        const [platz, id] = k.split(":");
+        const g = GEGENSTAENDE.find(x => x.platz === platz && x.id === id);
+        if (!g || schatz().besitz[k] || !kaufe(g.gold)) return;
+        schatz().besitz[k] = heute();
+        zustand.ausruestung = Object.assign({}, STANDARD_AUSRUESTUNG, zustand.ausruestung || {}, { [platz]: id });
+        ausruestungAnwenden();
+        toast(g.name + " gekauft und angelegt");
+      }
+      zeigeNeueAbzeichen(pruefeAbzeichen());
+      speichern(); zeigeKopf();
+      const y = window.scrollY; zeigeSchatzkammer(); window.scrollTo(0, y);
+    }));
+    ansicht.querySelectorAll("[data-anlegen]").forEach(b => b.addEventListener("click", () => {
+      const [platz, id] = b.dataset.anlegen.split(":");
+      zustand.ausruestung = Object.assign({}, STANDARD_AUSRUESTUNG, zustand.ausruestung || {}, { [platz]: id });
+      speichern(); ausruestungAnwenden();
+      const y = window.scrollY; zeigeSchatzkammer(); window.scrollTo(0, y);
+    }));
   }
 
   /* ---------- Lernverlauf ---------- */
@@ -20287,7 +20464,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
           const frei = freigeschaltet(g), an = traegt.id === g.id;
           return '<button type="button" class="gegenstand' + (an ? " getragen" : "") + (frei ? "" : " gesperrt") + '" data-platz="' + pl.id + '" data-gegenstand="' + g.id + '"' + (frei ? "" : " disabled") + ' aria-pressed="' + an + '">' +
             '<span class="muster" style="' + (g.farbe ? "--muster:" + g.farbe : "") + '">' + (g.farbe ? "" : SYMBOL[pl.symbol]) + "</span>" +
-            '<span class="g-text"><b>' + esc(g.name) + "</b><small>" + esc(frei ? (an ? "Angelegt" : g.text) : "Ab " + g.ep + " EP · " + rangAb(g.ep)) + "</small></span>" +
+            '<span class="g-text"><b>' + esc(g.name) + "</b><small>" + esc(frei ? (an ? "Angelegt" : g.text) : g.gold ? "In der Schatzkammer · " + g.gold + " Gold" : "Ab " + g.ep + " EP · " + rangAb(g.ep)) + "</small></span>" +
             (frei ? "" : '<span class="schloss">' + ICON.schloss + "</span>") + "</button>";
         }).join("") + "</div></section>";
     }).join("");
@@ -20778,7 +20955,7 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
     const datum = new Date().toLocaleDateString("de-CH", { weekday: "long", day: "numeric", month: "long" });
     ansicht.innerHTML = '<div class="seite heute"><div class="heute-kopf"><p class="eyebrow">' + esc(datum) + '</p><h1 class="gross">Dein Tag im Kodex</h1>' +
       '<p class="klein">' + (s ? ICON.flamme + " " + s + (s === 1 ? " Tag" : " Tage") + " in Folge" : "Heute beginnt eine neue Serie.") + " · " + esc(r.name) + ", " + zustand.ep + " EP</p></div>" +
-      '<section class="alltag" aria-label="Heute">' + karteTagesaufgabe() + karteWiederholung() + "</section>" +
+      '<section class="alltag" aria-label="Heute">' + karteTagesaufgabe() + karteWiederholung() + karteWoche() + karteSchatz() + "</section>" +
       '<div class="aktionen-zeile">' + (n ? '<a class="knopf haupt" href="#' + n.id + '">Weiterlernen' + ICON.weiter + "</a>" : "") +
       '<a class="knopf" href="#karte">Alle Lektionen</a></div></div>';
   }
@@ -20787,7 +20964,11 @@ Flexbox wirkt auf die **direkten Kinder** eines Elements. Darum bekommt der umsc
     const ziel = location.hash.replace(/^#/, "");
     const l = NACH_ID[ziel];
     document.querySelectorAll("[data-ziel]").forEach(b => b.classList.toggle("aktiv", b.dataset.ziel === ziel));
+    const gerettet = serieRetten();
+    if (gerettet) toast(gerettet === 1 ? "Ein Trank hat deine Serie gerettet" : "Zwei Tränke haben deine Serie gerettet");
+    else if (wocheBelohnen()) toast("Wochenquest erfüllt: +" + WOCHEN_GOLD + " Gold");
     if (ziel === "profil") zeigeProfil();
+    else if (ziel === "schatzkammer") zeigeSchatzkammer();
     else if (ziel === "werkstatt") zeigeWerkstatt();
     else if (ziel === "wiederholung") zeigeWiederholung();
     else if (ziel === "statistik") zeigeStatistik();
