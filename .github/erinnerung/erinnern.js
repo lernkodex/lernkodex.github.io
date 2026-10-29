@@ -9,10 +9,14 @@ if (!konto) {
   console.log("Kein FIREBASE_SERVICE_ACCOUNT gesetzt, es wird nichts verschickt.");
   process.exit(0);
 }
+// Beim Kopieren können typografische Anführungszeichen oder ein unsichtbares BOM hineinrutschen
+const bereinigt = konto.trim().replace(/^﻿/, "").replace(/[“”„«»]/g, '"').replace(/ /g, " ");
 let schluessel;
-try { schluessel = JSON.parse(konto.trim()); }
+try { schluessel = JSON.parse(bereinigt); }
 catch (e) {
   console.log("Das Geheimnis FIREBASE_SERVICE_ACCOUNT ist kein gültiges JSON (" + e.message + ").");
+  // Aufbau der ersten Zeilen zeigen, ohne Geheimes: Buchstaben und Ziffern werden zu x
+  bereinigt.split("\n").slice(0, 6).forEach((z, i) => console.log(`Zeile ${i + 1}: ${z.slice(0, 40).replace(/[A-Za-z0-9]/g, "x")}  (Zeichencodes am Anfang: ${[...z.slice(0, 4)].map(c => c.charCodeAt(0)).join(" ")})`));
   console.log("Lösung: In Firebase einen neuen privaten Schlüssel erzeugen und den GANZEN Inhalt der Datei unverändert als Geheimnis eintragen.");
   process.exit(1);
 }
