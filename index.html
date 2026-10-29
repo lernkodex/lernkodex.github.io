@@ -611,22 +611,22 @@ pre.code-block code { font-size: inherit; }
 :root[data-theme="dark"][data-akzent="rose"] { --gold: #ff9cc6; --gold-hell: #e070a2; --gold-grund: #3b1b2b; --knopf: #e070a2; --knopf-text: #24101a; }
 
 /* ---------- Zauberbuch-Einband (Editorfarben) ---------- */
-:root[data-editor="kerzenlicht"] .editor, :root[data-editor="kerzenlicht"] pre.code-block {
+:root[data-editor="kerzenlicht"] .editor, :root[data-editor="kerzenlicht"] pre.code-block, [data-einband="kerzenlicht"] pre.code-block {
   --code-grund: #231a13; --code-rinne: #2c2118; --tinte: #f1e3cc; --t-kw: #e7a36b; --t-str: #c9d38a; --t-zahl: #f2c26b;
   --t-kom: #8a7562; --t-fn: #f0c98e; --t-bi: #e88f6a; --t-ein: #f1e3cc; color: #f1e3cc; color-scheme: dark;
 }
-:root[data-editor="eiswald"] .editor, :root[data-editor="eiswald"] pre.code-block {
+:root[data-editor="eiswald"] .editor, :root[data-editor="eiswald"] pre.code-block, [data-einband="eiswald"] pre.code-block {
   --code-grund: #0f2228; --code-rinne: #132b32; --tinte: #dcefee; --t-kw: #8fd3ff; --t-str: #a9e5c3; --t-zahl: #ffd28a;
   --t-kom: #5e8189; --t-fn: #9fe0e8; --t-bi: #c6b3ff; --t-ein: #dcefee; color: #dcefee; color-scheme: dark;
 }
-:root[data-editor="sternennacht"] .editor, :root[data-editor="sternennacht"] pre.code-block {
+:root[data-editor="sternennacht"] .editor, :root[data-editor="sternennacht"] pre.code-block, [data-einband="sternennacht"] pre.code-block {
   --code-grund: #111433; --code-rinne: #161a40; --tinte: #e6e4ff; --t-kw: #c8a6ff; --t-str: #ffd479; --t-zahl: #ff9ec0;
   --t-kom: #6b6fa3; --t-fn: #8fc1ff; --t-bi: #ffb37a; --t-ein: #e6e4ff; color: #e6e4ff; color-scheme: dark;
 }
-:root[data-editor="sternennacht"] .editor {
+:root[data-editor="sternennacht"] .editor, [data-einband="sternennacht"] pre.code-block {
   background-image: radial-gradient(1px 1px at 20% 30%, rgba(255, 230, 160, .5), transparent), radial-gradient(1px 1px at 70% 80%, rgba(255, 230, 160, .35), transparent), radial-gradient(1px 1px at 85% 20%, rgba(255, 230, 160, .4), transparent);
 }
-.mit-zauberstab .ed-eingabe {
+.mit-zauberstab .ed-eingabe, .probe-stab.esche {
   cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><path d='M5 5l22 22' stroke='%231d1a2b' stroke-width='5' stroke-linecap='round'/><path d='M5 5l22 22' stroke='%23c48a22' stroke-width='3' stroke-linecap='round'/><path d='M5 0l1.4 3.6L10 5 6.4 6.4 5 10 3.6 6.4 0 5l3.6-1.4z' fill='%23ffd56b' stroke='%231d1a2b' stroke-width='.6'/></svg>") 5 5, text;
 }
 
@@ -1368,6 +1368,100 @@ button, a, summary, [role="button"] { -webkit-tap-highlight-color: transparent; 
 @keyframes platz-hervor { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold-hell) 55%, transparent); } 100% { box-shadow: 0 0 0 12px transparent; } }
 .platz.hervor { animation: platz-hervor 900ms var(--kurve-raus); border-color: var(--gold-hell); }
 .platz { scroll-margin: 90px; }
+/* ---------- Rüstkammer ---------- */
+.ruestkammer {
+  display: grid; grid-template-columns: minmax(330px, 360px) minmax(0, 1fr); gap: 0; border-radius: 20px; overflow: hidden;
+  border: 1px solid var(--linie); background: var(--blatt); box-shadow: var(--schatten-1);
+}
+.ruest-held {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "umhang mitte einband" "stab mitte amulett" ". rahmen ."; gap: 10px 6px;
+  align-items: center; justify-items: center; align-content: center; padding: 26px 16px; border-right: 1px solid var(--linie);
+  background:
+    radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--gold-hell) 18%, transparent), transparent 60%),
+    color-mix(in srgb, var(--mulde) 40%, var(--blatt));
+}
+.ruest-mitte { grid-area: mitte; padding: 0 4px; }
+.ruest-mitte .portraet.p-gross { width: 120px; height: 120px; }
+.ruest-slot {
+  display: grid; justify-items: center; gap: 5px; width: 100%; max-width: 100px; min-width: 0; padding: 8px 4px; border: 1px solid transparent; border-radius: 14px;
+  background: transparent; cursor: pointer; text-align: center; color: var(--tinte);
+  transition: background-color var(--bewegung-schnell) var(--kurve-raus), border-color var(--bewegung-schnell) var(--kurve-raus), transform var(--bewegung-druck) var(--kurve-raus);
+}
+.ruest-slot:hover { background: color-mix(in srgb, var(--blatt) 70%, transparent); }
+.ruest-slot:active { transform: scale(.96); }
+.ruest-slot.aktiv { background: var(--blatt); border-color: var(--gold-hell); box-shadow: var(--schatten-1); }
+.ruest-slot span { display: grid; gap: 1px; line-height: 1.15; min-width: 0; max-width: 100%; overflow-wrap: anywhere; hyphens: auto; }
+.ruest-slot b { font-size: .82rem; }
+.ruest-slot small { font-size: .72rem; color: var(--leise); }
+.ruest-slot .muster, .ruest-karte .muster {
+  width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: var(--gold); flex: none;
+  background: var(--muster, var(--mulde));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tinte) 18%, transparent), 0 0 0 3px var(--blatt), 0 0 0 4px color-mix(in srgb, var(--gold-hell) 45%, var(--linie));
+}
+.ruest-slot .muster svg, .ruest-karte .muster svg { width: 22px; height: 22px; }
+.ruest-slot.aktiv .muster { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tinte) 18%, transparent), 0 0 0 3px var(--blatt), 0 0 0 5px var(--gold-hell); }
+.ruest-wahl { display: grid; gap: 16px; padding: 22px; align-content: start; min-width: 0; }
+.ruest-kopf { display: flex; gap: 12px; align-items: center; }
+.ruest-kopf h3 { font-family: var(--schrift-zier); font-weight: 700; font-size: 1.5rem; line-height: 1.1; }
+.ruest-kopf p { color: var(--leise); font-size: .92rem; }
+.ruest-probe {
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 18px; align-items: center; padding: 16px;
+  border-radius: 16px; background: var(--grund); border: 1px solid var(--linie); animation: zb-seite-rein var(--bewegung-normal) var(--kurve-raus);
+}
+.probe-info { display: grid; gap: 4px; align-content: center; }
+.probe-info b { font-size: 1.1rem; }
+.probe-info p { color: var(--leise); font-size: .92rem; font-style: italic; }
+.probe-info .zb-knoepfe { margin-top: 8px; }
+.rk-an { display: inline-flex; align-items: center; gap: 6px; color: var(--gut); font-weight: 800; }
+.rk-an svg { width: 14px; height: 14px; }
+.rk-zu { display: inline-flex; align-items: center; gap: 6px; color: var(--leise); font-weight: 700; font-size: .92rem; }
+.rk-zu svg { width: 14px; height: 14px; }
+.probe { min-height: 112px; border-radius: 12px; display: grid; place-items: center; gap: 10px; padding: 14px; background: var(--blatt); border: 1px solid var(--linie); text-align: center; color: var(--leise); font-size: .92rem; }
+.probe-umhang { grid-template-columns: 1fr; justify-items: start; place-items: center start; }
+.probe-knopf { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 10px; background: var(--k); color: var(--kt); font-weight: 700; box-shadow: 0 6px 16px -8px var(--k); }
+.probe-knopf svg { width: 14px; height: 14px; }
+.probe-leiste { width: 100%; height: 8px; border-radius: 99px; background: var(--mulde); overflow: hidden; }
+.probe-leiste i { display: block; width: 62%; height: 100%; border-radius: 99px; background: var(--k); }
+.probe-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 99px; font-weight: 800; font-size: .85rem; color: var(--k); background: color-mix(in srgb, var(--k) 16%, transparent); border: 1px solid color-mix(in srgb, var(--k) 40%, transparent); }
+.probe-chip svg { width: 13px; height: 13px; }
+.probe-einband { padding: 0; border: 0; background: none; display: block; }
+.probe-einband pre.code-block { font-size: 12.5px; text-align: left; }
+.probe-einband[data-einband="standard"] pre.code-block { --code-grund: inherit; --tinte: inherit; --t-kw: inherit; --t-str: inherit; --t-zahl: inherit; --t-kom: inherit; --t-fn: inherit; --t-bi: inherit; --t-ein: inherit; color: inherit; color-scheme: inherit; background-image: none; }
+.probe-stab { border-style: dashed; }
+.probe-stab.esche { color: var(--tinte); }
+.probe-rahmen { background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--gold-hell) 14%, transparent), transparent 70%), var(--blatt); }
+.probe-rahmen .portraet.p-gross { width: 96px; height: 96px; }
+.ruest-karten { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+.ruest-karte {
+  position: relative; display: flex; gap: 12px; align-items: center; min-height: 66px; padding: 10px 12px; text-align: left; cursor: pointer;
+  border-radius: 14px; border: 1px solid var(--linie); background: var(--blatt); color: var(--tinte);
+  transition: border-color var(--bewegung-schnell) var(--kurve-raus), background-color var(--bewegung-schnell) var(--kurve-raus), transform var(--bewegung-druck) var(--kurve-raus);
+}
+.ruest-karte .muster { width: 36px; height: 36px; }
+.ruest-karte .muster svg { width: 18px; height: 18px; }
+.ruest-karte:hover { border-color: color-mix(in srgb, var(--gold-hell) 60%, var(--linie)); }
+.ruest-karte:active { transform: scale(.97); }
+.ruest-karte.gewaehlt { border-color: var(--gold-hell); background: var(--gold-grund); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold-hell) 18%, transparent); }
+.ruest-karte.gesperrt .muster { filter: saturate(.55); opacity: .7; }
+.ruest-karte.gesperrt b { color: var(--leise); }
+.rk-text { display: grid; gap: 3px; min-width: 0; flex: 1; line-height: 1.25; }
+.rk-text b { font-size: .92rem; }
+.rk-text small { font-size: .78rem; color: var(--leise); }
+.rk-text .rk-an { font-size: .78rem; }
+.rk-balken { display: block; height: 5px; border-radius: 99px; background: var(--mulde); overflow: hidden; }
+.rk-balken i { display: block; height: 100%; border-radius: 99px; background: var(--gold-hell); }
+.ruest-karte .schloss { position: absolute; top: 8px; right: 9px; color: var(--leise); }
+.ruest-karte .schloss svg { width: 13px; height: 13px; }
+@media (max-width: 860px) {
+  .ruestkammer { grid-template-columns: minmax(0, 1fr); }
+  .ruest-held { border-right: 0; border-bottom: 1px solid var(--linie); padding: 20px 10px; }
+}
+@media (max-width: 560px) {
+  .ruest-probe { grid-template-columns: minmax(0, 1fr); }
+  .ruest-wahl { padding: 16px 14px; }
+  .ruest-mitte .portraet.p-gross { width: 96px; height: 96px; }
+}
+
 /* Abschnitte mit kleiner Zierlinie */
 .profil .block h2 { display: flex; align-items: center; gap: 14px; }
 .profil .block h2::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, color-mix(in srgb, var(--gold-hell) 55%, transparent), transparent); }
@@ -23972,8 +24066,8 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     ort.classList.add("zeigen");
     setTimeout(() => { ort.classList.remove("zeigen"); setTimeout(naechstesAbzeichen, 350); }, 3200);
   }
-  function funkenregen(ursprung) {
-    if (!funkenAn()) return;
+  function funkenregen(ursprung, erzwingen) {
+    if (!erzwingen && !funkenAn()) return;
     try { if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; } catch (e) { /* ohne Abfrage */ }
     const c = document.createElement("canvas");
     c.className = "funken";
@@ -26276,18 +26370,6 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     const titelOptionen = ['<option value="">Rang: ' + esc(r.name) + "</option>"].concat(
       ABZEICHEN.filter(a => zustand.abzeichen[a.id]).map(a => '<option value="abz:' + a.id + '"' + (p.titel === "abz:" + a.id ? " selected" : "") + ">" + esc(a.name) + "</option>")).join("");
 
-    const inventar = PLAETZE.map(pl => {
-      const sachen = GEGENSTAENDE.filter(g => g.platz === pl.id);
-      const traegt = getragen(pl.id);
-      return '<section class="platz" id="platz-' + pl.id + '"><div class="platz-kopf"><span class="platz-symbol">' + SYMBOL[pl.symbol] + "</span><div><h3>" + esc(pl.name) + "</h3><p>" + esc(pl.text) + '</p></div></div><div class="gegenstaende">' +
-        sachen.map(g => {
-          const frei = freigeschaltet(g), an = traegt.id === g.id;
-          return '<button type="button" class="gegenstand' + (an ? " getragen" : "") + (frei ? "" : " gesperrt") + '" data-platz="' + pl.id + '" data-gegenstand="' + g.id + '"' + (frei ? "" : " disabled") + ' aria-pressed="' + an + '">' +
-            '<span class="muster" style="' + (g.farbe ? "--muster:" + g.farbe : "") + '">' + (g.farbe ? "" : SYMBOL[pl.symbol]) + "</span>" +
-            '<span class="g-text"><b>' + esc(g.name) + "</b><small>" + esc(frei ? (an ? "Angelegt" : g.text) : g.gold ? "In der Schatzkammer · " + g.gold + " Gold" : "Ab " + g.ep + " EP · " + rangAb(g.ep)) + "</small></span>" +
-            (frei ? "" : '<span class="schloss">' + ICON.schloss + "</span>") + "</button>";
-        }).join("") + "</div></section>";
-    }).join("");
 
     const abzeichen = ABZEICHEN.map(a => {
       const da = zustand.abzeichen[a.id];
@@ -26304,7 +26386,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     const ring = Math.round((geloest / Math.max(1, lernLek.length)) * 1000) / 10;
     const ausruestung = PLAETZE.map(pl => {
       const g = getragen(pl.id);
-      return '<a class="slot" href="#platz-' + pl.id + '" data-slot="' + pl.id + '" title="' + esc(pl.name + ": " + g.name) + '">' +
+      return '<a class="slot" href="#profil" data-slot="' + pl.id + '" title="' + esc(pl.name + ": " + g.name) + '">' +
         '<span class="muster" style="' + (g.farbe ? "--muster:" + g.farbe : "") + '">' + (g.farbe ? "" : SYMBOL[pl.symbol]) + "</span><small>" + esc(pl.name.replace(/^Zauberbuch-/, "")) + "</small></a>";
     }).join("");
     const attribut = (symbol, name, zahl) => "<div><dt>" + SYMBOL[symbol] + esc(name) + "</dt><dd>" + esc(String(zahl)) + "</dd></div>";
@@ -26340,7 +26422,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       '<section class="block"><h2>Porträt</h2><div class="portraet-wahl" role="radiogroup" aria-label="Porträt">' +
       PORTRAETS.map(x => '<button type="button" role="radio" class="portraet-knopf' + (x.id === p.portraet ? " aktiv" : "") + '" aria-checked="' + (x.id === p.portraet) + '" data-portraet="' + x.id + '"><span class="portraet p-klein" style="--rahmen:' + getragen("rahmen").farbe + '">' + x.svg + "</span><span>" + esc(x.name) + "</span></button>").join("") +
       "</div></section>" +
-      '<section class="block"><h2>Inventar</h2><p class="block-text">Gegenstände schaltest du mit Erfahrungspunkten frei. Lege an, was dir gefällt. Jeder Platz trägt einen Gegenstand.</p><div class="inventar">' + inventar + "</div></section>" +
+      '<section class="block"><h2>Ausrüstung</h2><p class="block-text">Wähle einen Platz und tippe einen Gegenstand an. Die Vorschau zeigt dir, was er bewirkt, auch bei Gegenständen, die du noch nicht hast.</p><div class="ruestkammer" id="ruestkammer">' + ruestkammerHtml() + "</div></section>" +
       '<section class="block"><h2>Abzeichen</h2><ul class="abzeichen-liste">' + abzeichen + "</ul></section>" +
       '<section class="block"><h2>Siegel</h2>' + siegelHtml + "</section>" +
       "</div>";
@@ -26351,23 +26433,85 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     stift.addEventListener("click", () => formAuf(form.hidden));
     $("#bogen-fertig").addEventListener("click", () => { const y = window.scrollY; zeigeProfil(); window.scrollTo(0, y); });
     if (!p.name) formAuf(true);
-    // Ausrüstungsplätze springen zum passenden Platz im Inventar, ohne die Adresse zu ändern
+    // Ausrüstungsplätze im Charakterbogen öffnen den Platz in der Rüstkammer, ohne die Adresse zu ändern
+    const kammer = $("#ruestkammer");
+    ruestkammerBinden(kammer);
     ansicht.querySelectorAll("[data-slot]").forEach(a => a.addEventListener("click", e => {
       e.preventDefault();
-      const ziel = $("#platz-" + a.dataset.slot);
-      if (ziel) { ziel.scrollIntoView({ behavior: "smooth", block: "center" }); ziel.classList.remove("hervor"); void ziel.offsetWidth; ziel.classList.add("hervor"); }
+      ruestPlatz = a.dataset.slot; ruestWahl = null;
+      kammer.innerHTML = ruestkammerHtml(); ruestkammerBinden(kammer);
+      kammer.scrollIntoView({ behavior: "smooth", block: "start" });
     }));
     $("#profil-name").addEventListener("input", e => sp("name", e.target.value));
     $("#profil-motto").addEventListener("input", e => sp("motto", e.target.value));
     $("#profil-titel").addEventListener("change", e => sp("titel", e.target.value));
     ansicht.querySelectorAll("[data-portraet]").forEach(b => b.addEventListener("click", () => { sp("portraet", b.dataset.portraet); zeigeProfil(); }));
-    ansicht.querySelectorAll("[data-gegenstand]").forEach(b => b.addEventListener("click", () => {
-      zustand.ausruestung = Object.assign({}, STANDARD_AUSRUESTUNG, zustand.ausruestung || {}, { [b.dataset.platz]: b.dataset.gegenstand });
+  }
+
+  /* ---------- Rüstkammer: Held mit Plätzen, Vorschau und Gegenstände eines Platzes ---------- */
+  let ruestPlatz = "umhang", ruestWahl = null;
+  const hellFarbe = hex => { const n = parseInt(hex.slice(1), 16); return ((n >> 16) * 299 + (n >> 8 & 255) * 587 + (n & 255) * 114) / 1000 > 150; };
+  const musterHtml = (g, pl) => '<span class="muster" style="' + (g.farbe ? "--muster:" + g.farbe : "") + '">' + (g.farbe ? "" : SYMBOL[pl.symbol]) + "</span>";
+  function sperre(g) {
+    if (g.gold) return { text: g.gold + " Gold in der Schatzkammer", anteil: Math.max(0, Math.min(100, goldStand() / g.gold * 100)) };
+    return { text: "Noch " + (g.ep - zustand.ep) + " EP · " + rangAb(g.ep), anteil: Math.max(0, Math.min(100, zustand.ep / g.ep * 100)) };
+  }
+  function ruestVorschau(g, pl) {
+    if (pl.id === "umhang") return '<div class="probe probe-umhang" style="--k:' + g.farbe + ";--kt:" + (hellFarbe(g.farbe) ? "#1d1a2b" : "#fff") + '">' +
+      '<span class="probe-knopf">Zauber wirken' + ICON.weiter + '</span><span class="probe-leiste"><i></i></span><span class="probe-chip">' + ICON.flamme + " 7 Tage</span></div>";
+    if (pl.id === "einband") return '<div class="probe probe-einband" data-einband="' + g.id + '"><pre class="code-block"><code>' +
+      hl('// Bran würfelt\nconst wurf = 17;\nconsole.log("Treffer: " + wurf);') + "</code></pre></div>";
+    if (pl.id === "stab") return '<div class="probe probe-stab' + (g.id === "esche" ? " esche" : "") + '">' +
+      (g.id === "esche" ? "Fahr mit der Maus hierüber. So sieht dein Zeiger im Editor aus." : "Im Editor bleibt der gewöhnliche Mauszeiger.") + "</div>";
+    if (pl.id === "amulett") return '<div class="probe probe-amulett">' + (g.id === "funken"
+      ? '<button type="button" class="knopf" id="funken-probe">' + SYMBOL.funke + "Funken ausprobieren</button>" : "Beim Bestehen bleibt es ruhig.") + "</div>";
+    return '<div class="probe probe-rahmen"><span class="portraet p-gross" style="--rahmen:' + g.farbe + '">' + PORTRAET_NACH_ID[profil().portraet].svg + "</span></div>";
+  }
+  function ruestkammerHtml() {
+    const pl = PLAETZE.find(x => x.id === ruestPlatz) || PLAETZE[0];
+    const sachen = GEGENSTAENDE.filter(g => g.platz === pl.id);
+    const traegt = getragen(pl.id);
+    const wahl = sachen.find(g => g.id === ruestWahl) || traegt;
+    const slots = PLAETZE.map(x => {
+      const g = getragen(x.id);
+      return '<button type="button" class="ruest-slot' + (x.id === pl.id ? " aktiv" : "") + '" style="grid-area:' + x.id + '" data-ruest="' + x.id + '" aria-pressed="' + (x.id === pl.id) + '">' +
+        musterHtml(g, x) + "<span><b>" + esc(x.name.replace(/^Zauberbuch-/, "").replace(/^Porträtrahmen$/, "Rahmen")) + "</b><small>" + esc(g.name) + "</small></span></button>";
+    }).join("");
+    const karten = sachen.map(g => {
+      const f = freigeschaltet(g), an = traegt.id === g.id, s = f ? null : sperre(g);
+      return '<button type="button" class="ruest-karte' + (an ? " getragen" : "") + (f ? "" : " gesperrt") + (g.id === wahl.id ? " gewaehlt" : "") + '" data-wahl="' + g.id + '" aria-pressed="' + (g.id === wahl.id) + '">' +
+        musterHtml(g, pl) + '<span class="rk-text"><b>' + esc(g.name) + "</b>" +
+        (an ? '<small class="rk-an">' + ICON.haken + "Angelegt</small>" : f ? "<small>Bereit zum Anlegen</small>"
+          : "<small>" + esc(s.text) + '</small><span class="rk-balken"><i style="width:' + s.anteil.toFixed(1) + '%"></i></span>') +
+        "</span>" + (f ? "" : '<span class="schloss">' + ICON.schloss + "</span>") + "</button>";
+    }).join("");
+    const aktion = traegt.id === wahl.id ? '<span class="rk-an">' + ICON.haken + "Angelegt</span>"
+      : freigeschaltet(wahl) ? '<button type="button" class="knopf haupt" id="ruest-anlegen">Anlegen</button>'
+      : wahl.gold ? '<a class="knopf" href="#schatzkammer">Zur Schatzkammer' + ICON.weiter + "</a>"
+      : '<span class="rk-zu">' + ICON.schloss + esc(sperre(wahl).text) + "</span>";
+    return '<div class="ruest-held"><div class="ruest-mitte">' + portraetHtml("p-gross") + "</div>" + slots + "</div>" +
+      '<div class="ruest-wahl"><div class="ruest-kopf"><span class="platz-symbol">' + SYMBOL[pl.symbol] + "</span><div><h3>" + esc(pl.name) + "</h3><p>" + esc(pl.text) + "</p></div></div>" +
+      '<div class="ruest-probe">' + ruestVorschau(wahl, pl) + '<div class="probe-info"><b>' + esc(wahl.name) + "</b><p>" + esc(wahl.text) + '</p><div class="zb-knoepfe">' + aktion + "</div></div></div>" +
+      '<div class="ruest-karten">' + karten + "</div></div>";
+  }
+  function ruestkammerBinden(el) {
+    const neu = fokus => {
+      el.innerHTML = ruestkammerHtml(); ruestkammerBinden(el);
+      const f = fokus && el.querySelector(fokus);
+      if (f) f.focus({ preventScroll: true });
+    };
+    el.querySelectorAll("[data-ruest]").forEach(b => b.addEventListener("click", () => { ruestPlatz = b.dataset.ruest; ruestWahl = null; neu('[data-ruest="' + ruestPlatz + '"]'); }));
+    el.querySelectorAll("[data-wahl]").forEach(b => b.addEventListener("click", () => { ruestWahl = b.dataset.wahl; neu('[data-wahl="' + ruestWahl + '"]'); }));
+    const an = $("#ruest-anlegen", el);
+    if (an) an.addEventListener("click", () => {
+      const g = GEGENSTAENDE.find(x => x.platz === ruestPlatz && x.id === ruestWahl);
+      zustand.ausruestung = Object.assign({}, STANDARD_AUSRUESTUNG, zustand.ausruestung || {}, { [ruestPlatz]: ruestWahl });
       speichern(); ausruestungAnwenden(); zeigeKopf();
       const y = window.scrollY; zeigeProfil(); window.scrollTo(0, y);
-      const g = GEGENSTAENDE.find(x => x.platz === b.dataset.platz && x.id === b.dataset.gegenstand);
       toast(g.name + " angelegt");
-    }));
+    });
+    const fp = $("#funken-probe", el);
+    if (fp) fp.addEventListener("click", () => funkenregen(fp, true));
   }
   function wert(zahl, text) { return '<div class="wert"><b>' + esc(String(zahl)) + "</b><span>" + esc(text) + "</span></div>"; }
   function rangAb(ep) { let n = RAENGE[0][1]; for (const [g, name] of RAENGE) if (ep >= g) n = name; return "Rang " + n; }
