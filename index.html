@@ -20950,7 +20950,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       stand("geladen");
     }
 
-    let botFehler = null, botAntworten = [], botStufe = 0;
+    let botFehler = null, botAntworten = [];
     // Was der Mentor erfährt: Aufgabe, Code, Ausgabe und Fehler, aber nie die Musterlösung oder die Tests
     const botDaten = (code, ergebnis, pruefungen) => {
       const f = ergebnis.fehler;
@@ -20978,21 +20978,19 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       if (!bereits && genutzt === 0 && !loesungOffen) html += '<p class="klein">Ohne Hinweis gibt es ' + (l.art === "boss" ? "10" : "5") + " Bonus-EP.</p>";
       if (botFehler && typeof window.__kodexBot === "function") {
         html += '<div class="bot-box">' + botAntworten.map(a => a.fehler ? '<p class="melde-nein">' + esc(a.fehler) + "</p>"
-          : '<div class="hinweis"><b>Mentor · Stufe ' + a.stufe + "</b><div>" + esc(a.text).replace(/`([^`\n]+)`/g, "<code>$1</code>").replace(/\n/g, "<br>") + "</div></div>").join("") +
+          : '<div class="hinweis"><b>Mentor</b><div>' + esc(a.text).replace(/`([^`\n]+)`/g, "<code>$1</code>").replace(/\n/g, "<br>") + "</div></div>").join("") +
           '<div class="hilfe-knoepfe"><button class="knopf still" type="button" id="bot-knopf">' + SYMBOL.lupe +
-          (botStufe === 0 ? (botFehler.pruefungen ? "Mentor fragen, was falsch ist" : "Mentor zu deinem Code fragen") : botStufe < 3 ? "Mentor genauer fragen" : "Mentor nochmal fragen") + "</button></div>" +
-          (botStufe === 0 ? '<p class="klein">Der Mentor erklärt nur den Fehler, die Lösung verrät er nicht. Er kostet keine EP.</p>' : "") + "</div>";
+          (botAntworten.length ? "Mentor nochmal fragen" : botFehler.pruefungen ? "Mentor fragen, was falsch ist" : "Mentor zu deinem Code fragen") + "</button></div>" +
+          (botAntworten.length ? "" : '<p class="klein">Der Mentor erklärt nur den Fehler, die Lösung verrät er nicht. Er kostet keine EP.</p>') + "</div>";
       }
       $("#hilfe").innerHTML = html;
       const bk = $("#bot-knopf");
       if (bk) bk.addEventListener("click", async () => {
         bk.disabled = true;
         bk.textContent = "Der Mentor denkt nach …";
-        const stufe = Math.min(3, botStufe + 1);
-        try {
-          botAntworten.push({ stufe, text: await window.__kodexBot(Object.assign({ stufe }, botFehler)) });
-          botStufe = stufe;
-        } catch (e) { botAntworten.push({ fehler: e.message }); }
+        // Immer Stufe 2: welches Thema betroffen ist und ungefähr wo, ohne die genaue Zeile
+        try { botAntworten.push({ text: await window.__kodexBot(Object.assign({ stufe: 2 }, botFehler)) }); }
+        catch (e) { botAntworten.push({ fehler: e.message }); }
         zeigeHilfe();
       });
       const hk = $("#hinweis-knopf");
