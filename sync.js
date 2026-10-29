@@ -44,9 +44,7 @@ function meldung(e) {
   const texte = {
     "auth/invalid-credential": "E-Mail oder Passwort stimmt nicht.",
     "auth/wrong-password": "E-Mail oder Passwort stimmt nicht.",
-    "auth/user-not-found": "Zu dieser E-Mail gibt es noch kein Konto. Lege zuerst eines an.",
-    "auth/email-already-in-use": "Zu dieser E-Mail gibt es schon ein Konto. Melde dich an.",
-    "auth/weak-password": "Das Passwort braucht mindestens 6 Zeichen.",
+    "auth/user-not-found": "Zu dieser E-Mail gibt es kein Konto.",
     "auth/invalid-email": "Diese E-Mail-Adresse ist ungültig.",
     "auth/missing-password": "Gib ein Passwort ein.",
     "auth/too-many-requests": "Zu viele Versuche. Warte ein paar Minuten.",
@@ -142,19 +140,17 @@ function ui(el) {
     el.querySelector("#sync-ab").addEventListener("click", () => fb.A.signOut(fb.auth));
     return;
   }
-  el.innerHTML = kopf + '<p class="klein">Melde dich auf Laptop und Handy mit demselben Konto an. Dann ist dein Fortschritt überall gleich.</p>' +
+  el.innerHTML = kopf + '<p class="klein">Melde dich auf Laptop und Handy mit demselben Konto an. Dann ist dein Fortschritt überall gleich. Konten vergibt der Besitzer des Kodex.</p>' +
     '<label class="feld"><span>E-Mail</span><input type="email" id="sync-mail" autocomplete="username"></label>' +
     '<label class="feld"><span>Passwort</span><input type="password" id="sync-pw" autocomplete="current-password"></label>' +
     '<p class="klein melde-nein" id="sync-meldung">' + (stand.phase === "fehler" ? esc(stand.text) : "") + "</p>" +
     '<div class="fenster-zeile" style="justify-content:flex-start"><button class="knopf haupt" type="button" id="sync-an">Anmelden</button>' +
-    '<button class="knopf" type="button" id="sync-neu">Konto anlegen</button>' +
     '<button class="knopf still" type="button" id="sync-vergessen">Passwort vergessen</button></div>';
   const mail = () => el.querySelector("#sync-mail").value.trim();
   const pw = () => el.querySelector("#sync-pw").value;
   const melde = t => { el.querySelector("#sync-meldung").textContent = t; };
   const versuche = async fn => { melde(""); try { await fn(); } catch (e) { melde(meldung(e)); } };
   el.querySelector("#sync-an").addEventListener("click", () => versuche(() => fb.A.signInWithEmailAndPassword(fb.auth, mail(), pw())));
-  el.querySelector("#sync-neu").addEventListener("click", () => versuche(() => fb.A.createUserWithEmailAndPassword(fb.auth, mail(), pw())));
   el.querySelector("#sync-vergessen").addEventListener("click", () => versuche(async () => {
     await fb.A.sendPasswordResetEmail(fb.auth, mail());
     melde("Wir haben dir eine E-Mail zum Zurücksetzen geschickt.");
