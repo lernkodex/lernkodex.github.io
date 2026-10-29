@@ -8640,6 +8640,966 @@ for (const [z, soll] of faelle) {
 }
 $pruefe($ausgabe.some(z => /^Kael greift an: (Kritisch|Patzer|Treffer|Daneben)$/.test(z)), 'In der Konsole sollte «Kael greift an: …» stehen, sie zeigt ' + $zeige($ausgabe) + '.');
 
+### k15 | Der Wirt am Tresen | Einen eigenen Server bauen: Anfragen, Antworten und Statuscodes | Tresensiegel
+
+=== k15-1 | code | Der Wirt hört zu
+--- modus dateien
+--- server
+server.js
+--- dateien
+{
+  "server.js": "// Der Server: Er bekommt eine Anfrage und gibt eine Antwort zurück\nexport function antworte(anfrage) {\n  // dein Code\n}\n",
+  "spiel.js": "// Der Gast: fragt den Server und zeigt die Antwort\nasync function start() {\n  const antwort = await fetch(\"/api/gruss\");\n  const daten = await antwort.json();\n  console.log(daten.gruss);\n}\n\nstart();\n"
+}
+--- szene
+Im Goldenen Krug steht der Wirt hinter dem Tresen. Er wartet. Kommt ein Gast und fragt etwas, antwortet er. Das ist seine ganze Arbeit, Tag und Nacht.
+--- erklaerung
+In Kapitel XIII hast du mit `fetch` Daten von einem **Server** geholt. Jetzt baust du selbst einen.
+
+Ein Server ist ein Programm, das auf **Anfragen** wartet und **Antworten** zurückschickt. Die Seite oder App, die fragt, heisst **Client**. Im Kodex hast du dafür zwei Dateien:
+
+- `server.js` ist der Wirt. Er hat eine Funktion `antworte(anfrage)`.
+- `spiel.js` ist der Gast. Er fragt mit `fetch`, genau wie in Kapitel XIII.
+
+Jede Antwort ist ein Objekt mit zwei Teilen:
+
+```
+return {
+  status: 200,
+  daten: { gruss: "Hallo!" }
+};
+```
+
+- `status` ist eine Zahl, die sagt, ob alles geklappt hat. **200** heisst «alles in Ordnung».
+- `daten` ist das, was der Gast bekommt. Bei ihm landet es in `await antwort.json()`.
+
+**So sieht das im echten Leben aus.** Echte Server laufen mit Node.js. Mit dem beliebten Werkzeug Express schreibt man fast dasselbe:
+
+```
+app.get("/api/gruss", (anfrage, antwort) => {
+  antwort.json({ gruss: "Hallo!" });
+});
+```
+--- aufgabe
+Lass `antworte` immer mit Status `200` und den Daten `{ gruss: "Willkommen im Goldenen Krug!" }` antworten. `spiel.js` musst du nicht ändern.
+--- loesung
+{
+  "server.js": "// Der Server: Er bekommt eine Anfrage und gibt eine Antwort zurück\nexport function antworte(anfrage) {\n  return {\n    status: 200,\n    daten: { gruss: \"Willkommen im Goldenen Krug!\" }\n  };\n}\n",
+  "spiel.js": "// Der Gast: fragt den Server und zeigt die Antwort\nasync function start() {\n  const antwort = await fetch(\"/api/gruss\");\n  const daten = await antwort.json();\n  console.log(daten.gruss);\n}\n\nstart();\n"
+}
+--- hinweis
+In `antworte` steht nur ein `return` mit einem Objekt, wie im ersten Beispiel.
+--- hinweis
+Das Objekt hat `status: 200` und `daten: { gruss: "Willkommen im Goldenen Krug!" }`.
+--- test Der Server antwortet mit Status 200
+const a = __lade("server.js").antworte({ methode: "GET", pfad: "/api/gruss", suche: {}, daten: null });
+$pruefe(a && a.status === 200, 'antworte sollte ein Objekt mit status: 200 zurückgeben, es kam ' + $zeige(a) + '.');
+--- test Der Gruss stimmt
+const a = __lade("server.js").antworte({ methode: "GET", pfad: "/api/gruss", suche: {}, daten: null });
+$pruefe(a && a.daten && a.daten.gruss === "Willkommen im Goldenen Krug!", 'In daten sollte gruss: "Willkommen im Goldenen Krug!" stehen, es kam ' + $zeige(a && a.daten) + '.');
+--- test Der Gast bekommt die Antwort
+$enthaelt($ausgabe, "Willkommen im Goldenen Krug!") || $pruefe(false, 'In der Konsole sollte der Gruss stehen, sie zeigt ' + $zeige($ausgabe) + '.');
+
+=== k15-2 | code | Verschiedene Türen
+--- modus dateien
+--- server
+server.js
+--- dateien
+{
+  "server.js": "const speisen = [\"Eintopf\", \"Brot\", \"Apfelkuchen\"];\n\nexport function antworte(anfrage) {\n  if (anfrage.pfad === \"/api/gruss\") {\n    return { status: 200, daten: { gruss: \"Willkommen im Goldenen Krug!\" } };\n  }\n  // Ergänze hier die Türen /api/speisen und /api/zimmer\n\n  return { status: 404, daten: { fehler: \"Diese Tür gibt es nicht.\" } };\n}\n",
+  "spiel.js": "async function frage(pfad) {\n  const antwort = await fetch(pfad);\n  return { status: antwort.status, daten: await antwort.json() };\n}\n\nasync function start() {\n  const speisen = await frage(\"/api/speisen\");\n  console.log(\"Speisen: \" + speisen.daten.join(\", \"));\n  const zimmer = await frage(\"/api/zimmer\");\n  console.log(\"Freie Zimmer: \" + zimmer.daten.frei);\n  const keller = await frage(\"/api/keller\");\n  console.log(\"Keller: Status \" + keller.status);\n}\n\nstart();\n"
+}
+--- szene
+Die Gäste fragen nicht immer dasselbe. Der eine will essen, die andere ein Zimmer. Und manche wollen in den Keller, wo sie nichts zu suchen haben.
+--- erklaerung
+Ein Server hat meistens viele **Adressen**, eine für jede Art von Frage. Man nennt sie auch **Routen**. In der Anfrage steht unter `anfrage.pfad`, welche Adresse gefragt wurde, zum Beispiel `"/api/speisen"`.
+
+Mit `if` entscheidest du, was der Server darauf antwortet:
+
+```
+if (anfrage.pfad === "/api/wetter") {
+  return { status: 200, daten: { himmel: "Regen" } };
+}
+```
+
+Am Ende steht eine Antwort für alle Adressen, die es nicht gibt. Sie hat den Status **404**, «nicht gefunden». Das kennst du schon von der anderen Seite, aus «Wenn der Rabe nichts findet».
+
+Wichtig: Jede Route endet mit `return`. Sonst läuft der Code weiter bis zur 404 am Schluss.
+--- aufgabe
+Ergänze zwei Routen in `server.js`:
+
+1. `/api/speisen` antwortet mit Status 200 und der Liste `speisen` als Daten.
+2. `/api/zimmer` antwortet mit Status 200 und den Daten `{ frei: 3 }`.
+
+Alle anderen Adressen sollen weiterhin 404 bekommen.
+--- loesung
+{
+  "server.js": "const speisen = [\"Eintopf\", \"Brot\", \"Apfelkuchen\"];\n\nexport function antworte(anfrage) {\n  if (anfrage.pfad === \"/api/gruss\") {\n    return { status: 200, daten: { gruss: \"Willkommen im Goldenen Krug!\" } };\n  }\n  if (anfrage.pfad === \"/api/speisen\") {\n    return { status: 200, daten: speisen };\n  }\n  if (anfrage.pfad === \"/api/zimmer\") {\n    return { status: 200, daten: { frei: 3 } };\n  }\n\n  return { status: 404, daten: { fehler: \"Diese Tür gibt es nicht.\" } };\n}\n",
+  "spiel.js": "async function frage(pfad) {\n  const antwort = await fetch(pfad);\n  return { status: antwort.status, daten: await antwort.json() };\n}\n\nasync function start() {\n  const speisen = await frage(\"/api/speisen\");\n  console.log(\"Speisen: \" + speisen.daten.join(\", \"));\n  const zimmer = await frage(\"/api/zimmer\");\n  console.log(\"Freie Zimmer: \" + zimmer.daten.frei);\n  const keller = await frage(\"/api/keller\");\n  console.log(\"Keller: Status \" + keller.status);\n}\n\nstart();\n"
+}
+--- hinweis
+Kopiere den Block mit `/api/gruss` und passe Adresse und Daten an. Er muss vor der 404 am Schluss stehen.
+--- hinweis
+Für die Speisen: `daten: speisen`. Für die Zimmer: `daten: { frei: 3 }`.
+--- test /api/speisen liefert die Speisen
+const a = __lade("server.js").antworte({ methode: "GET", pfad: "/api/speisen", suche: {}, daten: null });
+$pruefe(a && a.status === 200 && JSON.stringify(a.daten) === JSON.stringify(["Eintopf", "Brot", "Apfelkuchen"]), '/api/speisen sollte Status 200 und die Liste der Speisen liefern, es kam ' + $zeige(a) + '.');
+--- test /api/zimmer liefert die freien Zimmer
+const a = __lade("server.js").antworte({ methode: "GET", pfad: "/api/zimmer", suche: {}, daten: null });
+$pruefe(a && a.status === 200 && a.daten && a.daten.frei === 3, '/api/zimmer sollte Status 200 und { frei: 3 } liefern, es kam ' + $zeige(a) + '.');
+--- test Unbekannte Türen bleiben zu
+for (const pfad of ["/api/keller", "/api/drache"]) {
+  const a = __lade("server.js").antworte({ methode: "GET", pfad, suche: {}, daten: null });
+  $pruefe(a && a.status === 404, pfad + ' sollte Status 404 bekommen, es kam ' + $zeige(a) + '.');
+}
+$erwarteAusgabe($ausgabe, ["Speisen: Eintopf, Brot, Apfelkuchen", "Freie Zimmer: 3", "Keller: Status 404"], 'Konsole');
+
+=== k15-3 | quiz | Was der Status verrät
+--- frage
+Ein Gast fragt nach `/api/drache`. Der Server kennt diese Adresse nicht. Mit welchem Status sollte er antworten?
+--- code
+const antwort = await fetch("/api/drache");
+console.log(antwort.status);
+--- option
+200
+--- option*
+404
+--- option
+500
+--- option
+201
+--- erklaerung
+Die wichtigsten Statuscodes solltest du kennen:
+
+- **200** «OK»: Alles hat geklappt.
+- **201** «Created»: Etwas Neues wurde angelegt.
+- **400** «Bad Request»: Die Anfrage selbst ist fehlerhaft, zum Beispiel fehlen Angaben.
+- **404** «Not Found»: Diese Adresse gibt es nicht.
+- **500** «Internal Server Error»: Im Server ist etwas schiefgegangen.
+
+Die Faustregel: 2xx heisst gut, 4xx heisst «der Gast hat falsch gefragt», 5xx heisst «der Server hat einen Fehler».
+
+=== k15-4 | code | Bestellungen annehmen
+--- modus dateien
+--- server
+server.js
+--- dateien
+{
+  "server.js": "const bestellungen = [];\n\nexport function antworte(anfrage) {\n  if (anfrage.pfad === \"/api/bestellungen\" && anfrage.methode === \"GET\") {\n    return { status: 200, daten: bestellungen };\n  }\n  // Ergänze: POST auf /api/bestellungen speichert die Bestellung\n\n  return { status: 404, daten: { fehler: \"Diese Tür gibt es nicht.\" } };\n}\n",
+  "spiel.js": "async function bestelle(name, speise) {\n  const antwort = await fetch(\"/api/bestellungen\", {\n    method: \"POST\",\n    body: JSON.stringify({ name, speise })\n  });\n  console.log(`${name} bestellt ${speise}: Status ${antwort.status}`);\n}\n\nasync function start() {\n  await bestelle(\"Kael\", \"Eintopf\");\n  await bestelle(\"Mira\", \"Brot\");\n  const antwort = await fetch(\"/api/bestellungen\");\n  const liste = await antwort.json();\n  console.log(`${liste.length} Bestellungen: ` + liste.map(b => `${b.name} (${b.speise})`).join(\", \"));\n}\n\nstart();\n"
+}
+--- szene
+Kael ruft quer durch die Taverne: «Einmal Eintopf!» Der Wirt soll sich das merken, und später auch sagen können, wer was bestellt hat.
+--- erklaerung
+Bisher haben die Gäste nur gefragt. Jetzt **schicken** sie auch etwas. Dafür hat jede Anfrage eine **Methode**:
+
+- **GET** heisst «gib mir etwas». Das ist der Normalfall von `fetch`.
+- **POST** heisst «hier hast du etwas Neues».
+
+Der Gast schickt mit POST so:
+
+```
+await fetch("/api/bestellungen", {
+  method: "POST",
+  body: JSON.stringify({ name: "Kael", speise: "Eintopf" })
+});
+```
+
+Im Server stehen die Methode in `anfrage.methode` und die geschickten Daten in `anfrage.daten`.
+
+Wo merkt sich der Server die Bestellungen? In einer Liste **ausserhalb** der Funktion. Sie bleibt zwischen den Anfragen bestehen. So eine Liste ist eine sehr einfache **Datenbank**. Echte Server nehmen eine richtige Datenbank, sonst wäre beim Neustart alles weg.
+
+Für «Neues angelegt» antwortet man mit Status **201**.
+--- aufgabe
+Ergänze in `server.js`: Ist der Pfad `/api/bestellungen` und die Methode `POST`, hängt der Server `anfrage.daten` an die Liste `bestellungen` an. Er antwortet mit Status 201 und der neuen Bestellung als Daten.
+--- loesung
+{
+  "server.js": "const bestellungen = [];\n\nexport function antworte(anfrage) {\n  if (anfrage.pfad === \"/api/bestellungen\" && anfrage.methode === \"GET\") {\n    return { status: 200, daten: bestellungen };\n  }\n  if (anfrage.pfad === \"/api/bestellungen\" && anfrage.methode === \"POST\") {\n    bestellungen.push(anfrage.daten);\n    return { status: 201, daten: anfrage.daten };\n  }\n\n  return { status: 404, daten: { fehler: \"Diese Tür gibt es nicht.\" } };\n}\n",
+  "spiel.js": "async function bestelle(name, speise) {\n  const antwort = await fetch(\"/api/bestellungen\", {\n    method: \"POST\",\n    body: JSON.stringify({ name, speise })\n  });\n  console.log(`${name} bestellt ${speise}: Status ${antwort.status}`);\n}\n\nasync function start() {\n  await bestelle(\"Kael\", \"Eintopf\");\n  await bestelle(\"Mira\", \"Brot\");\n  const antwort = await fetch(\"/api/bestellungen\");\n  const liste = await antwort.json();\n  console.log(`${liste.length} Bestellungen: ` + liste.map(b => `${b.name} (${b.speise})`).join(\", \"));\n}\n\nstart();\n"
+}
+--- hinweis
+Die Bedingung sieht aus wie bei GET, nur mit `anfrage.methode === "POST"`.
+--- hinweis
+Darin: `bestellungen.push(anfrage.daten);` und `return { status: 201, daten: anfrage.daten };`
+--- test Eine Bestellung wird angenommen
+const a = __lade("server.js").antworte({ methode: "POST", pfad: "/api/bestellungen", suche: {}, daten: { name: "Bran", speise: "Apfelkuchen" } });
+$pruefe(a && a.status === 201, 'Ein POST auf /api/bestellungen sollte Status 201 bekommen, es kam ' + $zeige(a) + '.');
+--- test Der Wirt merkt sich die Bestellungen
+const a = __lade("server.js").antworte({ methode: "GET", pfad: "/api/bestellungen", suche: {}, daten: null });
+$pruefe(a && Array.isArray(a.daten) && a.daten.some(b => b && b.name === "Kael" && b.speise === "Eintopf"), 'Nach den Bestellungen sollte GET auf /api/bestellungen die Bestellung von Kael enthalten, es kam ' + $zeige(a) + '.');
+--- test Der Gast sieht beide Bestellungen
+$erwarteAusgabe($ausgabe, ["Kael bestellt Eintopf: Status 201", "Mira bestellt Brot: Status 201", "2 Bestellungen: Kael (Eintopf), Mira (Brot)"], 'Konsole');
+
+=== k15-5 | code | Nicht jedem Gast trauen
+--- modus dateien
+--- server
+server.js
+--- dateien
+{
+  "server.js": "const speisen = [\"Eintopf\", \"Brot\", \"Apfelkuchen\"];\nconst bestellungen = [];\n\nexport function antworte(anfrage) {\n  if (anfrage.pfad === \"/api/bestellungen\" && anfrage.methode === \"GET\") {\n    return { status: 200, daten: bestellungen };\n  }\n  if (anfrage.pfad === \"/api/bestellungen\" && anfrage.methode === \"POST\") {\n    // Prüfe hier die Bestellung, bevor du sie speicherst\n    bestellungen.push(anfrage.daten);\n    return { status: 201, daten: anfrage.daten };\n  }\n  return { status: 404, daten: { fehler: \"Diese Tür gibt es nicht.\" } };\n}\n",
+  "spiel.js": "async function bestelle(daten) {\n  const antwort = await fetch(\"/api/bestellungen\", { method: \"POST\", body: JSON.stringify(daten) });\n  console.log(`${JSON.stringify(daten)}: Status ${antwort.status}`);\n}\n\nasync function start() {\n  await bestelle({ name: \"Kael\", speise: \"Eintopf\" });\n  await bestelle({ name: \"\", speise: \"Brot\" });\n  await bestelle({ name: \"Bran\", speise: \"Drachensteak\" });\n  const liste = await (await fetch(\"/api/bestellungen\")).json();\n  console.log(`Gespeichert: ${liste.length}`);\n}\n\nstart();\n"
+}
+--- szene
+Ein Witzbold bestellt «Drachensteak», ein anderer bestellt ganz ohne Namen. Der Wirt schreibt alles brav auf. So geht das nicht weiter.
+--- erklaerung
+Ein Server darf **nie** einfach glauben, was ein Gast schickt. Jeder kann ihm alles schicken: leere Felder, falsche Werte oder absichtlich Unsinn. Das ist eine der wichtigsten Regeln für sichere Programme. Die Seite kann noch so gut prüfen, der Server prüft trotzdem selbst.
+
+Darum prüft der Server zuerst. Ist etwas falsch, antwortet er mit **400** «Bad Request» und speichert nichts:
+
+```
+const d = anfrage.daten;
+if (!d || typeof d.name !== "string" || d.name.trim() === "") {
+  return { status: 400, daten: { fehler: "Name fehlt." } };
+}
+```
+
+- `!d` fängt den Fall ab, dass gar keine Daten kamen.
+- `typeof d.name !== "string"` fängt Zahlen oder Listen statt eines Namens ab.
+- `.trim()` entfernt Leerzeichen am Anfang und Ende. So zählt auch `"   "` als leer.
+
+Ob eine Speise auf der Karte steht, prüfst du mit `speisen.includes(d.speise)`.
+--- aufgabe
+Prüfe jede neue Bestellung, bevor sie gespeichert wird. Antworte mit Status 400 und speichere nichts, wenn:
+
+1. der Name fehlt oder leer ist, oder
+2. die Speise nicht in der Liste `speisen` steht.
+--- loesung
+{
+  "server.js": "const speisen = [\"Eintopf\", \"Brot\", \"Apfelkuchen\"];\nconst bestellungen = [];\n\nexport function antworte(anfrage) {\n  if (anfrage.pfad === \"/api/bestellungen\" && anfrage.methode === \"GET\") {\n    return { status: 200, daten: bestellungen };\n  }\n  if (anfrage.pfad === \"/api/bestellungen\" && anfrage.methode === \"POST\") {\n    const d = anfrage.daten;\n    if (!d || typeof d.name !== \"string\" || d.name.trim() === \"\") {\n      return { status: 400, daten: { fehler: \"Name fehlt.\" } };\n    }\n    if (!speisen.includes(d.speise)) {\n      return { status: 400, daten: { fehler: \"Diese Speise gibt es nicht.\" } };\n    }\n    bestellungen.push(d);\n    return { status: 201, daten: d };\n  }\n  return { status: 404, daten: { fehler: \"Diese Tür gibt es nicht.\" } };\n}\n",
+  "spiel.js": "async function bestelle(daten) {\n  const antwort = await fetch(\"/api/bestellungen\", { method: \"POST\", body: JSON.stringify(daten) });\n  console.log(`${JSON.stringify(daten)}: Status ${antwort.status}`);\n}\n\nasync function start() {\n  await bestelle({ name: \"Kael\", speise: \"Eintopf\" });\n  await bestelle({ name: \"\", speise: \"Brot\" });\n  await bestelle({ name: \"Bran\", speise: \"Drachensteak\" });\n  const liste = await (await fetch(\"/api/bestellungen\")).json();\n  console.log(`Gespeichert: ${liste.length}`);\n}\n\nstart();\n"
+}
+--- hinweis
+Übernimm die Prüfung aus dem Beispiel und setze sie an die Stelle des Kommentars.
+--- hinweis
+Die zweite Prüfung: `if (!speisen.includes(d.speise)) { return { status: 400, ... }; }`
+--- test Gute Bestellungen kommen durch
+const a = __lade("server.js").antworte({ methode: "POST", pfad: "/api/bestellungen", suche: {}, daten: { name: "Ysolde", speise: "Apfelkuchen" } });
+$pruefe(a && a.status === 201, 'Eine gültige Bestellung sollte Status 201 bekommen, es kam ' + $zeige(a) + '.');
+--- test Ohne Namen gibt es 400
+for (const daten of [{ name: "", speise: "Brot" }, { name: "   ", speise: "Brot" }, { speise: "Brot" }, null]) {
+  const a = __lade("server.js").antworte({ methode: "POST", pfad: "/api/bestellungen", suche: {}, daten });
+  $pruefe(a && a.status === 400, 'Die Bestellung ' + $zeige(daten) + ' sollte Status 400 bekommen, es kam ' + $zeige(a) + '.');
+}
+--- test Unbekannte Speisen gibt es nicht
+const a = __lade("server.js").antworte({ methode: "POST", pfad: "/api/bestellungen", suche: {}, daten: { name: "Bran", speise: "Drachensteak" } });
+$pruefe(a && a.status === 400, 'Ein Drachensteak sollte Status 400 bekommen, es kam ' + $zeige(a) + '.');
+const liste = __lade("server.js").antworte({ methode: "GET", pfad: "/api/bestellungen", suche: {}, daten: null }).daten;
+$pruefe(!liste.some(b => !b || !b.name || !String(b.name).trim() || b.speise === "Drachensteak"), 'In der Liste sind ungültige Bestellungen gelandet: ' + $zeige(liste) + '. Prüfe zuerst und speichere erst danach.');
+
+=== k15-6 | boss | Das Gästebuch
+--- modus dateien
+--- server
+server.js
+--- dateien
+{
+  "server.js": "// Meisterprüfung: Der Server für das Gästebuch\n\nexport function antworte(anfrage) {\n  return { status: 404, daten: { fehler: \"Diese Tür gibt es nicht.\" } };\n}\n",
+  "spiel.js": "async function schreibe(name, text) {\n  const antwort = await fetch(\"/api/eintraege\", { method: \"POST\", body: JSON.stringify({ name, text }) });\n  console.log(`Eintrag von ${name || \"(leer)\"}: Status ${antwort.status}`);\n}\n\nasync function start() {\n  await schreibe(\"Kael\", \"Schöne Taverne!\");\n  await schreibe(\"Mira\", \"Der Eintopf ist magisch.\");\n  await schreibe(\"Bran\", \"\");\n  const eintraege = await (await fetch(\"/api/eintraege\")).json();\n  for (const e of eintraege) {\n    console.log(`#${e.nr} ${e.name}: ${e.text}`);\n  }\n}\n\nstart();\n"
+}
+--- szene
+Neben dem Tresen liegt ein Gästebuch. Der Wirt will es neu auch per Rabe führen. Orlan lehnt sich zurück: «Du bist jetzt der Wirt.»
+--- erklaerung
+Diese Meisterprüfung braucht alles aus dem Kapitel. Neu ist nur eine Kleinigkeit: Jeder Eintrag bekommt eine **Nummer**, `nr`. Merke dir dafür eine Zahl ausserhalb der Funktion, wie die Liste:
+
+```
+let naechsteNr = 1;
+// beim Speichern:
+const eintrag = { nr: naechsteNr, name: d.name, text: d.text };
+naechsteNr = naechsteNr + 1;
+```
+
+Speichere ein neues Objekt mit genau diesen drei Feldern und nicht einfach `anfrage.daten`. So landet nichts im Gästebuch, was ein Gast heimlich mitgeschickt hat.
+
+**Der Bauplan:**
+
+```
+let naechsteNr = 1;
+const eintraege = [];
+
+export function antworte(anfrage) {
+  // 1. GET /api/eintraege   → 200 und die Liste
+  // 2. POST /api/eintraege  → prüfen: name 1 bis 30 Zeichen, text 1 bis 100 Zeichen
+  //                           falsch → 400, sonst speichern → 201 und der neue Eintrag
+  // 3. alles andere         → 404
+}
+```
+--- aufgabe
+1. `GET /api/eintraege` antwortet mit 200 und allen Einträgen.
+2. `POST /api/eintraege` prüft `name` und `text`: Beides muss ein Text sein, der nach `.trim()` nicht leer ist. Der Name darf höchstens 30 Zeichen haben, der Text höchstens 100. Sonst gibt es 400.
+3. Gültige Einträge werden als `{ nr, name, text }` gespeichert, mit Nummern ab 1. Die Antwort ist 201 mit dem neuen Eintrag.
+4. Alle anderen Anfragen bekommen 404.
+--- loesung
+{
+  "server.js": "// Meisterprüfung: Der Server für das Gästebuch\nlet naechsteNr = 1;\nconst eintraege = [];\n\nfunction gueltig(wert, max) {\n  return typeof wert === \"string\" && wert.trim() !== \"\" && wert.length <= max;\n}\n\nexport function antworte(anfrage) {\n  if (anfrage.pfad === \"/api/eintraege\" && anfrage.methode === \"GET\") {\n    return { status: 200, daten: eintraege };\n  }\n  if (anfrage.pfad === \"/api/eintraege\" && anfrage.methode === \"POST\") {\n    const d = anfrage.daten;\n    if (!d || !gueltig(d.name, 30) || !gueltig(d.text, 100)) {\n      return { status: 400, daten: { fehler: \"Name oder Text fehlt oder ist zu lang.\" } };\n    }\n    const eintrag = { nr: naechsteNr, name: d.name, text: d.text };\n    naechsteNr = naechsteNr + 1;\n    eintraege.push(eintrag);\n    return { status: 201, daten: eintrag };\n  }\n  return { status: 404, daten: { fehler: \"Diese Tür gibt es nicht.\" } };\n}\n",
+  "spiel.js": "async function schreibe(name, text) {\n  const antwort = await fetch(\"/api/eintraege\", { method: \"POST\", body: JSON.stringify({ name, text }) });\n  console.log(`Eintrag von ${name || \"(leer)\"}: Status ${antwort.status}`);\n}\n\nasync function start() {\n  await schreibe(\"Kael\", \"Schöne Taverne!\");\n  await schreibe(\"Mira\", \"Der Eintopf ist magisch.\");\n  await schreibe(\"Bran\", \"\");\n  const eintraege = await (await fetch(\"/api/eintraege\")).json();\n  for (const e of eintraege) {\n    console.log(`#${e.nr} ${e.name}: ${e.text}`);\n  }\n}\n\nstart();\n"
+}
+--- hinweis
+Beginne mit GET und der 404. Prüfe mit **Ausführen**, dann baue POST dazu.
+--- hinweis
+Eine kleine Hilfsfunktion spart Arbeit: `function gueltig(wert, max) { return typeof wert === "string" && wert.trim() !== "" && wert.length <= max; }`
+--- test Die Konsole zeigt das Gästebuch
+$erwarteAusgabe($ausgabe, ["Eintrag von Kael: Status 201", "Eintrag von Mira: Status 201", "Eintrag von Bran: Status 400", "#1 Kael: Schöne Taverne!", "#2 Mira: Der Eintopf ist magisch."], 'Konsole');
+--- test Gültige Einträge bekommen die nächste Nummer
+const a = __lade("server.js").antworte({ methode: "POST", pfad: "/api/eintraege", suche: {}, daten: { name: "Ysolde", text: "Gesegnet sei dieser Ort." } });
+$pruefe(a && a.status === 201 && a.daten && a.daten.nr === 3 && a.daten.name === "Ysolde", 'Der dritte gültige Eintrag sollte 201 und nr: 3 bekommen, es kam ' + $zeige(a) + '.');
+--- test Ungültiges wird abgelehnt
+const schlecht = [null, { name: "Bran" }, { name: "  ", text: "Hallo" }, { name: "Bran", text: "x".repeat(101) }, { name: "x".repeat(31), text: "Hallo" }, { name: 42, text: "Hallo" }];
+for (const daten of schlecht) {
+  const a = __lade("server.js").antworte({ methode: "POST", pfad: "/api/eintraege", suche: {}, daten });
+  $pruefe(a && a.status === 400, 'Der Eintrag ' + $zeige(daten) + ' sollte Status 400 bekommen, es kam ' + $zeige(a) + '.');
+}
+--- test Nur name, text und nr werden gespeichert
+const a = __lade("server.js").antworte({ methode: "POST", pfad: "/api/eintraege", suche: {}, daten: { name: "Dieb", text: "Hallo", admin: true } });
+$pruefe(a && a.status === 201 && a.daten && !("admin" in a.daten), 'Der Eintrag sollte nur nr, name und text enthalten. Heimlich mitgeschickte Felder wie admin gehören nicht ins Gästebuch, es kam ' + $zeige(a && a.daten) + '.');
+--- test Unbekanntes bekommt 404
+const a = __lade("server.js").antworte({ methode: "DELETE", pfad: "/api/eintraege", suche: {}, daten: null });
+const b = __lade("server.js").antworte({ methode: "GET", pfad: "/api/keller", suche: {}, daten: null });
+$pruefe(a && a.status === 404 && b && b.status === 404, 'DELETE auf /api/eintraege und GET auf /api/keller sollten 404 bekommen, es kam ' + $zeige([a, b]) + '.');
+
+### k16 | Die lebendige Seite | Die Idee hinter React: Zustand, Neuzeichnen und Bausteine | Lebenssiegel
+
+=== k16-1 | code | Die Seite aus dem Zustand
+--- szene
+Orlan betrachtet deinen Würfeltisch. «Er funktioniert. Aber stell dir vor, er hätte hundert Knöpfe und tausend Anzeigen. Du würdest den Überblick verlieren.» Er zeichnet ein einziges Wort auf die Tafel: Zustand.
+--- erklaerung
+Bisher hast du die Seite Stück für Stück verändert: hier ein `textContent`, dort ein anderes. Bei grossen Apps wird das schnell unübersichtlich. Profis machen es darum anders, zum Beispiel mit dem bekannten Werkzeug **React**:
+
+1. Alle Daten der Seite stehen in einem einzigen Objekt, dem **Zustand**.
+2. Eine Funktion `zeichne()` baut aus dem Zustand die **ganze** Anzeige neu.
+
+```
+const zustand = { name: "Kael", tp: 12 };
+
+function zeichne() {
+  document.querySelector("#app").innerHTML = `<p>${zustand.name} hat ${zustand.tp} TP.</p>`;
+}
+
+zeichne();
+```
+
+Mit `innerHTML` setzt du nicht nur Text, sondern ganzes HTML. Ein Vorlagen-Text eignet sich dafür perfekt.
+
+Der grosse Vorteil: Die Anzeige passt **immer** zum Zustand, weil sie jedes Mal ganz aus ihm entsteht.
+--- html
+<h1>Der Goldbeutel</h1>
+<div id="app"></div>
+--- aufgabe
+1. Erstelle den Zustand `const zustand = { gold: 15 };`
+2. Schreibe `zeichne()`. Sie setzt in `#app` den Absatz `<p id="gold">15 Gold</p>`, mit dem Wert aus dem Zustand.
+3. Rufe `zeichne()` einmal auf.
+--- start
+// 1. Der Zustand
+
+// 2. Die Funktion zeichne
+
+// 3. Einmal zeichnen
+--- loesung
+// 1. Der Zustand
+const zustand = { gold: 15 };
+
+// 2. Die Funktion zeichne
+function zeichne() {
+  document.querySelector("#app").innerHTML = `<p id="gold">${zustand.gold} Gold</p>`;
+}
+
+// 3. Einmal zeichnen
+zeichne();
+--- hinweis
+Übernimm das Beispiel und ersetze den Absatz durch `<p id="gold">${zustand.gold} Gold</p>`.
+--- hinweis
+Vergiss den Aufruf `zeichne();` ganz am Schluss nicht.
+--- test Die Seite zeigt 15 Gold
+$textGleich("#gold", "15 Gold");
+--- test Die Anzeige kommt aus dem Zustand
+$pruefe(typeof zustand === "object" && typeof zeichne === "function", 'Es braucht die Variable zustand und die Funktion zeichne.');
+zustand.gold = 3;
+zeichne();
+$textGleich("#gold", "3 Gold", 'Nach zustand.gold = 3 und zeichne()');
+
+=== k16-2 | code | Ein Klick ändert den Zustand
+--- szene
+Kael findet eine Münze, Mira gibt eine aus. Der Goldbeutel soll mitzählen.
+--- erklaerung
+Jetzt kommt der zweite Teil der Idee. Bei einem Klick änderst du **nie** direkt die Anzeige. Du machst immer zwei Schritte:
+
+1. Den **Zustand** ändern.
+2. `zeichne()` aufrufen.
+
+```
+document.querySelector("#heilen").addEventListener("click", () => {
+  zustand.tp = zustand.tp + 1;   // 1. Zustand ändern
+  zeichne();                     // 2. neu zeichnen
+});
+```
+
+Klingt nach Umweg, ist aber der Trick: Egal, wie viele Knöpfe es gibt, die Anzeige entsteht immer an **einer** Stelle, in `zeichne()`. React macht das zweite automatisch: Sobald sich der Zustand ändert, zeichnet es neu.
+--- html
+<h1>Der Goldbeutel</h1>
+<button id="mehr">+1 Gold</button>
+<button id="weniger">−1 Gold</button>
+<div id="app"></div>
+--- aufgabe
+Bei einem Klick auf `#mehr` steigt `zustand.gold` um 1, bei `#weniger` sinkt es um 1, aber nie unter 0. Danach wird jeweils neu gezeichnet.
+--- start
+const zustand = { gold: 2 };
+
+function zeichne() {
+  document.querySelector("#app").innerHTML = `<p id="gold">${zustand.gold} Gold</p>`;
+}
+
+// Die zwei Knöpfe
+
+zeichne();
+--- loesung
+const zustand = { gold: 2 };
+
+function zeichne() {
+  document.querySelector("#app").innerHTML = `<p id="gold">${zustand.gold} Gold</p>`;
+}
+
+document.querySelector("#mehr").addEventListener("click", () => {
+  zustand.gold = zustand.gold + 1;
+  zeichne();
+});
+
+document.querySelector("#weniger").addEventListener("click", () => {
+  if (zustand.gold > 0) {
+    zustand.gold = zustand.gold - 1;
+  }
+  zeichne();
+});
+
+zeichne();
+--- hinweis
+Für `#mehr` passt das Beispiel fast genau: Zustand ändern, dann `zeichne();`.
+--- hinweis
+Bei `#weniger` ziehst du nur ab, wenn `zustand.gold > 0` ist.
+--- test Mehr Gold
+$klick("#mehr");
+$textGleich("#gold", "3 Gold", 'Nach einem Klick auf +1');
+--- test Weniger Gold, aber nie unter 0
+$klick("#weniger");
+$textGleich("#gold", "1 Gold", 'Nach einem Klick auf −1');
+$klick("#weniger"); $klick("#weniger"); $klick("#weniger");
+$textGleich("#gold", "0 Gold", 'Nach drei weiteren Klicks auf −1');
+--- test Die Klicks ändern den Zustand
+$klick("#mehr");
+$pruefe(zustand.gold === 3, 'Nach einem Klick auf +1 sollte zustand.gold 3 sein, es ist ' + $zeige(zustand.gold) + '. Änderst du den Zustand oder nur die Anzeige?');
+
+=== k16-3 | code | Bausteine
+--- szene
+Die Gilde wächst. Für jeden Helden soll eine kleine Karte auf der Seite erscheinen, alle gleich aufgebaut.
+--- erklaerung
+Grosse Seiten bestehen aus vielen gleichen Teilen: Karten, Zeilen, Knöpfe. Für jedes Teil schreibst du eine kleine Funktion, die aus Daten ein Stück HTML macht. So eine Funktion heisst **Baustein**, in React **Komponente**. Ihr Name beginnt mit einem Grossbuchstaben:
+
+```
+function BeuteZeile(ding) {
+  return `<li class="ding">${ding.name}: ${ding.wert} Gold</li>`;
+}
+```
+
+In `zeichne()` machst du dann mit `map` aus jeder Liste von Daten eine Liste von Bausteinen, wie in Kapitel VIII. `join("")` klebt die einzelnen Stücke ohne Komma zusammen:
+
+```
+const zeilen = zustand.beute.map(BeuteZeile).join("");
+document.querySelector("#app").innerHTML = `<ul>${zeilen}</ul>`;
+```
+
+**So sieht das in React aus.** Dort schreibt man HTML direkt in JavaScript, das heisst JSX:
+
+```
+function BeuteZeile({ ding }) {
+  return <li className="ding">{ding.name}: {ding.wert} Gold</li>;
+}
+```
+
+Die Idee ist genau dieselbe wie bei dir.
+--- html
+<h1>Die Gilde</h1>
+<div id="app"></div>
+--- aufgabe
+1. Schreibe den Baustein `HeldenKarte(held)`. Er gibt `<li class="karte">Kael: 12 TP</li>` zurück, mit Name und TP des Helden.
+2. Ändere `zeichne()` so, dass in `#app` eine Liste `<ul>` mit einer Karte pro Held erscheint.
+--- start
+const zustand = {
+  helden: [
+    { name: "Kael", tp: 12 },
+    { name: "Mira", tp: 8 },
+    { name: "Bran", tp: 15 }
+  ]
+};
+
+// 1. Der Baustein HeldenKarte
+
+function zeichne() {
+  // 2. Eine Karte pro Held
+}
+
+zeichne();
+--- loesung
+const zustand = {
+  helden: [
+    { name: "Kael", tp: 12 },
+    { name: "Mira", tp: 8 },
+    { name: "Bran", tp: 15 }
+  ]
+};
+
+// 1. Der Baustein HeldenKarte
+function HeldenKarte(held) {
+  return `<li class="karte">${held.name}: ${held.tp} TP</li>`;
+}
+
+function zeichne() {
+  // 2. Eine Karte pro Held
+  const karten = zustand.helden.map(HeldenKarte).join("");
+  document.querySelector("#app").innerHTML = `<ul>${karten}</ul>`;
+}
+
+zeichne();
+--- hinweis
+Der Baustein ist eine Zeile mit `return` und einem Vorlagen-Text zwischen Backticks. Darin steht: <li class="karte">${held.name}: ${held.tp} TP</li>
+--- hinweis
+In `zeichne()`: `zustand.helden.map(HeldenKarte).join("")` und das Ergebnis in `<ul>...</ul>` nach `#app`.
+--- test Der Baustein macht eine Karte
+$pruefe(typeof HeldenKarte === "function", 'Es gibt keinen Baustein HeldenKarte.');
+const h = HeldenKarte({ name: "Ysolde", tp: 30 }).replace(/\s+/g, " ").trim();
+$pruefe(h === '<li class="karte">Ysolde: 30 TP</li>', 'HeldenKarte({ name: "Ysolde", tp: 30 }) sollte <li class="karte">Ysolde: 30 TP</li> ergeben, es kam ' + $zeige(h) + '.');
+--- test Eine Karte pro Held
+const k = [...document.querySelectorAll("#app li.karte")].map(e => e.textContent.trim());
+$pruefe(JSON.stringify(k) === JSON.stringify(["Kael: 12 TP", "Mira: 8 TP", "Bran: 15 TP"]), 'Auf der Seite sollten drei Karten stehen, es sind ' + $zeige(k) + '.');
+--- test Neue Helden erscheinen nach dem Neuzeichnen
+zustand.helden.push({ name: "Ayla", tp: 9 });
+zeichne();
+$pruefe(document.querySelectorAll("#app li.karte").length === 4, 'Nach dem Hinzufügen von Ayla und zeichne() sollten vier Karten erscheinen.');
+
+=== k16-4 | quiz | Das vergessene Neuzeichnen
+--- frage
+Der Zustand zeigt 5 Gold. Was steht nach einem Klick auf `#mehr` auf der Seite?
+--- code
+const zustand = { gold: 5 };
+
+function zeichne() {
+  document.querySelector("#app").innerHTML = `<p>${zustand.gold} Gold</p>`;
+}
+
+document.querySelector("#mehr").addEventListener("click", () => {
+  zustand.gold = zustand.gold + 1;
+});
+
+zeichne();
+--- option
+6 Gold
+--- option*
+5 Gold
+--- option
+Ein Fehler
+--- option
+Gar nichts mehr
+--- erklaerung
+Der Klick ändert zwar den Zustand auf 6, aber niemand ruft danach `zeichne()` auf. Die Seite zeigt darum weiter das alte Bild: 5 Gold. Zustand und Anzeige passen nicht mehr zusammen. Das ist der häufigste Fehler bei diesem Muster. React nimmt dir genau diesen Schritt ab: Es zeichnet automatisch neu, sobald sich der Zustand ändert.
+
+=== k16-5 | code | Die Suche
+--- szene
+Das Gildenregister ist lang geworden. Mira tippt einen Namen und will nur noch die passenden Helden sehen.
+--- erklaerung
+Auch Eingaben gehören in den Zustand. Bei jedem Tastendruck feuert ein Eingabefeld das Ereignis `"input"`. Dann speicherst du den neuen Text im Zustand und zeichnest neu:
+
+```
+document.querySelector("#suche").addEventListener("input", e => {
+  zustand.suche = e.target.value;
+  zeichne();
+});
+```
+
+`e.target` ist das Feld, in dem getippt wurde, und `e.target.value` sein Text.
+
+In `zeichne()` filterst du vor dem Anzeigen. Damit «mi» auch «Mira» findet, vergleichst du beides in Kleinbuchstaben:
+
+```
+const passend = zustand.helden.filter(h => h.name.toLowerCase().includes(zustand.suche.toLowerCase()));
+```
+
+`includes` fragt: Kommt dieser Text irgendwo darin vor?
+--- html
+<h1>Gildenregister</h1>
+<input id="suche" placeholder="Name suchen">
+<div id="app"></div>
+--- aufgabe
+1. Speichere bei jeder Eingabe in `#suche` den Text in `zustand.suche` und zeichne neu.
+2. Ändere `zeichne()`, damit nur Helden erscheinen, deren Name den Suchtext enthält, ohne auf Gross- und Kleinschreibung zu achten.
+--- start
+const zustand = {
+  suche: "",
+  helden: [
+    { name: "Kael", klasse: "Kämpfer" },
+    { name: "Mira", klasse: "Magierin" },
+    { name: "Bran", klasse: "Schurke" },
+    { name: "Miro", klasse: "Barde" }
+  ]
+};
+
+function HeldenZeile(held) {
+  return `<li class="held">${held.name} (${held.klasse})</li>`;
+}
+
+function zeichne() {
+  const zeilen = zustand.helden.map(HeldenZeile).join("");
+  document.querySelector("#app").innerHTML = `<ul>${zeilen}</ul>`;
+}
+
+// 1. Die Eingabe
+
+zeichne();
+--- loesung
+const zustand = {
+  suche: "",
+  helden: [
+    { name: "Kael", klasse: "Kämpfer" },
+    { name: "Mira", klasse: "Magierin" },
+    { name: "Bran", klasse: "Schurke" },
+    { name: "Miro", klasse: "Barde" }
+  ]
+};
+
+function HeldenZeile(held) {
+  return `<li class="held">${held.name} (${held.klasse})</li>`;
+}
+
+function zeichne() {
+  const suche = zustand.suche.toLowerCase();
+  const passend = zustand.helden.filter(h => h.name.toLowerCase().includes(suche));
+  const zeilen = passend.map(HeldenZeile).join("");
+  document.querySelector("#app").innerHTML = `<ul>${zeilen}</ul>`;
+}
+
+// 1. Die Eingabe
+document.querySelector("#suche").addEventListener("input", e => {
+  zustand.suche = e.target.value;
+  zeichne();
+});
+
+zeichne();
+--- hinweis
+Für die Eingabe passt das erste Beispiel genau.
+--- hinweis
+In `zeichne()` kommt vor dem `map` ein `filter`: `zustand.helden.filter(h => h.name.toLowerCase().includes(zustand.suche.toLowerCase()))`.
+--- test Ohne Suche erscheinen alle
+$pruefe(document.querySelectorAll("#app li.held").length === 4, 'Ohne Suchtext sollten alle vier Helden erscheinen.');
+--- test Die Suche filtert
+$tippe("#suche", "mi");
+const n = [...document.querySelectorAll("#app li.held")].map(e => e.textContent.trim());
+$pruefe(JSON.stringify(n) === JSON.stringify(["Mira (Magierin)", "Miro (Barde)"]), 'Mit der Suche «mi» sollten Mira und Miro erscheinen, es sind ' + $zeige(n) + '.');
+$tippe("#suche", "BRAN");
+$pruefe(document.querySelectorAll("#app li.held").length === 1, 'Mit der Suche «BRAN» sollte Bran erscheinen. Vergleichst du in Kleinbuchstaben?');
+--- test Die Suche steht im Zustand
+$tippe("#suche", "ka");
+$pruefe(zustand.suche === "ka", 'Nach der Eingabe «ka» sollte zustand.suche "ka" sein, es ist ' + $zeige(zustand.suche) + '.');
+
+=== k16-6 | boss | Die Initiativeleiste, neu gebaut
+--- szene
+Der Kampftracker aus Kapitel VIII soll neu gebaut werden, diesmal wie die Profis. Orlan lehnt sich zurück: «Ein Zustand, eine Zeichnung. Zeig es mir.»
+--- erklaerung
+Diese Meisterprüfung braucht alles aus dem Kapitel. Hier steht, was du wofür brauchst.
+
+**Zustand** wie in «Die Seite aus dem Zustand». Er enthält die Liste `kaempfer` mit Objekten wie `{ name: "Mira", initiative: 19 }`.
+
+**Baustein** wie in «Bausteine»: `KaempferZeile(k)` macht daraus `<li class="kaempfer">19 Mira</li>`.
+
+**Sortieren** wie in «Wer ist zuerst dran?» aus Kapitel VIII. Sortiere in `zeichne()` eine **Kopie**, damit der Zustand selbst unverändert bleibt. Mit `[...liste]` machst du eine Kopie einer Liste:
+
+```
+const sortiert = [...zustand.kaempfer].sort((a, b) => b.initiative - a.initiative);
+```
+
+**Leere Liste.** Ist niemand am Tisch, zeigt `#app` den Text `Noch niemand am Tisch.` an.
+
+**Zahlen aus Feldern.** Ein Eingabefeld liefert immer Text. Mit `Number(...)` wird daraus eine Zahl.
+
+**Der Bauplan:**
+
+```
+// zustand mit leerer Liste kaempfer
+// KaempferZeile(k)
+// zeichne(): leer → Hinweis, sonst sortierte Liste
+// Klick auf #hinzu: Name aus #name, Zahl aus #ini lesen,
+//   leerer Name → nichts tun, sonst in den Zustand, Felder leeren, zeichnen
+// Klick auf #leeren: Liste leeren, zeichnen
+```
+--- html
+<h1>Initiativeleiste</h1>
+<input id="name" placeholder="Name">
+<input id="ini" type="number" placeholder="Initiative">
+<button id="hinzu">Hinzufügen</button>
+<button id="leeren">Kampf beenden</button>
+<div id="app"></div>
+--- aufgabe
+1. `#app` zeigt alle Kämpfer als `<li class="kaempfer">19 Mira</li>`, die höchste Initiative zuerst. Ohne Kämpfer steht dort `Noch niemand am Tisch.`
+2. `#hinzu` fügt einen Kämpfer mit Name und Initiative aus den Feldern hinzu und leert danach die Felder. Ein leerer Name fügt nichts hinzu.
+3. `#leeren` entfernt alle Kämpfer.
+4. Jede Änderung geht über den Zustand und `zeichne()`.
+--- start
+// Meisterprüfung: Die Initiativeleiste
+--- loesung
+const zustand = { kaempfer: [] };
+
+function KaempferZeile(k) {
+  return `<li class="kaempfer">${k.initiative} ${k.name}</li>`;
+}
+
+function zeichne() {
+  const app = document.querySelector("#app");
+  if (zustand.kaempfer.length === 0) {
+    app.innerHTML = "<p>Noch niemand am Tisch.</p>";
+    return;
+  }
+  const sortiert = [...zustand.kaempfer].sort((a, b) => b.initiative - a.initiative);
+  app.innerHTML = `<ul>${sortiert.map(KaempferZeile).join("")}</ul>`;
+}
+
+document.querySelector("#hinzu").addEventListener("click", () => {
+  const name = document.querySelector("#name").value.trim();
+  const initiative = Number(document.querySelector("#ini").value);
+  if (name === "") return;
+  zustand.kaempfer.push({ name, initiative });
+  document.querySelector("#name").value = "";
+  document.querySelector("#ini").value = "";
+  zeichne();
+});
+
+document.querySelector("#leeren").addEventListener("click", () => {
+  zustand.kaempfer = [];
+  zeichne();
+});
+
+zeichne();
+--- hinweis
+Beginne mit Zustand, `KaempferZeile` und `zeichne()`, und teste mit **Ausführen**, ob «Noch niemand am Tisch.» erscheint.
+--- hinweis
+Im Klick auf `#hinzu`: `document.querySelector("#name").value.trim()` und `Number(document.querySelector("#ini").value)` lesen, prüfen, `push`, Felder auf `""` setzen und `zeichne()`.
+--- test Am Anfang ist niemand am Tisch
+$pruefe(document.querySelector("#app").textContent.trim() === "Noch niemand am Tisch.", 'Am Anfang sollte in #app «Noch niemand am Tisch.» stehen, dort steht ' + $zeige(document.querySelector("#app").textContent.trim()) + '.');
+--- test Kämpfer erscheinen sortiert
+for (const [n, i] of [["Kael", "12"], ["Mira", "19"], ["Oger", "8"]]) { $tippe("#name", n); $tippe("#ini", i); $klick("#hinzu"); }
+const z = [...document.querySelectorAll("#app li.kaempfer")].map(e => e.textContent.trim());
+$pruefe(JSON.stringify(z) === JSON.stringify(["19 Mira", "12 Kael", "8 Oger"]), 'Nach Kael (12), Mira (19) und Oger (8) sollte die Leiste 19 Mira, 12 Kael, 8 Oger zeigen, sie zeigt ' + $zeige(z) + '.');
+$pruefe(document.querySelector("#name").value === "", 'Nach dem Hinzufügen sollte das Namensfeld leer sein.');
+--- test Ein leerer Name wird nicht hinzugefügt
+$tippe("#name", "   "); $tippe("#ini", "5"); $klick("#hinzu");
+$pruefe(document.querySelectorAll("#app li.kaempfer").length === 0 && document.querySelector("#app").textContent.trim() === "Noch niemand am Tisch.", 'Ein leerer Name sollte nichts hinzufügen.');
+--- test Der Zustand bleibt in der Reihenfolge der Eingabe
+$tippe("#name", "Kael"); $tippe("#ini", "3"); $klick("#hinzu");
+$tippe("#name", "Mira"); $tippe("#ini", "19"); $klick("#hinzu");
+$pruefe(typeof zustand === "object" && Array.isArray(zustand.kaempfer) && zustand.kaempfer.map(k => k.name).join() === "Kael,Mira", 'zustand.kaempfer sollte die Kämpfer in der Reihenfolge der Eingabe enthalten. Sortierst du in zeichne() eine Kopie?');
+$pruefe(zustand.kaempfer[1].initiative === 19, 'Die Initiative sollte als Zahl gespeichert sein. Benutzt du Number(...)?');
+--- test Kampf beenden leert die Leiste
+$tippe("#name", "Bran"); $tippe("#ini", "7"); $klick("#hinzu");
+$klick("#leeren");
+$pruefe(document.querySelector("#app").textContent.trim() === "Noch niemand am Tisch." && zustand.kaempfer.length === 0, 'Nach «Kampf beenden» sollte die Liste leer sein und «Noch niemand am Tisch.» erscheinen.');
+
+### k17 | Meisteraufträge | Echte Aufträge ohne Bauplan: selbst planen, selbst bauen | Meistersiegel
+
+=== k17-1 | boss | Auftrag: Die Würfelstatistik
+--- szene
+Am Schwarzen Brett hängt ein Zettel mit Siegel. Keine Anleitung, kein Bauplan, nur ein Auftrag. Orlan zuckt mit den Schultern: «So sieht die Arbeit draussen aus.»
+--- erklaerung
+Ab jetzt gibt es keinen Bauplan mehr. So kommen Aufträge im echten Leben: als Wunsch eines Kunden, nicht als Schritt-für-Schritt-Anleitung.
+
+So gehst du vor:
+
+1. **Lesen.** Was genau soll herauskommen? Unterstreiche im Kopf jede Bedingung.
+2. **Zerlegen.** In welche kleinen Teile lässt sich der Auftrag aufteilen? Welches Muster kennst du schon?
+3. **Klein anfangen.** Baue einen Teil, teste ihn mit **Ausführen**, dann den nächsten.
+4. **An die Ränder denken.** Was passiert bei einer leeren Liste? Bei nur einem Element?
+
+Es gibt nur einen Hinweis, und der Mentor hilft wie immer, ohne dir die Lösung zu verraten.
+--- aufgabe
+**Auftrag der Spielleiterin:**
+
+«Nach jedem Spielabend will ich wissen, wie wir gewürfelt haben. Schreib mir eine Funktion `statistik(wuerfe)`. Sie bekommt eine Liste von Würfen und gibt ein Objekt zurück mit `tiefster`, `hoechster` und `schnitt`, dem Durchschnitt, auf eine Stelle nach dem Komma gerundet. Hat niemand gewürfelt, gibt sie `null` zurück. Und bitte: Meine Liste darf dabei nicht durcheinandergeraten.»
+--- start
+function statistik(wuerfe) {
+  // dein Code
+}
+
+console.log(statistik([12, 7, 20, 3]));
+--- loesung
+function statistik(wuerfe) {
+  if (wuerfe.length === 0) {
+    return null;
+  }
+  let tiefster = wuerfe[0];
+  let hoechster = wuerfe[0];
+  let summe = 0;
+  for (const w of wuerfe) {
+    if (w < tiefster) tiefster = w;
+    if (w > hoechster) hoechster = w;
+    summe = summe + w;
+  }
+  const schnitt = Math.round(summe / wuerfe.length * 10) / 10;
+  return { tiefster, hoechster, schnitt };
+}
+
+console.log(statistik([12, 7, 20, 3]));
+--- hinweis
+Zerlege den Auftrag: zuerst der leere Fall, dann Tiefster und Höchster wie in «Der beste Wurf», dann die Summe. Auf eine Stelle rundest du mit `Math.round(zahl * 10) / 10`.
+--- test Die Statistik eines Abends
+$pruefe(typeof statistik === "function", 'Es gibt keine Funktion statistik.');
+const s = statistik([12, 7, 20, 3]);
+$pruefe(s && s.tiefster === 3 && s.hoechster === 20 && s.schnitt === 10.5, 'statistik([12, 7, 20, 3]) sollte { tiefster: 3, hoechster: 20, schnitt: 10.5 } ergeben, es kam ' + $zeige(s) + '.');
+--- test Auf eine Stelle gerundet
+const s = statistik([1, 2, 2]);
+$pruefe(s && s.schnitt === 1.7, 'Der Durchschnitt von [1, 2, 2] ist 1.666…, gerundet 1.7. Es kam ' + $zeige(s && s.schnitt) + '.');
+--- test Nur ein Wurf
+const s = statistik([5]);
+$pruefe(s && s.tiefster === 5 && s.hoechster === 5 && s.schnitt === 5, 'statistik([5]) sollte { tiefster: 5, hoechster: 5, schnitt: 5 } ergeben, es kam ' + $zeige(s) + '.');
+--- test Niemand hat gewürfelt
+const s = statistik([]);
+$pruefe(s === null, 'statistik([]) sollte null ergeben, es kam ' + $zeige(s) + '.');
+--- test Die Liste bleibt, wie sie war
+const liste = [9, 2, 15];
+statistik(liste);
+$pruefe(JSON.stringify(liste) === "[9,2,15]", 'Nach statistik(liste) ist die Liste ' + $zeige(liste) + ' statt [9, 2, 15]. Sortierst du die Liste der Spielleiterin?');
+
+=== k17-2 | boss | Auftrag: Die Wetterwarte
+--- modus async
+--- botschaften
+{ "https://rabenfurt.ch/api/woche": [
+  { "tag": "Montag", "grad": 14, "himmel": "Sonne" },
+  { "tag": "Dienstag", "grad": 11, "himmel": "Regen" },
+  { "tag": "Mittwoch", "grad": 18, "himmel": "Sonne" },
+  { "tag": "Donnerstag", "grad": 9, "himmel": "Regen" },
+  { "tag": "Freitag", "grad": 12, "himmel": "Wolken" }
+] }
+--- szene
+Mira plant die Reise nach Nordmark und hängt einen Auftrag ans Brett. Unten steht in kleiner Schrift: «Bezahlung in Gold.»
+--- erklaerung
+Ein Meisterauftrag ohne Bauplan. Du brauchst, was du in Kapitel XIII über `fetch` gelernt hast, und Muster aus den früheren Kapiteln.
+
+Tipp: Beide Zauber brauchen denselben Wetterbericht. Eine eigene Hilfsfunktion, die ihn lädt, erspart dir doppelten Code.
+--- aufgabe
+**Auftrag von Mira:**
+
+«Die Wetterwarte schickt unter `https://rabenfurt.ch/api/woche` den Bericht der Woche: eine Liste mit `tag`, `grad` und `himmel`. Ich brauche zwei Zauber:
+
+1. `waermsterTag()` gibt den Namen des wärmsten Tages zurück.
+2. `regentage()` gibt zurück, an wie vielen Tagen der Himmel `Regen` zeigt.
+
+Manchmal ist die Warte nicht erreichbar. Dann soll `waermsterTag()` den Text `Unbekannt` und `regentage()` die Zahl `0` zurückgeben.»
+--- start
+async function start() {
+  console.log(await waermsterTag());
+  console.log(await regentage());
+}
+
+start();
+--- loesung
+async function ladeWoche() {
+  const antwort = await fetch("https://rabenfurt.ch/api/woche");
+  if (!antwort.ok) {
+    return [];
+  }
+  return await antwort.json();
+}
+
+async function waermsterTag() {
+  const woche = await ladeWoche();
+  if (woche.length === 0) {
+    return "Unbekannt";
+  }
+  let rekord = woche[0];
+  for (const t of woche) {
+    if (t.grad > rekord.grad) rekord = t;
+  }
+  return rekord.tag;
+}
+
+async function regentage() {
+  const woche = await ladeWoche();
+  return woche.filter(t => t.himmel === "Regen").length;
+}
+
+async function start() {
+  console.log(await waermsterTag());
+  console.log(await regentage());
+}
+
+start();
+--- hinweis
+Lade die Liste in einer Hilfsfunktion, die bei einer schlechten Antwort `[]` zurückgibt. Dann helfen dir das Rekord-Muster und `filter`.
+--- test Der wärmste Tag
+$pruefe(typeof waermsterTag === "function", 'Es gibt keine Funktion waermsterTag.');
+const e = await waermsterTag();
+$pruefe(e === "Mittwoch", 'Der wärmste Tag ist Mittwoch (18 Grad), es kam ' + $zeige(e) + '.');
+--- test Die Regentage
+$pruefe(typeof regentage === "function", 'Es gibt keine Funktion regentage.');
+const e = await regentage();
+$pruefe(e === 2, 'Es regnet an 2 Tagen, es kam ' + $zeige(e) + '.');
+--- test Eine andere Woche
+$botschaft("https://rabenfurt.ch/api/woche", [{ tag: "Samstag", grad: 25, himmel: "Regen" }, { tag: "Sonntag", grad: 3, himmel: "Schnee" }]);
+const a = await waermsterTag(), b = await regentage();
+$pruefe(a === "Samstag" && b === 1, 'Mit einer anderen Woche sollten "Samstag" und 1 herauskommen, es kam ' + $zeige([a, b]) + '. Lädst du die Daten mit fetch?');
+--- test Die Warte ist nicht erreichbar
+$botschaft("https://rabenfurt.ch/api/woche", { $status: 503, daten: { fehler: "Die Warte schläft." } });
+const a = await waermsterTag(), b = await regentage();
+$pruefe(a === "Unbekannt" && b === 0, 'Ist die Antwort nicht ok, sollten "Unbekannt" und 0 herauskommen, es kam ' + $zeige([a, b]) + '.');
+
+=== k17-3 | boss | Auftrag: Der Gildenserver
+--- modus dateien
+--- server
+server.js
+--- dateien
+{
+  "server.js": "export function antworte(anfrage) {\n  // dein Code\n}\n",
+  "spiel.js": "async function start() {\n  const neu = await fetch(\"/api/mitglieder\", { method: \"POST\", body: JSON.stringify({ name: \"Mira\", klasse: \"Magier\" }) });\n  console.log(\"Mira aufnehmen: Status \" + neu.status);\n  const anzahl = await (await fetch(\"/api/mitglieder/anzahl\")).json();\n  console.log(\"Mitglieder: \" + anzahl.anzahl);\n}\n\nstart();\n"
+}
+--- szene
+Die Gildenmeisterin persönlich hat diesen Auftrag ausgeschrieben. Wer ihn erfüllt, bekommt einen Schlüssel zum Gildenhaus.
+--- erklaerung
+Der letzte Meisterauftrag, ohne Bauplan. Du brauchst alles aus Kapitel XV.
+
+Lies den Auftrag zweimal und schreibe dir zuerst eine Liste aller Routen auf, als Kommentar in `server.js`. Baue dann eine Route nach der anderen und teste jede mit **Ausführen**.
+--- aufgabe
+**Auftrag der Gildenmeisterin:**
+
+«Die Gilde braucht einen Server für ihre Mitglieder unter `/api/mitglieder`:
+
+- `GET /api/mitglieder` liefert alle Mitglieder als Liste.
+- `POST /api/mitglieder` nimmt ein neues Mitglied `{ name, klasse }` an und antwortet mit 201. Der Name darf nicht leer sein, und erlaubt sind nur die Klassen `Kämpfer`, `Magier`, `Schurke` und `Kleriker`. Sonst gibt es 400. Gespeichert werden nur `name` und `klasse`.
+- `GET /api/mitglieder/anzahl` liefert `{ anzahl }`.
+- Alles andere bekommt 404.
+
+Kael ist schon Mitglied, als `Kämpfer`.»
+--- loesung
+{
+  "server.js": "const KLASSEN = [\"Kämpfer\", \"Magier\", \"Schurke\", \"Kleriker\"];\nconst mitglieder = [{ name: \"Kael\", klasse: \"Kämpfer\" }];\n\nexport function antworte(anfrage) {\n  if (anfrage.pfad === \"/api/mitglieder\" && anfrage.methode === \"GET\") {\n    return { status: 200, daten: mitglieder };\n  }\n  if (anfrage.pfad === \"/api/mitglieder/anzahl\" && anfrage.methode === \"GET\") {\n    return { status: 200, daten: { anzahl: mitglieder.length } };\n  }\n  if (anfrage.pfad === \"/api/mitglieder\" && anfrage.methode === \"POST\") {\n    const d = anfrage.daten;\n    if (!d || typeof d.name !== \"string\" || d.name.trim() === \"\" || !KLASSEN.includes(d.klasse)) {\n      return { status: 400, daten: { fehler: \"Name fehlt oder Klasse ungültig.\" } };\n    }\n    const neu = { name: d.name, klasse: d.klasse };\n    mitglieder.push(neu);\n    return { status: 201, daten: neu };\n  }\n  return { status: 404, daten: { fehler: \"Diese Tür gibt es nicht.\" } };\n}\n",
+  "spiel.js": "async function start() {\n  const neu = await fetch(\"/api/mitglieder\", { method: \"POST\", body: JSON.stringify({ name: \"Mira\", klasse: \"Magier\" }) });\n  console.log(\"Mira aufnehmen: Status \" + neu.status);\n  const anzahl = await (await fetch(\"/api/mitglieder/anzahl\")).json();\n  console.log(\"Mitglieder: \" + anzahl.anzahl);\n}\n\nstart();\n"
+}
+--- hinweis
+Schreib zuerst alle vier Routen als Kommentare auf. Kael steht von Anfang an in der Liste ausserhalb der Funktion.
+--- test Die Konsole zeigt die Aufnahme
+$erwarteAusgabe($ausgabe, ["Mira aufnehmen: Status 201", "Mitglieder: 2"], 'Konsole');
+--- test GET liefert alle Mitglieder
+const a = __lade("server.js").antworte({ methode: "GET", pfad: "/api/mitglieder", suche: {}, daten: null });
+$pruefe(a && a.status === 200 && Array.isArray(a.daten) && a.daten.some(m => m && m.name === "Kael" && m.klasse === "Kämpfer"), 'GET /api/mitglieder sollte 200 und eine Liste mit Kael (Kämpfer) liefern, es kam ' + $zeige(a) + '.');
+--- test Neue Mitglieder werden geprüft
+const frag = daten => __lade("server.js").antworte({ methode: "POST", pfad: "/api/mitglieder", suche: {}, daten });
+for (const d of [{ name: "", klasse: "Magier" }, { name: "Bran", klasse: "Drache" }, { name: "Bran" }, null]) {
+  const a = frag(d);
+  $pruefe(a && a.status === 400, 'Das Mitglied ' + $zeige(d) + ' sollte 400 bekommen, es kam ' + $zeige(a) + '.');
+}
+const ok = frag({ name: "Bran", klasse: "Schurke", gold: 9999 });
+$pruefe(ok && ok.status === 201, 'Bran als Schurke sollte 201 bekommen, es kam ' + $zeige(ok) + '.');
+$pruefe(ok.daten && !("gold" in ok.daten), 'Gespeichert werden nur name und klasse, es kam ' + $zeige(ok.daten) + '.');
+--- test Die Anzahl stimmt
+const vorher = __lade("server.js").antworte({ methode: "GET", pfad: "/api/mitglieder/anzahl", suche: {}, daten: null });
+__lade("server.js").antworte({ methode: "POST", pfad: "/api/mitglieder", suche: {}, daten: { name: "Ysolde", klasse: "Kleriker" } });
+const nachher = __lade("server.js").antworte({ methode: "GET", pfad: "/api/mitglieder/anzahl", suche: {}, daten: null });
+$pruefe(vorher && nachher && vorher.status === 200 && nachher.daten.anzahl === vorher.daten.anzahl + 1, '/api/mitglieder/anzahl sollte nach einer Aufnahme um 1 steigen, es kam ' + $zeige([vorher, nachher]) + '.');
+--- test Alles andere bekommt 404
+const a = __lade("server.js").antworte({ methode: "DELETE", pfad: "/api/mitglieder", suche: {}, daten: null });
+const b = __lade("server.js").antworte({ methode: "GET", pfad: "/api/schatz", suche: {}, daten: null });
+$pruefe(a && a.status === 404 && b && b.status === 404, 'DELETE /api/mitglieder und GET /api/schatz sollten 404 bekommen, es kam ' + $zeige([a, b]) + '.');
+
 ### t1 | Die Kommandozeile | Mit Befehlen durch Ordner und Dateien | Befehlssiegel | pfad:werkzeug
 
 === t1-1 | code | Wo bin ich?
@@ -9219,6 +10179,95 @@ const c = $w.commits("main");
 $pruefe(c.length >= 1 && c[0].eltern.length === 2 && "schatz.txt" in c[0].dateien);
 --- test Alles ist festgehalten, und du bist auf main
 $pruefe($w.zweig() === "main" && $w.sauber());
+
+### t3 | Der Auszug | Vom Kodex auf den eigenen Laptop und zu GitHub | Auszugssiegel | pfad:werkzeug
+
+=== t3-1 | quiz | Wo ist mein Stand?
+--- frage
+Du hast `git commit` gemacht, aber noch nie `git push`. Wo ist dein Stand jetzt gespeichert?
+--- code
+git add .
+git commit -m "Neuer Würfelknopf"
+--- option
+Auf GitHub, für alle sichtbar
+--- option*
+Nur auf deinem Laptop, im Ordner .git
+--- option
+Nirgends, er geht beim Schliessen verloren
+--- option
+Auf GitHub und auf dem Laptop
+--- erklaerung
+Ein Commit bleibt zuerst auf deinem Computer, im versteckten Ordner `.git`. Erst `git push` schickt die Commits zu GitHub. Darum gilt: Ist der Laptop kaputt und du hast nie gepusht, ist auch die Chronik weg. Pushe darum regelmässig. Genau das macht GitHub Desktop mit **Push origin** bei deinem Zauberkodex.
+
+=== t3-2 | boss | Der Auszug aus dem Kodex
+--- modus terminal
+--- szene
+Orlan schliesst das Zauberbuch und schiebt es dir zu. «Ab heute brauchst du mich nicht mehr. Bau deine eigene Werkstatt, auf deinem eigenen Tisch.»
+--- erklaerung
+Das ist die letzte Prüfung des Pfads, und sie ist eine Generalprobe. Danach machst du genau dasselbe auf deinem eigenen Laptop. So geht es in echt:
+
+**1. Drei Programme installieren** (alle gratis):
+
+- **VS Code** von code.visualstudio.com, der Editor, den die meisten Entwickler benutzen.
+- **Node.js** von nodejs.org, damit `node spiel.js` funktioniert. Nimm die Version «LTS».
+- **Git** von git-scm.com. Bei der Installation kannst du überall die Vorschläge übernehmen.
+
+**2. Git einmal sagen, wer du bist.** Diese Angaben stehen später in jedem Commit:
+
+```
+git config --global user.name "Dein Name"
+git config --global user.email "deine@mail.ch"
+```
+
+**3. Ein Projekt anlegen.** Ordner erstellen, in VS Code öffnen (**Datei → Ordner öffnen**) und das Terminal in VS Code starten (**Terminal → Neues Terminal**). Dort funktionieren alle Befehle aus diesem Pfad.
+
+**4. Auf GitHub ein leeres Repository anlegen.** Auf github.com oben rechts **+ → New repository**, einen Namen eingeben und **Create repository** klicken. GitHub zeigt dir dann die Adresse, zum Beispiel `https://github.com/lernkodex/mein-spiel.git`.
+
+**5. Verbinden und hochladen:**
+
+```
+git remote add origin https://github.com/lernkodex/mein-spiel.git
+git push -u origin main
+```
+
+- `remote add origin` merkt sich die Adresse unter dem Namen `origin`.
+- `push -u origin main` schickt den Branch `main` hoch. Mit `-u` merkt sich Git das Ziel, danach reicht `git push`.
+
+Beim ersten Push fragt GitHub, wer du bist. Es öffnet sich ein Browserfenster, in dem du dich anmeldest.
+--- aufgabe
+Mach die Generalprobe im Terminal:
+
+1. Sag Git deinen Namen und deine E-Mail.
+2. Lege den Ordner `mein-spiel` an, darin `spiel.js`, die etwas ausgibt, und starte sie mit `node`.
+3. Mach den Ordner zum Repository und halte alles in einem Commit fest.
+4. Verbinde ihn mit `https://github.com/lernkodex/mein-spiel.git` und pushe `main`.
+--- loesung
+git config --global user.name "Held"
+git config --global user.email "held@rabenfurt.ch"
+mkdir mein-spiel
+cd mein-spiel
+echo 'console.log("Mein eigenes Spiel!");' > spiel.js
+node spiel.js
+git init
+git add .
+git commit -m "Erster Stand"
+git remote add origin https://github.com/lernkodex/mein-spiel.git
+git push -u origin main
+--- hinweis
+Die Befehle stehen alle in der Erklärung oder in früheren Lektionen. Gehe Schritt für Schritt vor und schau zwischendurch mit `git status` nach.
+--- hinweis
+Die letzten zwei Befehle: `git remote add origin https://github.com/lernkodex/mein-spiel.git` und `git push -u origin main`.
+--- test Git kennt deinen Namen und deine E-Mail
+const k = $w.konfig();
+$pruefe(!!(k["user.name"] && k["user.name"].trim()) && /@/.test(k["user.email"] || ""));
+--- test mein-spiel/spiel.js läuft
+$pruefe($w.istDatei("mein-spiel/spiel.js") && $w.benutzt(/^node\s+(\.\/)?spiel\.js$/) && /console\.log/.test($w.inhalt("mein-spiel/spiel.js") || ""));
+--- test Alles ist in einem Commit festgehalten
+$pruefe($w.gitWurzel() === "~/mein-spiel" && $w.commits().length >= 1 && "spiel.js" in $w.commits()[0].dateien && $w.sauber());
+--- test Das Repository ist mit GitHub verbunden
+$pruefe(/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\.git$/.test($w.fern().origin || ""));
+--- test main ist hochgeladen
+$pruefe($w.gepusht("main"));
 
 ### p1 | Die ersten Runen | print, Variablen, Texte und Zahlen | Runensiegel | pfad:python
 
@@ -20971,15 +22020,30 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     function botenEinrichten(b) {
       botschaften = b;
       self.$botschaft = (url, daten) => { botschaften[url] = daten; };
-      self.fetch = async url => {
+      const antwortObjekt = (status, daten, url) => ({ ok: status >= 200 && status < 300, status, url,
+        json: async () => JSON.parse(JSON.stringify(daten === undefined ? null : daten)),
+        text: async () => typeof daten === "string" ? daten : JSON.stringify(daten) });
+      self.fetch = async (url, opt) => {
         await pause(30);
         url = String(url);
+        // Lokale Adressen gehen an den eigenen Server der Lektion (server.js), falls es einen gibt
+        if ((url.startsWith("/") || /^https?:\/\/localhost(:\d+)?\//.test(url)) && typeof self.__antworte === "function") {
+          const u = new URL(url, "http://localhost:3000");
+          const methode = String((opt && opt.method) || "GET").toUpperCase();
+          let daten = null;
+          if (opt && opt.body != null) { try { daten = JSON.parse(opt.body); } catch (e) { daten = String(opt.body); } }
+          let r;
+          try { r = await self.__antworte({ methode, pfad: u.pathname, suche: Object.fromEntries(u.searchParams), daten }); }
+          catch (e) { console.error("Fehler im Server: " + (e && e.message)); r = { status: 500, daten: { fehler: "Interner Serverfehler" } }; }
+          if (!r || typeof r !== "object") {
+            console.error("Server: Auf " + methode + " " + u.pathname + " kam keine Antwort zurück. Fehlt in antworte ein return?");
+            r = { status: 500, daten: { fehler: "Der Server hat keine Antwort zurückgegeben." } };
+          }
+          return antwortObjekt(Number(r.status) || 200, r.daten, url);
+        }
         const e = Object.prototype.hasOwnProperty.call(botschaften, url) ? botschaften[url] : { $status: 404, daten: { fehler: "Nicht gefunden" } };
         const status = e && e.$status ? e.$status : 200;
-        const daten = e && e.$status ? e.daten : e;
-        return { ok: status >= 200 && status < 300, status, url,
-          json: async () => JSON.parse(JSON.stringify(daten === undefined ? null : daten)),
-          text: async () => typeof daten === "string" ? daten : JSON.stringify(daten) };
+        return antwortObjekt(status, e && e.$status ? e.daten : e, url);
       };
       self.onunhandledrejection = e => { e.preventDefault(); if (!offenerFehler) offenerFehler = e.reason; };
     }
@@ -23151,7 +24215,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     const kopf = exporte.map(([aussen, innen]) => "Object.defineProperty(__exp, " + JSON.stringify(aussen) + ", { enumerable: true, get: () => " + innen + " });").join(" ");
     return { kopf, t };
   }
-  function buendeln(dateien, einstieg) {
+  function buendeln(dateien, einstieg, server) {
     let code = "const $dateien = " + JSON.stringify(dateien) + ";\nconst __module = {}, __fertig = {};\n" +
       "function __lade(p, namen) {\n" +
       "  let n = String(p).replace(/^\\.\\//, \"\");\n" +
@@ -23168,6 +24232,8 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       karte.push({ datei: n, ab: zeilenVorher + 2, anzahl: t.split("\n").length });
       code += t + "\n};\n";
     }
+    // Der eigene Server: fetch auf lokale Adressen ruft seine Funktion antworte auf
+    if (server && server in dateien) code += "self.__antworte = a => __lade(" + JSON.stringify(server) + ").antworte(a);\n";
     if (einstieg) code += "__lade(" + JSON.stringify(einstieg) + ");\n";
     return { code, karte };
   }
@@ -23194,6 +24260,8 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     return html;
   }
   const dateiSprache = n => /\.(html|css)$/.test(n) ? "html" : "js";
+  // Lektionen mit eigenem Server oder mit Botenraben laufen im asynchronen Modus
+  const dateienZusatz = l => l.server ? { asynchron: true, botschaften: l.botschaften ? JSON.parse(l.botschaften) : {} } : asyncZusatz(l);
   const gueltigerDateiname = n => /^[\w-][\w.-]{0,39}$/.test(n) && /\.(js|html|css|txt|json)$/.test(n);
 
   // Editor mit Reitern für mehrere Dateien
@@ -23307,8 +24375,8 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     }
     async function ausfuehrenKnopf() {
       if (web) { webStarten(); return; }
-      const b = buendeln(ed.dateien(), einstieg);
-      konsoleZeigen(await ausfuehren(b.code, null), b.karte);
+      const b = buendeln(ed.dateien(), einstieg, l.server);
+      konsoleZeigen(await ausfuehren(b.code, null, null, dateienZusatz(l)), b.karte);
     }
     function terminalLoseHilfe() {
       const genutzt = zustand.hinweise[l.id] || 0, versuche = zustand.versuche[l.id] || 0, offen = !!zustand.loesung[l.id];
@@ -23335,7 +24403,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       const d = ed.dateien();
       let ergebnis, karte = [];
       if (web) ergebnis = await pruefeWeb(Object.assign({}, l, { modus: "seite" }), seiteVerbinden(d), null);
-      else { const b = buendeln(d, einstieg); karte = b.karte; ergebnis = await ausfuehren(b.code, l.tests.map(t => t.code)); }
+      else { const b = buendeln(d, einstieg, l.server); karte = b.karte; ergebnis = await ausfuehren(b.code, l.tests.map(t => t.code), null, dateienZusatz(l)); }
       $("#pruefen").disabled = false;
       laeuft = false;
       if (!web || ergebnis.fehler || ergebnis.zeitUeberschritten) konsoleZeigen(ergebnis, karte);
@@ -23376,7 +24444,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
   async function dateienSelbsttest(l) {
     const lauf = async d => "index.html" in d
       ? await pruefeWeb(Object.assign({}, l, { modus: "seite" }), seiteVerbinden(d), null)
-      : await ausfuehren(buendeln(d, l.einstieg || "spiel.js").code, l.tests.map(t => t.code));
+      : await ausfuehren(buendeln(d, l.einstieg || "spiel.js", l.server).code, l.tests.map(t => t.code), null, dateienZusatz(l));
     const alleOk = r => !!r.tests && r.tests.length === l.tests.length && r.tests.every(t => t.status === "ok");
     const a = await lauf(JSON.parse(l.loesung)), b = await lauf(JSON.parse(l.dateien));
     return { ok: alleOk(a) && !alleOk(b), loesung: a, start: alleOk(b) };
@@ -23485,9 +24553,16 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       sag("Leeres Git-Repository in " + w.cwd + "/.git/ initialisiert");
       return;
     }
-    if (!unter || unter === "help" || unter === "--help") { sag("Git-Befehle im Kodex: init, status, add, commit, log, branch, switch, checkout, merge"); return; }
-    const bekannt = ["status", "add", "commit", "log", "branch", "switch", "checkout", "merge"];
+    if (!unter || unter === "help" || unter === "--help") { sag("Git-Befehle im Kodex: init, status, add, commit, log, branch, switch, checkout, merge, config, remote, push"); return; }
+    const bekannt = ["status", "add", "commit", "log", "branch", "switch", "checkout", "merge", "config", "remote", "push"];
     if (!bekannt.includes(unter)) { sag("git: '" + unter + "' ist kein Git-Befehl. Siehe 'git help'."); return; }
+    if (unter === "config") {
+      const i = r.findIndex(x => x === "user.name" || x === "user.email");
+      if (i < 0) { sag("Im Kodex kennt git config nur user.name und user.email."); return; }
+      if (r[i + 1] === undefined) { sag((w.konfig || {})[r[i]] || ""); return; }
+      w.konfig = Object.assign({}, w.konfig, { [r[i]]: r[i + 1] });
+      return;
+    }
     if (!w.git || !(w.cwd === w.gitWurzel || w.cwd.startsWith(w.gitWurzel + "/"))) { sag("fatal: Kein Git-Repository (oder irgendein Elternverzeichnis): .git"); return; }
     const g = w.git;
     const relZurWurzel = p => { const ab = pfadAuf(w, p); return ab === w.gitWurzel ? "" : ab.slice(w.gitWurzel.length + 1); };
@@ -23581,6 +24656,34 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       standSetzen(w, weg, wechsel);
       g.kopf = name;
       sag("Zu Branch '" + name + "' gewechselt");
+      return;
+    }
+    if (unter === "remote") {
+      if (r[0] === "add") {
+        if (!r[1] || !r[2]) { sag("Benutze: git remote add origin https://github.com/name/projekt.git"); return; }
+        if ((g.fern || {})[r[1]]) { sag("error: Remote " + r[1] + " existiert bereits."); return; }
+        g.fern = Object.assign({}, g.fern, { [r[1]]: r[2] });
+        return;
+      }
+      Object.entries(g.fern || {}).forEach(([n, u]) => { if (r.includes("-v")) { sag(n + "\t" + u + " (fetch)"); sag(n + "\t" + u + " (push)"); } else sag(n); });
+      return;
+    }
+    if (unter === "push") {
+      const namen = r.filter(x => !x.startsWith("-"));
+      const ziel = namen[0] || (g.verfolgt || {})[g.kopf];
+      const zweig = namen[1] || g.kopf;
+      if (!ziel || !(g.fern || {})[ziel]) { sag(ziel ? "fatal: '" + ziel + "' scheint kein Git-Repository zu sein" : "fatal: Kein Ziel für den Push konfiguriert.\nGib eines an: git push -u origin " + g.kopf); return; }
+      if (!g.zweige[zweig]) { sag("error: src refspec " + zweig + " stimmt mit keinem überein\n(Mache zuerst einen Commit.)"); return; }
+      g.gepusht = g.gepusht || {};
+      const alt = g.gepusht[ziel + "/" + zweig], neu = g.zweige[zweig];
+      if (alt === neu) { sag("Everything up-to-date"); return; }
+      const anzahl = vorfahren(g, neu).size - (alt ? vorfahren(g, alt).size : 0);
+      sag("Objekte aufzählen: " + anzahl * 3 + ", fertig.");
+      sag("Schreibe Objekte: 100% (" + anzahl * 3 + "/" + anzahl * 3 + "), fertig.");
+      sag("To " + g.fern[ziel]);
+      sag(alt ? "   " + alt + ".." + neu + "  " + zweig + " -> " + zweig : " * [new branch]      " + zweig + " -> " + zweig);
+      g.gepusht[ziel + "/" + zweig] = neu;
+      if (r.includes("-u") || r.includes("--set-upstream")) { g.verfolgt = Object.assign({}, g.verfolgt, { [zweig]: ziel }); sag("Branch '" + zweig + "' folgt nun '" + ziel + "/" + zweig + "'."); }
       return;
     }
     if (unter === "merge") {
@@ -23782,6 +24885,9 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       gitWurzel: () => w.gitWurzel ? zeigePfad(w.gitWurzel) : null,
       zweig: () => w.git ? w.git.kopf : null,
       zweige: () => w.git ? Object.keys(w.git.zweige).filter(z => w.git.zweige[z]) : [],
+      fern: () => w.git ? Object.assign({}, w.git.fern) : {},
+      gepusht: zweig => !!(w.git && w.git.gepusht && Object.keys(w.git.gepusht).some(k => k.endsWith("/" + zweig) && w.git.gepusht[k] === w.git.zweige[zweig])),
+      konfig: () => Object.assign({}, w.konfig),
       commits: commitListe,
       alleCommits: () => w.git ? Object.values(w.git.commits) : [],
       sauber: () => { if (!w.git) return false; const v = gitVergleich(w); return !v.vorgemerkt.length && !v.geaendert.length && !v.neu.length; }
