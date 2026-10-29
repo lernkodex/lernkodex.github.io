@@ -252,8 +252,8 @@ if (botUrl) window.__kodexBot = async frage => {
   const token = await nutzer.getIdToken();
   let r;
   try {
-    r = await fetch(botUrl, { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + token }, body: JSON.stringify(frage) });
-  } catch (e) { throw new Error("Keine Verbindung zum Mentor. Bist du online?"); }
+    r = await fetch(botUrl, { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + token }, body: JSON.stringify(frage), signal: AbortSignal.timeout(35000) });
+  } catch (e) { throw new Error(e && e.name === "TimeoutError" ? "Der Mentor braucht zu lange. Versuch es nochmal." : "Keine Verbindung zum Mentor. Bist du online?"); }
   const d = await r.json().catch(() => ({}));
   if (!r.ok || typeof d.antwort !== "string") throw new Error(d.fehler || "Der Mentor antwortet gerade nicht.");
   return d.antwort;
