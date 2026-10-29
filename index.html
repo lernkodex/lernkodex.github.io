@@ -1400,9 +1400,14 @@ button, a, summary, [role="button"] { -webkit-tap-highlight-color: transparent; 
 .heute-kopf { display: grid; gap: 6px; }
 .heute-kopf .klein svg { width: 14px; height: 14px; vertical-align: -2px; color: var(--gold); }
 .heute .aktionen-zeile { display: flex; flex-wrap: wrap; gap: 10px; }
-.sync-knopf[data-stand="ok"] { color: var(--gut); }
-.sync-knopf[data-stand="laeuft"] { color: var(--gold); }
-.sync-knopf[data-stand="fehler"] { color: var(--schlecht); border-color: var(--schlecht); }
+#menue { position: relative; }
+.sync-punkt {
+  position: absolute; top: 5px; right: 5px; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--leise); box-shadow: 0 0 0 2px var(--blatt); pointer-events: none;
+}
+.sync-punkt[data-stand="ok"] { background: var(--gut); }
+.sync-punkt[data-stand="laeuft"] { background: var(--arkan); animation: stand-puls 1.2s ease-in-out infinite; }
+.sync-punkt[data-stand="fehler"] { background: var(--schlecht); }
 
 /* ---------- App: je nach Geraet ---------- */
 .schlank .kopf [data-ziel="werkstatt"], .schlank .werkstatt-kachel { display: none; }
@@ -1467,8 +1472,7 @@ button, a, summary, [role="button"] { -webkit-tap-highlight-color: transparent; 
       <div class="serie" id="serie" title="Tage in Folge gelernt"></div>
       <a class="symbolknopf" href="#werkstatt" data-ziel="werkstatt" aria-label="Werkstatt" title="Werkstatt"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 6.5l4 4M11 9l-7.5 7.5a2 2 0 0 0 3 3L14 12"/><path d="M12 5l3-2.5 6.5 6.5L19 12z"/></svg></a>
       <a class="profilknopf" id="profil-knopf" href="#profil" data-ziel="profil" aria-label="Profil und Inventar"></a>
-      <button class="symbolknopf sync-knopf" id="sync-knopf" type="button" aria-label="Synchronisierung" hidden><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18h10.5a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.6 9.1 4.5 4.5 0 0 0 7 18z"/></svg></button>
-      <button class="symbolknopf" id="menue" type="button" aria-label="Einstellungen">
+      <button class="symbolknopf" id="menue" type="button" aria-label="Einstellungen"><span class="sync-punkt" id="sync-knopf" hidden></span>
         <svg viewBox="0 0 20 20" aria-hidden="true" fill="currentColor"><circle cx="4" cy="10" r="1.7"/><circle cx="10" cy="10" r="1.7"/><circle cx="16" cy="10" r="1.7"/></svg>
       </button>
     </div>

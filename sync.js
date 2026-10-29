@@ -74,8 +74,9 @@ function zeige(phase, text) {
   stand.text = text || "";
   if (knopf) {
     knopf.dataset.stand = phase;
-    knopf.title = phase === "ok" ? "Synchronisiert" + (stand.zuletzt ? " um " + stand.zuletzt.toLocaleTimeString("de-CH") : "")
-      : phase === "fehler" ? "Abgleich gestört: " + stand.text : phase === "laeuft" ? stand.text || "Gleiche ab …" : "Nicht angemeldet";
+    // Der Punkt sitzt im Einstellungsknopf, der Hinweis gehört an den Knopf selbst
+    (knopf.closest("button") || knopf).title = "Einstellungen · " + (phase === "ok" ? "Synchronisiert" + (stand.zuletzt ? " um " + stand.zuletzt.toLocaleTimeString("de-CH") : "")
+      : phase === "fehler" ? "Abgleich gestört: " + stand.text : phase === "laeuft" ? stand.text || "Gleiche ab …" : "Nicht angemeldet");
   }
   if (bereich && document.body.contains(bereich)) ui(bereich);
 }
@@ -318,7 +319,6 @@ if (botUrl) window.__kodexBot = async frage => {
 };
 window.__kodexSyncUi = ui;
 window.__kodexNachSpeichern = () => schreiben(false);
-if (knopf) knopf.addEventListener("click", () => window.__kodexEinstellungen ? window.__kodexEinstellungen("konto") : document.getElementById("menue").click());
 
 if (konfiguriert && kodex) {
   if (knopf) knopf.hidden = false;
