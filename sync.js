@@ -1,6 +1,6 @@
 // Gleicht den Fortschritt zwischen Laptop und Handy über Firebase ab.
 // Ohne eingetragene Firebase-Werte bleibt alles wie bisher: Der Kodex speichert nur im Browser.
-import { firebaseConfig } from "./firebase-config.js";
+import { firebaseConfig, botUrl } from "./firebase-config.js";
 
 const QUELLE = "https://www.gstatic.com/firebasejs/10.12.2/";
 const kodex = window.__kodex;
@@ -246,6 +246,18 @@ function gilde(el) {
 window.__kodexGilde = gilde;
 // Wurde die Gilde schon geöffnet, bevor dieses Modul geladen war, jetzt füllen
 if (document.getElementById("gilde-bereich")) gilde(document.getElementById("gilde-bereich"));
+// Mentor-Bot: schickt Aufgabe, Code und Fehler mit dem Anmeldezeichen an den Cloudflare Worker
+if (botUrl) window.__kodexBot = async frage => {
+  if (!nutzer) throw new Error("Melde dich in den Einstellungen an, dann hilft dir der Mentor.");
+  const token = await nutzer.getIdToken();
+  let r;
+  try {
+    r = await fetch(botUrl, { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + token }, body: JSON.stringify(frage) });
+  } catch (e) { throw new Error("Keine Verbindung zum Mentor. Bist du online?"); }
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok || typeof d.antwort !== "string") throw new Error(d.fehler || "Der Mentor antwortet gerade nicht.");
+  return d.antwort;
+};
 window.__kodexSyncUi = ui;
 window.__kodexNachSpeichern = () => schreiben(false);
 if (knopf) knopf.addEventListener("click", () => document.getElementById("menue").click());

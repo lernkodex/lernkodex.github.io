@@ -7,3 +7,6 @@ export const firebaseConfig = {
   projectId: "kodex-d04f5",
   appId: "1:1090699860911:web:b1362afbcc110ec2166d5a"
 };
+
+// Adresse des Mentor-Bots (Cloudflare Worker). Leer = kein Mentor.
+export const botUrl = "https://zauberkodex-bot.zauberkodex.workers.dev";

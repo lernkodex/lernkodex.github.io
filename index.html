@@ -359,6 +359,8 @@ pre.code-block code { font-size: inherit; }
 .aufgabe .prosa { gap: 10px; }
 .hilfe { display: grid; gap: 10px; }
 .hilfe-knoepfe { display: flex; flex-wrap: wrap; gap: 8px; }
+.bot-box { margin-top: 12px; display: grid; gap: 8px; }
+.bot-box .hinweis { margin: 0; }
 .hinweis {
   background: var(--gold-grund); border-radius: 12px; padding: 12px 14px; display: grid; gap: 4px;
 }
@@ -20948,6 +20950,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       stand("geladen");
     }
 
+    let botFehler = null, botAntworten = [], botStufe = 0;
     function zeigeHilfe() {
       const genutzt = zustand.hinweise[l.id] || 0;
       const versuche = zustand.versuche[l.id] || 0;
@@ -20967,7 +20970,25 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       if (knoepfe.length) html += '<div class="hilfe-knoepfe">' + knoepfe.join("") + "</div>";
       if (!loesungOffen && versuche > 0 && versuche < 3 && !bereits) html += '<p class="klein">Die Musterlösung lässt sich nach drei Prüfversuchen öffnen.</p>';
       if (!bereits && genutzt === 0 && !loesungOffen) html += '<p class="klein">Ohne Hinweis gibt es ' + (l.art === "boss" ? "10" : "5") + " Bonus-EP.</p>";
+      if (botFehler && typeof window.__kodexBot === "function") {
+        html += '<div class="bot-box">' + botAntworten.map(a => a.fehler ? '<p class="melde-nein">' + esc(a.fehler) + "</p>"
+          : '<div class="hinweis"><b>Mentor · Stufe ' + a.stufe + "</b><div>" + esc(a.text).replace(/`([^`\n]+)`/g, "<code>$1</code>").replace(/\n/g, "<br>") + "</div></div>").join("") +
+          '<div class="hilfe-knoepfe"><button class="knopf still" type="button" id="bot-knopf">' + SYMBOL.lupe +
+          (botStufe === 0 ? "Mentor fragen, was falsch ist" : botStufe < 3 ? "Mentor genauer fragen" : "Mentor nochmal fragen") + "</button></div>" +
+          (botStufe === 0 ? '<p class="klein">Der Mentor erklärt nur den Fehler, die Lösung verrät er nicht. Er kostet keine EP.</p>' : "") + "</div>";
+      }
       $("#hilfe").innerHTML = html;
+      const bk = $("#bot-knopf");
+      if (bk) bk.addEventListener("click", async () => {
+        bk.disabled = true;
+        bk.textContent = "Der Mentor denkt nach …";
+        const stufe = Math.min(3, botStufe + 1);
+        try {
+          botAntworten.push({ stufe, text: await window.__kodexBot(Object.assign({ stufe }, botFehler)) });
+          botStufe = stufe;
+        } catch (e) { botAntworten.push({ fehler: e.message }); }
+        zeigeHilfe();
+      });
       const hk = $("#hinweis-knopf");
       if (hk) hk.addEventListener("click", () => { zustand.hinweise[l.id] = genutzt + 1; speichern(); zeigeHilfe(); });
       const lk = $("#loesung-knopf");
@@ -21050,6 +21071,12 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
         laeuft = true;
       } else {
         fehlversuch(l, ergebnis);
+        // Was der Mentor erfährt: Aufgabe, Code und Fehler, aber nie die Musterlösung oder die Tests
+        const f = ergebnis.fehler;
+        botFehler = { sprache, titel: l.titel, aufgabe: l.aufgabe, code,
+          pruefungen: zeilen.filter(z => z.status !== "ok" && z.text).map(z => ({ name: z.name, grund: z.text })),
+          fehler: f ? (f.name || "") + ": " + (f.text || "") + (f.zeile ? " (Zeile " + f.zeile + ")" : "") : ergebnis.zeitUeberschritten ? "Der Code lief zu lange (Endlosschleife?)" : "" };
+        botAntworten = [];
         p.innerHTML = html;
         zeigeHilfe();
         zeigeKopf();
