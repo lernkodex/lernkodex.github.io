@@ -13,4 +13,4 @@ export const botUrl = "https://zauberkodex-bot.zauberkodex.workers.dev";
 
 // Öffentlicher Schlüssel für Push-Nachrichten (Firebase: Projekteinstellungen → Cloud Messaging → Web-Push-Zertifikate).
 // Leer = keine tägliche Erinnerung. Dieser Schlüssel ist nicht geheim.
-export const vapidKey = "";
+export const vapidKey = "BHfOQiVgzbyYhQ59iAwzh-IRwE_7Hq8dgmvwNO1dShxDxRYe8LYhxMMWEMcEpn1smmzCHyttu2Z3mYWh30Eq7sY";
