@@ -361,6 +361,23 @@ pre.code-block code { font-size: inherit; }
 .hilfe-knoepfe { display: flex; flex-wrap: wrap; gap: 8px; }
 .bot-box { margin-top: 12px; display: grid; gap: 8px; }
 .bot-box .hinweis { margin: 0; }
+.terminal, .term-editor { margin: 18px 0; border-radius: 10px; overflow: hidden; background: #16130f; color: #e9e3d6; border: 1px solid #3a3228; font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 14px; }
+.term-kopf { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 10px; background: #241e17; color: #b9ad97; font-size: 12.5px; letter-spacing: .04em; }
+.term-kopf .knopf { color: #e9e3d6; border-color: #4a4034; background: transparent; }
+.term-aus { max-height: 340px; min-height: 120px; overflow-y: auto; padding: 10px 12px 2px; white-space: pre-wrap; word-break: break-word; line-height: 1.5; }
+.term-z { min-height: 1.5em; }
+.term-info { color: #9b8f7a; }
+.term-wer { color: #8fc78a; }
+.term-wo { color: #7fb1e0; }
+.term-zeile { display: flex; align-items: center; padding: 2px 12px 10px; }
+.term-prompt { white-space: pre; }
+.term-zeile input { flex: 1; min-width: 40px; background: transparent; border: 0; outline: 0; color: inherit; font: inherit; padding: 4px 0; caret-color: #e0b04a; }
+.term-editor textarea { display: block; width: 100%; box-sizing: border-box; border: 0; resize: vertical; background: #1d1913; color: #e9e3d6; font: inherit; padding: 10px 12px; outline: 0; }
+.term-ziele { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 6px; }
+.term-ziele li { display: flex; gap: 8px; align-items: baseline; color: var(--leise); }
+.term-ziele li.ok { color: inherit; }
+.term-ziele li .marke-i { width: 1.2em; flex: none; text-align: center; }
+.term-ziele li.ok .marke-i { color: #3f9a4a; font-weight: 700; }
 .hinweis {
   background: var(--gold-grund); border-radius: 12px; padding: 12px 14px; display: grid; gap: 4px;
 }
@@ -8115,7 +8132,7 @@ start();
 --- hinweis
 Übernimm das Beispiel mit den Monstern. Ändere die Adresse auf `helden` und den Text auf `"Unbekannt"`.
 --- hinweis
-Die Adresse steht zwischen Backticks: `` `https://rabenfurt.ch/api/helden/${nr}` ``.
+Die Adresse ist ein Vorlagen-Text zwischen Backticks. Sie beginnt mit https://rabenfurt.ch/api/helden/ und endet mit `${nr}`.
 --- test Findet die Helden
 $pruefe(typeof heldenName === "function", 'Es gibt keine Funktion heldenName.');
 const a = await heldenName(1);
@@ -8336,6 +8353,586 @@ $pruefe(typeof aushang === "function", 'Es gibt keine Funktion aushang.');
 $botschaft("https://rabenfurt.ch/api/auftraege", [{ titel: "Wölfe vertreiben", belohnung: 40 }, { titel: "Drachenei bewachen", belohnung: 250 }, { titel: "Brief nach Nordmark", belohnung: 15 }]);
 const e = await aushang();
 $pruefe(JSON.stringify(e) === JSON.stringify(["Wölfe vertreiben: 40 Gold", "Drachenei bewachen: 250 Gold", "Brief nach Nordmark: 15 Gold"]), 'aushang() sollte drei Zeilen wie "Wölfe vertreiben: 40 Gold" zurückgeben, es kam ' + $zeige(e) + '.');
+
+### t1 | Die Kommandozeile | Mit Befehlen durch Ordner und Dateien | Befehlssiegel | pfad:werkzeug
+
+=== t1-1 | code | Wo bin ich?
+--- modus terminal
+--- dateien
+{ "abenteuer/karte.txt": "Norden: Rabenfurt\nSüden: der Sumpf", "abenteuer/inventar.txt": "Seil\nFackel", "tagebuch.txt": "Tag 1: Ich habe das Terminal entdeckt." }
+--- szene
+Orlan stellt eine schlichte schwarze Tafel auf den Tisch. «Echte Magier klicken nicht. Sie sprechen ihre Befehle aus.»
+--- erklaerung
+Das **Terminal** (auch Kommandozeile) ist ein Textfenster, in dem du dem Computer Befehle gibst. Du tippst einen Befehl und drückst **Enter**. Echte Entwickler arbeiten jeden Tag damit, zum Beispiel um Programme zu starten oder Git zu benutzen.
+
+Vor dem Cursor steht die **Eingabeaufforderung**:
+
+```
+held@kodex:~$
+```
+
+`held` ist dein Name, `kodex` der Computer, und `~` ist der Ordner, in dem du gerade bist. Die Schlange `~` steht für deinen **Heimordner**, deinen persönlichen Ordner.
+
+Zwei Befehle für den Anfang:
+
+- `pwd` zeigt den ganzen Pfad zum Ordner, in dem du bist. Die Abkürzung heisst «print working directory».
+- `ls` zeigt, was im Ordner liegt. Die Abkürzung heisst «list».
+
+Im Kodex-Terminal haben Ordner einen `/` am Ende, damit du sie von Dateien unterscheiden kannst. In echten Terminals sind sie meistens farbig.
+--- aufgabe
+1. Finde mit `pwd` heraus, wo du bist.
+2. Schau dich mit `ls` um.
+--- loesung
+pwd
+ls
+--- hinweis
+Klicke ins schwarze Feld, tippe `pwd` und drücke Enter.
+--- hinweis
+Danach genauso `ls` eintippen und Enter drücken.
+--- test Du weisst, wo du bist
+$pruefe($w.benutzt(/^pwd$/));
+--- test Du hast dich umgesehen
+$pruefe($w.benutzt(/^ls\b/));
+
+=== t1-2 | code | Durch die Gänge
+--- modus terminal
+--- dateien
+{ "abenteuer/karten/norden.txt": "Rabenfurt liegt am Fluss.", "abenteuer/karten/sueden.txt": "Im Sumpf leben Irrlichter.", "abenteuer/inventar.txt": "Seil\nFackel", "tagebuch.txt": "Tag 2: Heute erkunde ich die Ordner." }
+--- szene
+Hinter dem Tor liegen Gänge, und in den Gängen weitere Gänge. Orlan reicht dir eine Laterne: «Merk dir den Rückweg.»
+--- erklaerung
+Ordner können weitere Ordner enthalten, wie Gänge in einem Dungeon. Mit `cd` gehst du in einen anderen Ordner. Die Abkürzung heisst «change directory».
+
+```
+cd abenteuer     # in den Ordner abenteuer gehen
+cd ..            # eine Stufe zurück nach oben
+cd ~             # direkt nach Hause, in den Heimordner
+```
+
+Zwei Punkte `..` bedeuten immer: der Ordner darüber. Nach jedem `cd` siehst du in der Eingabeaufforderung, wo du jetzt bist, zum Beispiel `~/abenteuer`.
+
+Alles nach `#` ist ein Kommentar und gehört nicht zum Befehl. Du musst es nicht abtippen.
+
+Du kannst auch mehrere Stufen auf einmal gehen: `cd abenteuer/karten`.
+--- aufgabe
+1. Geh in den Ordner `abenteuer` und schau mit `ls` nach, was darin liegt.
+2. Geh weiter in den Ordner `karten`.
+3. Kehre danach zurück in deinen Heimordner `~`.
+--- loesung
+cd abenteuer
+ls
+cd karten
+cd ~
+--- hinweis
+Beginne mit `cd abenteuer`. Danach zeigt die Eingabeaufforderung `~/abenteuer`.
+--- hinweis
+Von `karten` kommst du mit `cd ..` und noch einmal `cd ..` zurück, oder direkt mit `cd ~`.
+--- test Du warst im Ordner abenteuer und hast dich umgesehen
+$pruefe($w.warIn("abenteuer") && $w.benutzt(/^ls\b/));
+--- test Du warst im Ordner karten
+$pruefe($w.warIn("abenteuer/karten"));
+--- test Du bist zurück im Heimordner
+$pruefe($w.warIn("abenteuer/karten") && $w.ort() === "~");
+
+=== t1-3 | code | Neue Kammern
+--- modus terminal
+--- dateien
+{ "abenteuer/inventar.txt": "Seil\nFackel" }
+--- szene
+Dein Tagebuch liegt lose herum. Zeit für eine eigene Kammer für Notizen.
+--- erklaerung
+Ordner und Dateien kannst du auch selbst anlegen:
+
+- `mkdir name` legt einen neuen Ordner an. Die Abkürzung heisst «make directory».
+- `touch name.txt` legt eine neue, leere Datei an.
+
+```
+mkdir beute
+touch beute/liste.txt
+```
+
+Die zweite Zeile legt die Datei `liste.txt` **im** Ordner `beute` an, ohne dass du hineingehen musst. Der Schrägstrich `/` trennt Ordner und Datei.
+
+**Tipp:** Benutze in Namen keine Leerzeichen. Für das Terminal wären `meine notizen` sonst zwei Namen. Schreibe lieber `meine-notizen`.
+--- aufgabe
+1. Lege im Heimordner einen Ordner `notizen` an.
+2. Lege darin eine leere Datei `tag1.txt` an.
+3. Kontrolliere mit `ls notizen`, ob sie da ist.
+--- loesung
+mkdir notizen
+touch notizen/tag1.txt
+ls notizen
+--- hinweis
+Zuerst `mkdir notizen`, dann `touch notizen/tag1.txt`.
+--- hinweis
+Mit `ls notizen` schaust du in den Ordner, ohne hineinzugehen.
+--- test Der Ordner notizen existiert
+$pruefe($w.istOrdner("notizen"));
+--- test Darin liegt die Datei tag1.txt
+$pruefe($w.istDatei("notizen/tag1.txt"));
+--- test Du hast nachgeschaut
+$pruefe($w.benutzt(/^ls\b/) && $w.istDatei("notizen/tag1.txt"));
+
+=== t1-4 | quiz | Wo landest du?
+--- frage
+Du bist in deinem Heimordner `/home/held`. Was zeigt `pwd` nach diesen Befehlen?
+--- code
+cd abenteuer
+cd karten
+cd ..
+pwd
+--- option
+/home/held
+--- option*
+/home/held/abenteuer
+--- option
+/home/held/abenteuer/karten
+--- option
+/home/held/karten
+--- erklaerung
+Nach den ersten zwei Befehlen bist du in `/home/held/abenteuer/karten`. `cd ..` geht eine Stufe nach oben, also zurück nach `/home/held/abenteuer`.
+
+=== t1-5 | code | Schriftrollen lesen und schreiben
+--- modus terminal
+--- dateien
+{ "brief.txt": "Treffpunkt: die Taverne zum Goldenen Krug.\nZeit: bei Sonnenuntergang." }
+--- szene
+Unter der Tür liegt ein Brief. Der Absender wartet auf Antwort, noch heute Abend.
+--- erklaerung
+Mit `cat` zeigst du den Inhalt einer Datei an:
+
+```
+cat brief.txt
+```
+
+Mit `echo` gibst du Text aus. Mit einem Pfeil `>` landet der Text nicht im Terminal, sondern in einer Datei:
+
+```
+echo "Ich komme." > antwort.txt      # schreibt die Datei (neu oder überschrieben)
+echo "Bring Proviant." >> antwort.txt  # hängt eine Zeile an
+```
+
+Achtung, der Unterschied ist wichtig: Ein einzelner Pfeil `>` **überschreibt** die ganze Datei. Zwei Pfeile `>>` **hängen an**. Text mit Leerzeichen steht in Anführungszeichen.
+--- aufgabe
+1. Lies den Brief `brief.txt` mit `cat`.
+2. Schreibe die Antwort in die Datei `antwort.txt`. Die erste Zeile ist `Ich komme.`, die zweite `Bring Proviant.`
+3. Kontrolliere deine Antwort mit `cat antwort.txt`.
+--- loesung
+cat brief.txt
+echo "Ich komme." > antwort.txt
+echo "Bring Proviant." >> antwort.txt
+cat antwort.txt
+--- hinweis
+Für die erste Zeile: `echo "Ich komme." > antwort.txt`
+--- hinweis
+Für die zweite Zeile brauchst du zwei Pfeile `>>`, sonst überschreibst du die erste.
+--- test Du hast den Brief gelesen
+$pruefe($w.benutzt(/^cat\s+(\.\/)?brief\.txt$/));
+--- test Die Antwort hat beide Zeilen
+const t = ($w.inhalt("antwort.txt") || "").split("\n").map(z => z.trim()).filter(Boolean);
+$pruefe(t.length === 2 && t[0] === "Ich komme." && t[1] === "Bring Proviant.");
+--- test Du hast deine Antwort kontrolliert
+$pruefe($w.benutzt(/^cat\s+(\.\/)?antwort\.txt$/) && $w.ausgabe.includes("Bring Proviant."));
+
+=== t1-6 | code | Den Zauber starten
+--- modus terminal
+--- dateien
+{ "zauber/feuer.js": "console.log(\"Feuerball!\");" }
+--- szene
+Im Ordner `zauber` liegt eine Schriftrolle mit JavaScript. Bisher hat der Kodex deinen Code ausgeführt. Jetzt tust du es selbst.
+--- erklaerung
+Auf einem echten Computer startest du eine JavaScript-Datei mit dem Programm **Node.js**:
+
+```
+node feuer.js
+```
+
+Alles, was das Programm mit `console.log` ausgibt, erscheint im Terminal.
+
+Um eine Datei zu bearbeiten, öffnen Entwickler sie in einem Editor. Mit `code datei.js` öffnet sich im echten Leben **VS Code**. Im Kodex öffnet sich unter dem Terminal ein kleiner Editor. Gibt es die Datei noch nicht, wird sie angelegt. Vergiss nicht, auf **Speichern** zu klicken.
+
+`node` sucht die Datei im Ordner, in dem du gerade bist. Geh also zuerst mit `cd` in den richtigen Ordner.
+--- aufgabe
+1. Geh in den Ordner `zauber` und starte `feuer.js` mit `node`.
+2. Lege mit `code eis.js` eine neue Datei an. Schreibe darin einen Zauber, der `Eisstrahl!` ausgibt, und speichere.
+3. Starte `eis.js` mit `node`.
+--- loesung
+cd zauber
+node feuer.js
+echo 'console.log("Eisstrahl!");' > eis.js
+node eis.js
+--- hinweis
+Zuerst `cd zauber`, dann `node feuer.js`.
+--- hinweis
+Im Editor schreibst du `console.log("Eisstrahl!");` wie in Kapitel I, dann **Speichern** und im Terminal `node eis.js`.
+--- test Der Feuerball wurde gezaubert
+$pruefe($w.ausgabe.includes("Feuerball!"));
+--- test Die Datei zauber/eis.js gibt Eisstrahl! aus
+$pruefe(/console\.log\s*\(\s*["'`]Eisstrahl!["'`]\s*\)/.test($w.inhalt("zauber/eis.js") || ""));
+--- test Der Eisstrahl wurde gezaubert
+$pruefe($w.ausgabe.includes("Eisstrahl!"));
+
+=== t1-7 | boss | Das Lager einrichten
+--- modus terminal
+--- szene
+Die Gilde will einen eigenen Würfeltisch für ihre Abende. Orlan lehnt sich zurück: «Bau ihm ein ordentliches Zuhause. Ohne Maus.»
+--- erklaerung
+Diese Meisterprüfung braucht alle Befehle aus dem Kapitel. Echte Projekte sind genau so aufgebaut: ein Ordner mit einer HTML-Datei, einer JavaScript-Datei und einem Ordner für Bilder.
+
+- `mkdir ordner` legt einen Ordner an.
+- `cd ordner` geht in den Ordner.
+- `touch datei` legt eine leere Datei an.
+- `code datei` oder `echo ... > datei` füllt eine Datei mit Inhalt.
+- `node datei.js` startet JavaScript.
+- `ls` zeigt, was schon da ist.
+
+**Der Bauplan:**
+
+```
+wuerfeltisch/
+  index.html
+  spiel.js      gibt «Der Würfeltisch ist bereit.» aus
+  bilder/
+```
+--- aufgabe
+1. Lege im Heimordner den Ordner `wuerfeltisch` an.
+2. Lege darin die leere Datei `index.html` und den Ordner `bilder` an.
+3. Lege darin `spiel.js` an, die `Der Würfeltisch ist bereit.` ausgibt.
+4. Starte `spiel.js` mit `node`.
+--- loesung
+mkdir wuerfeltisch
+cd wuerfeltisch
+touch index.html
+mkdir bilder
+echo 'console.log("Der Würfeltisch ist bereit.");' > spiel.js
+node spiel.js
+--- hinweis
+Beginne mit `mkdir wuerfeltisch` und `cd wuerfeltisch`. Alles Weitere legst du dann dort an.
+--- hinweis
+Für `spiel.js` öffnest du `code spiel.js` und schreibst `console.log("Der Würfeltisch ist bereit.");`. Speichern nicht vergessen.
+--- test Der Ordner wuerfeltisch existiert
+$pruefe($w.istOrdner("wuerfeltisch"));
+--- test Darin liegt index.html
+$pruefe($w.istDatei("wuerfeltisch/index.html"));
+--- test Darin liegt der Ordner bilder
+$pruefe($w.istOrdner("wuerfeltisch/bilder"));
+--- test spiel.js gibt den Satz aus
+$pruefe(/console\.log\s*\(/.test($w.inhalt("wuerfeltisch/spiel.js") || "") && ($w.inhalt("wuerfeltisch/spiel.js") || "").includes("Der Würfeltisch ist bereit."));
+--- test Der Würfeltisch wurde gestartet
+$pruefe($w.ausgabe.includes("Der Würfeltisch ist bereit."));
+
+### t2 | Die Zeitrunen | Mit Git Versionen speichern, Branches anlegen und zusammenführen | Zeitsiegel | pfad:werkzeug
+
+=== t2-1 | code | Das Gedächtnis erwacht
+--- modus terminal
+--- dateien
+{ "projekt/spiel.js": "console.log(\"Willkommen am Würfeltisch!\");", "projekt/notizen.txt": "Ideen: Würfelknopf, Verlauf" }
+--- szene
+Orlan zeigt dir eine Rune, die leise tickt. «Mit ihr vergisst dein Projekt nie wieder etwas. Und du kannst in die Vergangenheit zurück.»
+--- erklaerung
+Programmierer ändern ihren Code ständig. Was, wenn etwas kaputtgeht und man zur letzten funktionierenden Version zurück will? Dafür gibt es **Git**. Git ist ein Gedächtnis für einen Projektordner: Es merkt sich jeden gespeicherten Stand.
+
+Fast jedes Software-Team der Welt benutzt Git, und auch dein Kodex liegt mit Git auf GitHub.
+
+Zuerst muss Git den Ordner kennen. Dafür gehst du in den Projektordner und tippst:
+
+```
+git init
+```
+
+Damit wird der Ordner zu einem **Repository**, einem Ordner mit Gedächtnis. Git legt dafür den versteckten Ordner `.git` an.
+
+Danach zeigt `git status`, was Git über deine Dateien weiss. Am Anfang sind alle Dateien **unversioniert**: Git sieht sie, merkt sie sich aber noch nicht.
+--- aufgabe
+1. Geh in den Ordner `projekt`.
+2. Mach ihn mit `git init` zu einem Repository.
+3. Schau mit `git status` nach, was Git sieht.
+--- loesung
+cd projekt
+git init
+git status
+--- hinweis
+Erst `cd projekt`, sonst wird der Heimordner zum Repository.
+--- hinweis
+Dann `git init` und `git status`, jeweils mit Leerzeichen nach git.
+--- test Der Ordner projekt ist ein Repository
+$pruefe($w.gitWurzel() === "~/projekt");
+--- test Du hast den Status angeschaut
+$pruefe($w.gitWurzel() === "~/projekt" && $w.benutzt(/^git\s+status$/));
+
+=== t2-2 | code | Einen Moment festhalten
+--- modus terminal
+--- dateien
+{ "projekt/spiel.js": "console.log(\"Willkommen am Würfeltisch!\");", "projekt/notizen.txt": "Ideen: Würfelknopf, Verlauf" }
+--- vorbereitung
+cd projekt
+git init
+--- szene
+Der Würfeltisch funktioniert. Das soll Git sich merken, bevor du weiterbaust.
+--- erklaerung
+Einen Stand festhalten geht in **zwei Schritten**. Stell dir ein Gruppenfoto vor:
+
+1. `git add` stellt Dateien aufs Bild. Man sagt, sie werden **vorgemerkt**.
+2. `git commit` drückt auf den Auslöser. Das Foto heisst **Commit** und bekommt eine kurze Beschreibung.
+
+```
+git add spiel.js notizen.txt     # beide Dateien vormerken
+git add .                        # oder: alle Dateien im Ordner vormerken
+git commit -m "Erster Stand"     # festhalten, mit Nachricht
+```
+
+Hinter `-m` steht die Nachricht in Anführungszeichen. Sie beschreibt kurz, was dieser Stand enthält. Gute Nachrichten sind kurz und klar, zum Beispiel «Würfelknopf hinzugefügt».
+
+Mit `git status` siehst du jederzeit, was vorgemerkt ist. Du bist schon im Ordner `projekt`, und Git ist bereits eingerichtet.
+--- aufgabe
+1. Merke beide Dateien mit `git add` vor.
+2. Schau mit `git status` nach, was jetzt vorgemerkt ist.
+3. Halte den Stand mit `git commit` fest. Die Nachricht ist `Erster Stand`.
+--- loesung
+git add .
+git status
+git commit -m "Erster Stand"
+--- hinweis
+`git add .` merkt alles im Ordner vor. Der Punkt heisst «hier».
+--- hinweis
+Danach `git commit -m "Erster Stand"`, mit Anführungszeichen um die Nachricht.
+--- test Du hast den Status angeschaut
+$pruefe($w.benutzt(/^git\s+status$/));
+--- test Es gibt einen Commit mit beiden Dateien
+const c = $w.commits();
+$pruefe(c.length >= 1 && "spiel.js" in c[c.length - 1].dateien && "notizen.txt" in c[c.length - 1].dateien);
+--- test Die Nachricht heisst Erster Stand
+const c = $w.commits();
+$pruefe(c.length >= 1 && c[c.length - 1].nachricht.toLowerCase() === "erster stand");
+
+=== t2-3 | code | Die Chronik
+--- modus terminal
+--- dateien
+{ "projekt/spiel.js": "console.log(\"Willkommen am Würfeltisch!\");", "projekt/notizen.txt": "Ideen: Würfelknopf, Verlauf" }
+--- vorbereitung
+cd projekt
+git init
+git add .
+git commit -m "Erster Stand"
+--- szene
+Der Würfeltisch soll einen W20 werfen können. Und Git soll sich auch diesen neuen Stand merken.
+--- erklaerung
+Ändert sich eine Datei, merkt Git das sofort. `git status` zeigt sie unter «Änderungen, die nicht zum Commit vorgemerkt sind». Dann folgt wieder der Ablauf, den du schon kennst:
+
+```
+git add spiel.js
+git commit -m "W20 eingebaut"
+```
+
+So entsteht nach und nach eine **Chronik** deines Projekts. Mit `git log` siehst du sie, der neueste Commit steht oben:
+
+```
+git log --oneline
+```
+
+Jeder Commit hat eine **ID** wie `3f9a1c2`. Mit ihr findet Git jeden Stand wieder. `--oneline` zeigt jeden Commit auf nur einer Zeile.
+--- aufgabe
+1. Ändere `spiel.js`: Öffne sie mit `code spiel.js`, ergänze eine zweite Zeile, zum Beispiel `console.log(Math.ceil(Math.random() * 20));`, und speichere.
+2. Schau mit `git status` nach, was Git bemerkt hat.
+3. Halte die Änderung mit einem zweiten Commit fest.
+4. Schau dir die Chronik mit `git log --oneline` an.
+--- loesung
+echo 'console.log(Math.ceil(Math.random() * 20));' >> spiel.js
+git status
+git add spiel.js
+git commit -m "W20 eingebaut"
+git log --oneline
+--- hinweis
+Nach dem Speichern im Editor: `git status`, dann `git add spiel.js` und `git commit -m "..."` mit einer eigenen Nachricht.
+--- hinweis
+Zum Schluss `git log --oneline`. Dort sollten jetzt zwei Commits stehen.
+--- test spiel.js wurde verändert
+$pruefe(($w.inhalt("projekt/spiel.js") || "") !== "console.log(\"Willkommen am Würfeltisch!\");");
+--- test Es gibt einen zweiten Commit mit der Änderung
+const c = $w.commits();
+$pruefe(c.length >= 2 && c[0].dateien["spiel.js"] !== c[c.length - 1].dateien["spiel.js"]);
+--- test Alles ist festgehalten
+$pruefe($w.sauber());
+--- test Du hast die Chronik angeschaut
+$pruefe($w.commits().length >= 2 && $w.benutzt(/^git\s+log\b/));
+
+=== t2-4 | quiz | Vergessen vorzumerken
+--- frage
+Du hast `spiel.js` geändert und tippst direkt `git commit -m "Neuer Knopf"`. Was passiert?
+--- code
+git commit -m "Neuer Knopf"
+--- option
+Git speichert die Änderung trotzdem.
+--- option*
+Git macht keinen Commit, weil nichts vorgemerkt ist.
+--- option
+Git löscht die Änderung.
+--- option
+Git speichert alle Dateien des Computers.
+--- erklaerung
+Ein Commit hält nur fest, was mit `git add` vorgemerkt wurde. Ohne `git add` gibt es nichts zu committen, und Git meldet, dass Änderungen nicht vorgemerkt sind. Die Änderung bleibt aber in der Datei, es geht nichts verloren. Richtig ist: zuerst `git add spiel.js`, dann `git commit`.
+
+=== t2-5 | code | Ein Seitenweg
+--- modus terminal
+--- dateien
+{ "projekt/spiel.js": "console.log(\"Willkommen am Würfeltisch!\");", "projekt/notizen.txt": "Ideen: Würfelknopf, Verlauf" }
+--- vorbereitung
+cd projekt
+git init
+git add .
+git commit -m "Erster Stand"
+--- szene
+Mira will einen Eiszauber ausprobieren. Ob er gelingt, weiss niemand. Der funktionierende Würfeltisch soll davon nichts abbekommen.
+--- erklaerung
+Ein **Branch** ist ein Seitenweg deines Projekts. Auf ihm kannst du ausprobieren, ohne den Hauptweg `main` zu verändern. Gefällt dir das Ergebnis, führst du die Wege später zusammen. Gefällt es dir nicht, kehrst du einfach zurück.
+
+```
+git switch -c eiszauber   # neuen Branch anlegen und hinwechseln
+git switch main           # zurück auf den Hauptweg
+git branch                # alle Branches zeigen, * markiert den aktuellen
+```
+
+`-c` heisst «create», also anlegen. Ohne `-c` wechselst du zu einem Branch, den es schon gibt.
+
+Das Besondere: Wechselst du den Branch, tauscht Git die Dateien im Ordner aus. Auf `main` ist eine Datei, die du nur auf dem Seitenweg committet hast, wirklich weg. Sobald du zurückwechselst, ist sie wieder da.
+--- aufgabe
+1. Lege den Branch `eiszauber` an und wechsle hin.
+2. Lege dort die Datei `eis.js` an, die `Eisstrahl!` ausgibt, und halte sie mit einem Commit fest.
+3. Wechsle zurück auf `main` und schau mit `ls` nach. `eis.js` sollte dort fehlen.
+--- loesung
+git switch -c eiszauber
+echo 'console.log("Eisstrahl!");' > eis.js
+git add eis.js
+git commit -m "Eiszauber ausprobiert"
+git switch main
+ls
+--- hinweis
+`git switch -c eiszauber`, dann `code eis.js`, speichern, `git add eis.js` und `git commit -m "..."`.
+--- hinweis
+Zurück geht es mit `git switch main`. Danach zeigt `ls` nur noch die alten Dateien.
+--- test Der Branch eiszauber hat einen Commit mit eis.js
+const c = $w.commits("eiszauber");
+$pruefe(c.length >= 2 && "eis.js" in c[0].dateien);
+--- test Auf main gibt es eis.js nicht
+const c = $w.commits("main");
+$pruefe(c.length >= 1 && !("eis.js" in c[0].dateien));
+--- test Du bist zurück auf main und hast nachgeschaut
+$pruefe($w.zweig() === "main" && !$w.ist("projekt/eis.js") && $w.commits("eiszauber").length >= 2 && $w.befehle.slice($w.befehle.map(b => /^git\s+(switch|checkout)\s+main$/.test(b.trim())).lastIndexOf(true)).some(b => /^ls\b/.test(b.trim())));
+
+=== t2-6 | code | Wege zusammenführen
+--- modus terminal
+--- dateien
+{ "projekt/spiel.js": "console.log(\"Willkommen am Würfeltisch!\");", "projekt/notizen.txt": "Ideen: Würfelknopf, Verlauf" }
+--- vorbereitung
+cd projekt
+git init
+git add .
+git commit -m "Erster Stand"
+git switch -c eiszauber
+echo 'console.log("Eisstrahl!");' > eis.js
+git add eis.js
+git commit -m "Eiszauber ausprobiert"
+git switch main
+--- szene
+Der Eiszauber funktioniert. Mira strahlt: «Der gehört in den richtigen Würfeltisch!»
+--- erklaerung
+Mit `git merge` holst du die Commits eines anderen Branches auf den Branch, auf dem du gerade bist:
+
+```
+git merge eiszauber
+```
+
+Du stehst dabei auf dem Branch, der etwas **bekommen** soll, hier also auf `main`.
+
+Hat sich `main` seit dem Abzweigen nicht verändert, muss Git nur nach vorne springen. Das heisst **Fast-forward**. Danach liegt `eis.js` auch auf `main`.
+
+Mit `git log --oneline` siehst du, dass `main` und `eiszauber` jetzt auf denselben Commit zeigen.
+
+Du bist schon im Ordner `projekt`, auf dem Branch `main`.
+--- aufgabe
+1. Schau mit `git branch` nach, auf welchem Branch du bist.
+2. Führe den Branch `eiszauber` mit `git merge` in `main` zusammen.
+3. Schau dir die Chronik mit `git log --oneline` an.
+--- loesung
+git branch
+git merge eiszauber
+git log --oneline
+--- hinweis
+Du bist bereits auf `main`. Tippe `git merge eiszauber`.
+--- hinweis
+Danach `git log --oneline`. Neben dem obersten Commit stehen jetzt beide Branch-Namen.
+--- test Du hast nachgeschaut, wo du bist
+$pruefe($w.benutzt(/^git\s+branch$/));
+--- test eis.js ist jetzt auf main
+const c = $w.commits("main");
+$pruefe($w.zweig() === "main" && c.length >= 1 && "eis.js" in c[0].dateien && $w.ist("projekt/eis.js"));
+--- test Du hast die Chronik angeschaut
+$pruefe("eis.js" in ($w.commits("main")[0] || { dateien: {} }).dateien && $w.benutzt(/^git\s+log\b/));
+
+=== t2-7 | boss | Die Chronik der Gilde
+--- modus terminal
+--- dateien
+{ "gilde/mitglieder.txt": "Kael\nMira", "gilde/regeln.txt": "1. Niemand kämpft allein." }
+--- szene
+Die Gilde will ihre Unterlagen nie wieder verlieren. Orlan reicht dir die tickende Rune: «Zeig mir, dass du die Zeit beherrschst.»
+--- erklaerung
+Diese Meisterprüfung braucht alles aus dem Kapitel. Neu ist nur eine Kleinigkeit: Diesmal ändert sich auch `main`, während du auf dem Seitenweg arbeitest.
+
+Dann kann Git nicht einfach nach vorne springen. Es baut einen eigenen **Merge-Commit**, der beide Wege zusammenführt. Das klappt automatisch, solange die beiden Branches **verschiedene Dateien** verändert haben. Haben beide dieselbe Stelle geändert, gibt es einen **Konflikt**, und Git fragt nach. Darum ändert in dieser Prüfung jeder Weg eine andere Datei.
+
+- `git init` macht den Ordner zum Repository.
+- `git add .` und `git commit -m "..."` halten einen Stand fest.
+- `git switch -c name` legt einen neuen Branch an.
+- `git switch main` führt zurück auf den Hauptweg.
+- `git merge name` holt einen Branch herein.
+- `git status` und `git log --oneline` zeigen, wo du stehst.
+
+**Der Bauplan:**
+
+```
+gilde: init, erster Commit mit beiden Dateien
+  └─ Branch schatz: schatz.txt anlegen, Commit
+main: Bran in mitglieder.txt eintragen, Commit
+main: schatz hereinholen (Merge-Commit)
+```
+--- aufgabe
+1. Mach den Ordner `gilde` zum Repository und halte beide Dateien in einem ersten Commit fest.
+2. Lege den Branch `schatz` an. Lege dort `schatz.txt` mit dem Inhalt `100 Gold` an und committe sie.
+3. Wechsle zurück auf `main`. Trage dort `Bran` als dritte Zeile in `mitglieder.txt` ein und committe.
+4. Führe `schatz` in `main` zusammen. Am Schluss muss alles festgehalten sein.
+--- loesung
+cd gilde
+git init
+git add .
+git commit -m "Gilde gegründet"
+git switch -c schatz
+echo "100 Gold" > schatz.txt
+git add schatz.txt
+git commit -m "Schatzkammer angelegt"
+git switch main
+echo "Bran" >> mitglieder.txt
+git add mitglieder.txt
+git commit -m "Bran aufgenommen"
+git merge schatz
+git log --oneline
+--- hinweis
+Die ersten vier Befehle kennst du aus «Einen Moment festhalten»: `cd gilde`, `git init`, `git add .` und `git commit -m "..."`.
+--- hinweis
+Mit `echo "Bran" >> mitglieder.txt` hängst du die Zeile an. Vergiss nicht, vor dem Merge auf `main` zu committen.
+--- test gilde ist ein Repository mit einem ersten Commit
+const c = $w.alleCommits();
+$pruefe($w.gitWurzel() === "~/gilde" && c.some(x => x.eltern.length === 0 && "mitglieder.txt" in x.dateien && "regeln.txt" in x.dateien));
+--- test Der Branch schatz hat schatz.txt mit 100 Gold
+const c = $w.commits("schatz");
+$pruefe(c.length >= 2 && (c[0].dateien["schatz.txt"] || "").trim() === "100 Gold");
+--- test Auf main steht Bran in mitglieder.txt
+const c = $w.commits("main");
+$pruefe(c.length >= 1 && (c[0].dateien["mitglieder.txt"] || "").split("\n").map(z => z.trim()).includes("Bran"));
+--- test main hat schatz mit einem Merge-Commit hereingeholt
+const c = $w.commits("main");
+$pruefe(c.length >= 1 && c[0].eltern.length === 2 && "schatz.txt" in c[0].dateien);
+--- test Alles ist festgehalten, und du bist auf main
+$pruefe($w.zweig() === "main" && $w.sauber());
 
 ### p1 | Die ersten Runen | print, Variablen, Texte und Zahlen | Runensiegel | pfad:python
 
@@ -19366,6 +19963,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     { id: "raetsel", name: "Rätsel", kurz: "Kurze Knobeleien, auch fürs Handy: Fehler finden, Zeilen ordnen, Lücken füllen, Zauber vergleichen" },
     { id: "elektro", name: "Blitzrunen", kurz: "Elektrotechnik aus der Lehre, mit JavaScript gerechnet" },
     { id: "python", name: "Python", kurz: "Dieselben Abenteuer in einer zweiten Sprache" },
+    { id: "werkzeug", name: "Werkzeuge", kurz: "Terminal und Git: so arbeiten echte Entwickler" },
     { id: "weltenweber", name: "Weltenweber", kurz: "Deine eigene App von innen verstehen, mit echtem Code aus dem Weltenweber" }
   ];
   const PFAD_NACH_ID = Object.fromEntries(PFADE.map(p => [p.id, p]));
@@ -20789,6 +21387,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
   function hlSprache(src, sprache) {
     if (sprache === "python") return hlPy(src);
     if (sprache === "html") return hlHtml(src);
+    if (sprache === "shell") return hlShell(src);
     return hl(src);
   }
 
@@ -21001,6 +21600,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
   }
   function spracheVon(l) {
     if (l.sprache === "python") return "python";
+    if (l.modus === "terminal") return "shell";
     if (l.modus === "seite") return "html";
     return "js";
   }
@@ -21694,6 +22294,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
     if (l.art === "quiz") return zeigeQuiz(l);
     if (RAETSEL_ARTEN[l.art]) return { fehlerjagd: zeigeFehlerjagd, puzzle: zeigePuzzle, luecke: zeigeLuecke, duell: zeigeDuell }[l.art](l);
     if (l.art === "lesen" || l.art === "lesenboss") return zeigeLesen(l);
+    if (l.modus === "terminal") return zeigeTerminal(l);
     const bereits = bereitsGeloest(l);
     const gespeichert = zustand.code[l.id];
     const startCode = (l.start || "") + "\n";
@@ -22226,6 +22827,556 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
       b.classList.add("falsch", "wackeln");
       raetselFalsch(l, "Das ist nicht der Grund. Stimmt die Aussage überhaupt?");
     }));
+  }
+
+  /* ---------- Terminal: eine nachgebaute Kommandozeile mit Dateien und Git ---------- */
+  const HEIM = "/home/held";
+  function hlShell(src) {
+    return src.split("\n").map(z => {
+      if (/^\s*#/.test(z)) return '<span class="t-kom">' + esc(z) + "</span>";
+      let erstes = true;
+      return z.replace(/("[^"]*"?|'[^']*'?)|(\S+)|(\s+)/g, (t, str, wort, raum) => {
+        if (raum) return raum;
+        if (str) { erstes = false; return '<span class="t-str">' + esc(str) + "</span>"; }
+        if (erstes) { erstes = false; return '<span class="t-fn">' + esc(wort) + "</span>"; }
+        return /^-/.test(wort) ? '<span class="t-kw">' + esc(wort) + "</span>" : esc(wort);
+      });
+    }).join("\n");
+  }
+  const elternVon = p => p.slice(0, p.lastIndexOf("/")) || "/";
+  const zeigePfad = p => p === HEIM ? "~" : p.startsWith(HEIM + "/") ? "~" + p.slice(HEIM.length) : p;
+  function pfadAuf(w, p) {
+    p = String(p || "");
+    const teile = p.startsWith("/") ? [] : (p === "~" || p.startsWith("~/") ? HEIM : w.cwd).split("/").filter(Boolean);
+    if (p === "~" || p.startsWith("~/")) p = p.slice(1);
+    for (const t of p.split("/")) {
+      if (!t || t === ".") continue;
+      if (t === "..") teile.pop(); else teile.push(t);
+    }
+    return "/" + teile.join("/");
+  }
+  function ordnerAnlegen(w, p) {
+    let a = "";
+    for (const t of p.split("/").filter(Boolean)) { a += "/" + t; if (!w.fs.has(a)) w.fs.set(a, { ordner: true }); }
+  }
+  const kinderVon = (w, p) => [...w.fs.keys()].filter(k => k !== p && k !== "/" && elternVon(k) === p).sort();
+  function neueWelt(dateien) {
+    const w = { fs: new Map([["/", { ordner: true }]]), cwd: HEIM, git: null, gitWurzel: null, befehle: [], ausgabe: [], besucht: new Set([HEIM]) };
+    ordnerAnlegen(w, HEIM);
+    for (const [p, inhalt] of Object.entries(dateien || {})) {
+      if (p.endsWith("/")) ordnerAnlegen(w, pfadAuf(w, p.slice(0, -1)));
+      else { const a = pfadAuf(w, p); ordnerAnlegen(w, elternVon(a)); w.fs.set(a, { inhalt: String(inhalt) }); }
+    }
+    return w;
+  }
+  function zerlege(zeile) {
+    const t = [], re = /"((?:\\.|[^"\\])*)"|'([^']*)'|(>>|>)|([^\s"'>]+)/g;
+    let m;
+    while ((m = re.exec(zeile))) t.push(m[1] !== undefined ? { w: m[1].replace(/\\(.)/g, "$1") } : m[2] !== undefined ? { w: m[2] } : m[3] ? { op: m[3] } : { w: m[4] });
+    return t;
+  }
+
+  // Git: Commits sind Schnappschüsse aller Dateien, Pfade relativ zur Wurzel des Repositorys
+  function arbeitsStand(w) {
+    const r = w.gitWurzel, s = {};
+    for (const [k, v] of w.fs) {
+      if (v.ordner || !k.startsWith(r + "/")) continue;
+      const rel = k.slice(r.length + 1);
+      if (rel !== ".git" && !rel.startsWith(".git/")) s[rel] = v.inhalt;
+    }
+    return s;
+  }
+  const kopfStand = g => g.zweige[g.kopf] ? Object.assign({}, g.commits[g.zweige[g.kopf]].dateien) : {};
+  function vorfahren(g, id) {
+    const s = new Set(), q = id ? [id] : [];
+    while (q.length) { const c = q.shift(); if (s.has(c)) continue; s.add(c); q.push(...g.commits[c].eltern); }
+    return s;
+  }
+  function gitVergleich(w) {
+    const g = w.git, kopf = kopfStand(g), idx = g.index, arbeit = arbeitsStand(w);
+    const vorgemerkt = [], geaendert = [], neu = [];
+    for (const p of [...new Set([...Object.keys(kopf), ...Object.keys(idx)])].sort()) {
+      if (!(p in kopf)) vorgemerkt.push(["neue Datei", p]);
+      else if (!(p in idx)) vorgemerkt.push(["gelöscht", p]);
+      else if (kopf[p] !== idx[p]) vorgemerkt.push(["geändert", p]);
+    }
+    for (const p of Object.keys(idx).sort()) {
+      if (!(p in arbeit)) geaendert.push(["gelöscht", p]);
+      else if (arbeit[p] !== idx[p]) geaendert.push(["geändert", p]);
+    }
+    for (const p of Object.keys(arbeit).sort()) if (!(p in idx)) neu.push(p);
+    return { vorgemerkt, geaendert, neu };
+  }
+  function standSetzen(w, alt, neu) {
+    for (const p of Object.keys(alt)) if (!(p in neu)) w.fs.delete(w.gitWurzel + "/" + p);
+    for (const [p, inhalt] of Object.entries(neu)) {
+      const a = w.gitWurzel + "/" + p;
+      ordnerAnlegen(w, elternVon(a));
+      w.fs.set(a, { inhalt });
+    }
+  }
+  function neuerCommit(g, nachricht, eltern, dateien) {
+    let h = 2166136261;
+    for (const z of nachricht + eltern.join() + Object.keys(g.commits).length + JSON.stringify(dateien)) { h ^= z.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; }
+    const id = (h.toString(16) + "a3f9c1e").slice(0, 7);
+    g.commits[id] = { id, nachricht, eltern, dateien: Object.assign({}, dateien) };
+    return id;
+  }
+  function gitBefehl(w, a, sag) {
+    const [unter, ...r] = a;
+    if (unter === "init") {
+      if (w.git) { sag("Bestehendes Git-Repository in " + w.gitWurzel + "/.git/ neu initialisiert"); return; }
+      w.git = { commits: {}, zweige: { main: null }, kopf: "main", index: {} };
+      w.gitWurzel = w.cwd;
+      w.fs.set(w.cwd + "/.git", { ordner: true });
+      sag("Leeres Git-Repository in " + w.cwd + "/.git/ initialisiert");
+      return;
+    }
+    if (!unter || unter === "help" || unter === "--help") { sag("Git-Befehle im Kodex: init, status, add, commit, log, branch, switch, checkout, merge"); return; }
+    const bekannt = ["status", "add", "commit", "log", "branch", "switch", "checkout", "merge"];
+    if (!bekannt.includes(unter)) { sag("git: '" + unter + "' ist kein Git-Befehl. Siehe 'git help'."); return; }
+    if (!w.git || !(w.cwd === w.gitWurzel || w.cwd.startsWith(w.gitWurzel + "/"))) { sag("fatal: Kein Git-Repository (oder irgendein Elternverzeichnis): .git"); return; }
+    const g = w.git;
+    const relZurWurzel = p => { const ab = pfadAuf(w, p); return ab === w.gitWurzel ? "" : ab.slice(w.gitWurzel.length + 1); };
+    const schmutzig = () => { const v = gitVergleich(w); return v.vorgemerkt.length > 0 || v.geaendert.length > 0; };
+    if (unter === "status") {
+      const v = gitVergleich(w);
+      sag("Auf Branch " + g.kopf);
+      if (!g.zweige[g.kopf]) sag("\nNoch keine Commits");
+      if (v.vorgemerkt.length) { sag("\nZum Commit vorgemerkte Änderungen:"); v.vorgemerkt.forEach(([art, p]) => sag("\t" + (art + ":").padEnd(14) + p)); }
+      if (v.geaendert.length) { sag("\nÄnderungen, die nicht zum Commit vorgemerkt sind:"); v.geaendert.forEach(([art, p]) => sag("\t" + (art + ":").padEnd(14) + p)); }
+      if (v.neu.length) { sag("\nUnversionierte Dateien:"); v.neu.forEach(p => sag("\t" + p)); }
+      if (!v.vorgemerkt.length && !v.geaendert.length) sag(v.neu.length ? "\nnichts zum Commit vorgemerkt, aber es gibt unversionierte Dateien (benutzen Sie \"git add\" zum Versionieren)" : "\nnichts zu committen, Arbeitsverzeichnis unverändert");
+      return;
+    }
+    if (unter === "add") {
+      if (!r.length) { sag("Nichts angegeben, nichts hinzugefügt.\nMeinten Sie vielleicht 'git add .'?"); return; }
+      const arbeit = arbeitsStand(w);
+      for (const p of r) {
+        const rel = relZurWurzel(p);
+        const passt = q => rel === "" || q === rel || q.startsWith(rel + "/");
+        const treffer = [...new Set([...Object.keys(arbeit), ...Object.keys(g.index)])].filter(passt);
+        if (!treffer.length) { sag("fatal: Pfadspezifikation '" + p + "' stimmt mit keinen Dateien überein"); return; }
+        for (const q of treffer) { if (q in arbeit) g.index[q] = arbeit[q]; else delete g.index[q]; }
+      }
+      return;
+    }
+    if (unter === "commit") {
+      const i = r.findIndex(x => x === "-m" || x === "-am");
+      if (i < 0 || !r[i + 1] || !r[i + 1].trim()) { sag("Bitte gib mit -m eine Nachricht an, zum Beispiel: git commit -m \"Erster Stand\""); return; }
+      if (r[i] === "-am") { const arbeit = arbeitsStand(w); for (const q of Object.keys(g.index)) { if (q in arbeit) g.index[q] = arbeit[q]; else delete g.index[q]; } }
+      const v = gitVergleich(w);
+      if (!v.vorgemerkt.length) {
+        sag("Auf Branch " + g.kopf);
+        sag(v.geaendert.length ? "Änderungen, die nicht zum Commit vorgemerkt sind. Benutze zuerst \"git add\"." : v.neu.length ? "nichts zum Commit vorgemerkt, aber es gibt unversionierte Dateien (benutzen Sie \"git add\" zum Versionieren)" : "nichts zu committen, Arbeitsverzeichnis unverändert");
+        return;
+      }
+      const vorher = g.zweige[g.kopf];
+      const id = neuerCommit(g, r[i + 1].trim(), vorher ? [vorher] : [], g.index);
+      g.zweige[g.kopf] = id;
+      sag("[" + g.kopf + (vorher ? "" : " (Root-Commit)") + " " + id + "] " + r[i + 1].trim());
+      sag(" " + v.vorgemerkt.length + (v.vorgemerkt.length === 1 ? " Datei" : " Dateien") + " geändert");
+      return;
+    }
+    if (unter === "log") {
+      const start = g.zweige[g.kopf];
+      if (!start) { sag("fatal: Ihr aktueller Branch '" + g.kopf + "' hat noch keine Commits."); return; }
+      const kurz = r.includes("--oneline");
+      const marken = id => { const m = Object.keys(g.zweige).filter(z => g.zweige[z] === id).map(z => z === g.kopf ? "HEAD -> " + z : z); m.sort((x, y) => (y.startsWith("HEAD") ? 1 : 0) - (x.startsWith("HEAD") ? 1 : 0)); return m.length ? " (" + m.join(", ") + ")" : ""; };
+      const gesehen = new Set(), liste = [], q = [start];
+      while (q.length) { const c = q.shift(); if (gesehen.has(c)) continue; gesehen.add(c); liste.push(g.commits[c]); q.push(...g.commits[c].eltern); }
+      for (const c of liste) {
+        if (kurz) sag(c.id + marken(c.id) + " " + c.nachricht);
+        else { sag("commit " + c.id + marken(c.id)); if (c.eltern.length > 1) sag("Merge: " + c.eltern.join(" ")); sag("Author: Held <held@rabenfurt.ch>"); sag(""); sag("    " + c.nachricht); sag(""); }
+      }
+      return;
+    }
+    if (unter === "branch") {
+      const name = r.find(x => !x.startsWith("-"));
+      if (!name) { Object.keys(g.zweige).filter(z => g.zweige[z] || z === g.kopf).sort().forEach(z => sag((z === g.kopf ? "* " : "  ") + z)); return; }
+      if (!g.zweige[g.kopf]) { sag("fatal: Kein gültiger Objektname: '" + g.kopf + "'. Mache zuerst einen Commit."); return; }
+      if (g.zweige[name]) { sag("fatal: Ein Branch namens '" + name + "' existiert bereits."); return; }
+      if (!/^[\w.-]+$/.test(name)) { sag("fatal: '" + name + "' ist kein gültiger Branch-Name. Benutze keine Leerzeichen."); return; }
+      g.zweige[name] = g.zweige[g.kopf];
+      return;
+    }
+    if (unter === "switch" || unter === "checkout") {
+      const neu = r.includes("-c") || r.includes("-b");
+      const name = r.find(x => !x.startsWith("-"));
+      if (!name) { sag("fatal: Gib den Namen eines Branches an."); return; }
+      if (neu) {
+        if (g.zweige[name]) { sag("fatal: Ein Branch namens '" + name + "' existiert bereits."); return; }
+        if (!g.zweige[g.kopf]) { sag("fatal: Mache zuerst einen Commit, bevor du einen Branch anlegst."); return; }
+        if (!/^[\w.-]+$/.test(name)) { sag("fatal: '" + name + "' ist kein gültiger Branch-Name. Benutze keine Leerzeichen."); return; }
+        g.zweige[name] = g.zweige[g.kopf]; g.kopf = name;
+        sag("Zu neuem Branch '" + name + "' gewechselt");
+        return;
+      }
+      if (!(name in g.zweige) || !g.zweige[name]) { sag("fatal: Ungültige Referenz: " + name); return; }
+      if (name === g.kopf) { sag("Bereits auf '" + name + "'"); return; }
+      // Wie echtes Git: Nicht festgehaltene Änderungen wandern mit, solange der Wechsel sie nicht überschreibt
+      const alt = kopfStand(g), ziel = g.commits[g.zweige[name]].dateien;
+      const v = gitVergleich(w);
+      const offen = new Set([...v.vorgemerkt, ...v.geaendert].map(x => x[1]));
+      const betroffen = [...offen].filter(p => alt[p] !== ziel[p]);
+      if (betroffen.length) { sag("error: Deine lokalen Änderungen an " + betroffen.join(", ") + " würden beim Wechseln überschrieben.\nCommitte sie zuerst mit git add und git commit."); return; }
+      const wechsel = {}, weg = {};
+      for (const p of new Set([...Object.keys(alt), ...Object.keys(ziel)])) {
+        if (offen.has(p) || alt[p] === ziel[p]) continue;
+        if (p in ziel) { wechsel[p] = ziel[p]; g.index[p] = ziel[p]; } else { weg[p] = true; delete g.index[p]; }
+      }
+      standSetzen(w, weg, wechsel);
+      g.kopf = name;
+      sag("Zu Branch '" + name + "' gewechselt");
+      return;
+    }
+    if (unter === "merge") {
+      const name = r[0];
+      if (!name || !g.zweige[name]) { sag("merge: " + (name || "") + " - nichts, was wir zusammenführen können"); return; }
+      if (schmutzig()) { sag("error: Deine lokalen Änderungen würden durch den Merge überschrieben.\nCommitte sie zuerst."); return; }
+      const unsers = g.zweige[g.kopf], ihrs = g.zweige[name];
+      const unsereVorfahren = vorfahren(g, unsers);
+      if (unsereVorfahren.has(ihrs)) { sag("Bereits aktuell."); return; }
+      const alt = kopfStand(g);
+      if (vorfahren(g, ihrs).has(unsers)) {
+        g.zweige[g.kopf] = ihrs;
+        const neuStand = kopfStand(g);
+        standSetzen(w, alt, neuStand); g.index = Object.assign({}, neuStand);
+        sag("Aktualisiere " + unsers + ".." + ihrs); sag("Fast-forward");
+        return;
+      }
+      let basis = null; const q = [ihrs], gesehen = new Set();
+      while (q.length && !basis) { const c = q.shift(); if (gesehen.has(c)) continue; gesehen.add(c); if (unsereVorfahren.has(c)) basis = c; else q.push(...g.commits[c].eltern); }
+      const b = basis ? g.commits[basis].dateien : {}, u = g.commits[unsers].dateien, t = g.commits[ihrs].dateien;
+      const ergebnis = {}, konflikte = [];
+      for (const p of new Set([...Object.keys(b), ...Object.keys(u), ...Object.keys(t)])) {
+        const vb = b[p], vu = u[p], vt = t[p];
+        const wahl = vu === vt ? vu : vu === vb ? vt : vt === vb ? vu : (konflikte.push(p), vu);
+        if (wahl !== undefined) ergebnis[p] = wahl;
+      }
+      if (konflikte.length) {
+        konflikte.forEach(p => sag("KONFLIKT (Inhalt): Merge-Konflikt in " + p));
+        sag("Automatischer Merge fehlgeschlagen. Beide Branches haben dieselbe Datei verändert.\nIm Kodex wird der Merge darum abgebrochen. Ändere auf den beiden Branches verschiedene Dateien.");
+        return;
+      }
+      const id = neuerCommit(g, "Merge branch '" + name + "'", [unsers, ihrs], ergebnis);
+      g.zweige[g.kopf] = id;
+      standSetzen(w, alt, ergebnis); g.index = Object.assign({}, ergebnis);
+      sag("Merge made by the 'ort' strategy.");
+    }
+  }
+
+  const TERMINAL_HILFE = [
+    "Befehle im Kodex-Terminal:",
+    "  pwd                 zeigt, in welchem Ordner du bist",
+    "  ls [ordner]         zeigt, was im Ordner liegt",
+    "  cd ordner           wechselt den Ordner (cd .. geht eine Stufe hoch, cd ~ nach Hause)",
+    "  mkdir name          legt einen Ordner an",
+    "  touch name          legt eine leere Datei an",
+    "  cat datei           zeigt den Inhalt einer Datei",
+    "  echo text > datei   schreibt Text in eine Datei (>> hängt eine Zeile an)",
+    "  rm datei            löscht eine Datei (rm -r ordner für einen Ordner)",
+    "  mv alt neu          verschiebt oder benennt um",
+    "  code datei          öffnet eine Datei im Editor",
+    "  node datei.js       führt eine JavaScript-Datei aus",
+    "  git ...             init, status, add, commit, log, branch, switch, checkout, merge",
+    "  clear               leert das Terminal"
+  ].join("\n");
+
+  // Führt eine Befehlszeile aus und gibt die Ausgabezeilen zurück
+  async function terminalBefehl(w, zeile, ui) {
+    const raus = [];
+    const sag = t => String(t).split("\n").forEach(z => raus.push(z));
+    const tok = zerlege(zeile);
+    if (!tok.length) return raus;
+    let umleitung = null, args = tok;
+    const i = tok.findIndex(t => t.op);
+    if (i >= 0) {
+      const ziel = tok[i + 1];
+      if (!ziel || ziel.op) { sag("bash: Syntaxfehler: Nach " + tok[i].op + " fehlt ein Dateiname"); return raus; }
+      umleitung = { anhaengen: tok[i].op === ">>", pfad: ziel.w };
+      args = tok.slice(0, i);
+    }
+    const [cmd, ...a] = args.map(t => t.w);
+    const optionen = a.filter(x => x.startsWith("-")), namen = a.filter(x => !x.startsWith("-"));
+    const eintrag = p => w.fs.get(pfadAuf(w, p));
+    if (cmd === "pwd") sag(w.cwd);
+    else if (cmd === "ls") {
+      const ziele = namen.length ? namen : ["."];
+      for (const z of ziele) {
+        const e = eintrag(z);
+        if (!e) { sag("ls: Zugriff auf '" + z + "' nicht möglich: Datei oder Verzeichnis nicht gefunden"); continue; }
+        if (!e.ordner) { sag(z); continue; }
+        const liste = kinderVon(w, pfadAuf(w, z)).map(k => k.slice(k.lastIndexOf("/") + 1) + (w.fs.get(k).ordner ? "/" : ""))
+          .filter(n => optionen.some(o => o.includes("a")) || !n.startsWith("."));
+        if (ziele.length > 1) sag(z + ":");
+        if (liste.length) sag(liste.join("  "));
+      }
+    }
+    else if (cmd === "cd") {
+      const ziel = pfadAuf(w, namen[0] || "~"), e = w.fs.get(ziel);
+      if (!e) sag("bash: cd: " + namen[0] + ": Datei oder Verzeichnis nicht gefunden");
+      else if (!e.ordner) sag("bash: cd: " + namen[0] + ": Ist kein Verzeichnis");
+      else { w.cwd = ziel; w.besucht.add(ziel); }
+    }
+    else if (cmd === "mkdir") {
+      if (!namen.length) sag("mkdir: Operand fehlt");
+      for (const n of namen) {
+        const p = pfadAuf(w, n);
+        if (w.fs.has(p)) { if (!optionen.includes("-p")) sag("mkdir: kann Verzeichnis „" + n + "“ nicht anlegen: Die Datei existiert bereits"); }
+        else if (!optionen.includes("-p") && !(w.fs.get(elternVon(p)) || {}).ordner) sag("mkdir: kann Verzeichnis „" + n + "“ nicht anlegen: Datei oder Verzeichnis nicht gefunden");
+        else ordnerAnlegen(w, p);
+      }
+    }
+    else if (cmd === "touch") {
+      if (!namen.length) sag("touch: Fehlender Dateioperand");
+      for (const n of namen) {
+        const p = pfadAuf(w, n);
+        if (w.fs.has(p)) continue;
+        if (!(w.fs.get(elternVon(p)) || {}).ordner) sag("touch: '" + n + "' kann nicht berührt werden: Datei oder Verzeichnis nicht gefunden");
+        else w.fs.set(p, { inhalt: "" });
+      }
+    }
+    else if (cmd === "cat") {
+      if (!namen.length) sag("cat: Gib eine Datei an, zum Beispiel: cat notizen.txt");
+      for (const n of namen) {
+        const e = eintrag(n);
+        if (!e) sag("cat: " + n + ": Datei oder Verzeichnis nicht gefunden");
+        else if (e.ordner) sag("cat: " + n + ": Ist ein Verzeichnis");
+        else if (e.inhalt) sag(e.inhalt);
+      }
+    }
+    else if (cmd === "echo") sag(a.join(" "));
+    else if (cmd === "rm") {
+      if (!namen.length) sag("rm: Operand fehlt");
+      for (const n of namen) {
+        const p = pfadAuf(w, n), e = w.fs.get(p);
+        if (!e) { sag("rm: Entfernen von '" + n + "' nicht möglich: Datei oder Verzeichnis nicht gefunden"); continue; }
+        if (e.ordner && !optionen.some(o => /r/i.test(o))) { sag("rm: Entfernen von '" + n + "' nicht möglich: Ist ein Verzeichnis"); continue; }
+        if (p === HEIM || HEIM.startsWith(p + "/") || p === "/") { sag("rm: Den Heimordner löscht der Kodex lieber nicht."); continue; }
+        for (const k of [...w.fs.keys()]) if (k === p || k.startsWith(p + "/")) w.fs.delete(k);
+        if (w.gitWurzel && (w.gitWurzel === p || w.gitWurzel.startsWith(p + "/"))) { w.git = null; w.gitWurzel = null; }
+        if (w.cwd === p || w.cwd.startsWith(p + "/")) w.cwd = elternVon(p);
+      }
+    }
+    else if (cmd === "mv") {
+      if (namen.length !== 2) sag("mv: Gib zwei Namen an: mv alt neu");
+      else {
+        const von = pfadAuf(w, namen[0]);
+        let nach = pfadAuf(w, namen[1]);
+        if (!w.fs.has(von)) sag("mv: der Aufruf von stat für '" + namen[0] + "' ist nicht möglich: Datei oder Verzeichnis nicht gefunden");
+        else {
+          if ((w.fs.get(nach) || {}).ordner) nach = nach + "/" + von.slice(von.lastIndexOf("/") + 1);
+          if (!(w.fs.get(elternVon(nach)) || {}).ordner) sag("mv: '" + namen[1] + "' kann nicht angelegt werden: Datei oder Verzeichnis nicht gefunden");
+          else for (const k of [...w.fs.keys()].sort()) if (k === von || k.startsWith(von + "/")) { const e = w.fs.get(k); w.fs.delete(k); w.fs.set(nach + k.slice(von.length), e); }
+        }
+      }
+    }
+    else if (cmd === "clear") { if (ui && ui.leeren) ui.leeren(); }
+    else if (cmd === "help" || cmd === "hilfe") sag(TERMINAL_HILFE);
+    else if (cmd === "code") {
+      if (!namen.length) sag("code: Gib eine Datei an, zum Beispiel: code spiel.js");
+      else {
+        const p = pfadAuf(w, namen[0]), e = w.fs.get(p);
+        if (e && e.ordner) sag("code: " + namen[0] + " ist ein Ordner. Öffne eine Datei darin.");
+        else if (!(w.fs.get(elternVon(p)) || {}).ordner) sag("code: Den Ordner für " + namen[0] + " gibt es nicht.");
+        else { if (!e) w.fs.set(p, { inhalt: "" }); if (ui && ui.oeffne) ui.oeffne(p); }
+      }
+    }
+    else if (cmd === "node") {
+      const e = namen[0] ? eintrag(namen[0]) : null;
+      if (!namen[0]) sag("node: Gib eine Datei an, zum Beispiel: node spiel.js");
+      else if (!e || e.ordner) sag("Error: Cannot find module '" + pfadAuf(w, namen[0]) + "'\n(Die Datei gibt es hier nicht. Bist du im richtigen Ordner?)");
+      else {
+        const r = await ausfuehren(e.inhalt, null);
+        (r.ausgabe || []).forEach(z => sag(z));
+        if (r.zeitUeberschritten) sag("Abgebrochen: Das Programm lief zu lange.");
+        if (r.fehler) sag(namen[0] + (r.fehler.zeile ? ":" + r.fehler.zeile : "") + "\n" + r.fehler.name + ": " + r.fehler.text);
+      }
+    }
+    else if (cmd === "git") gitBefehl(w, a, sag);
+    else sag("bash: " + cmd + ": Befehl nicht gefunden" + (/^[A-ZÄÖÜ]/.test(cmd) ? " (Befehle schreibt man klein.)" : ". Mit help siehst du alle Befehle."));
+    if (umleitung) {
+      const p = pfadAuf(w, umleitung.pfad), e = w.fs.get(p);
+      if (e && e.ordner) return ["bash: " + umleitung.pfad + ": Ist ein Verzeichnis"];
+      if (!(w.fs.get(elternVon(p)) || {}).ordner) return ["bash: " + umleitung.pfad + ": Datei oder Verzeichnis nicht gefunden"];
+      const text = raus.join("\n");
+      w.fs.set(p, { inhalt: umleitung.anhaengen && e && e.inhalt ? e.inhalt + "\n" + text : text });
+      return [];
+    }
+    return raus;
+  }
+
+  // Was die Prüfungen einer Terminal-Lektion sehen dürfen
+  function weltApi(w) {
+    const abs = p => pfadAuf(w, p.startsWith("/") || p.startsWith("~") ? p : "~/" + p);
+    const commitListe = zweig => {
+      if (!w.git) return [];
+      const liste = [];
+      let c = w.git.zweige[zweig || w.git.kopf];
+      while (c) { liste.push(w.git.commits[c]); c = w.git.commits[c].eltern[0]; }
+      return liste;
+    };
+    return {
+      befehle: w.befehle.slice(), ausgabe: w.ausgabe.slice(),
+      benutzt: re => w.befehle.some(b => re.test(b.trim())),
+      ort: () => zeigePfad(w.cwd),
+      warIn: p => w.besucht.has(abs(p)),
+      ist: p => w.fs.has(abs(p)),
+      istOrdner: p => !!(w.fs.get(abs(p)) || {}).ordner,
+      istDatei: p => { const e = w.fs.get(abs(p)); return !!e && !e.ordner; },
+      inhalt: p => { const e = w.fs.get(abs(p)); return e && !e.ordner ? e.inhalt : null; },
+      gitWurzel: () => w.gitWurzel ? zeigePfad(w.gitWurzel) : null,
+      zweig: () => w.git ? w.git.kopf : null,
+      zweige: () => w.git ? Object.keys(w.git.zweige).filter(z => w.git.zweige[z]) : [],
+      commits: commitListe,
+      alleCommits: () => w.git ? Object.values(w.git.commits) : [],
+      sauber: () => { if (!w.git) return false; const v = gitVergleich(w); return !v.vorgemerkt.length && !v.geaendert.length && !v.neu.length; }
+    };
+  }
+  class TerminalPruefung extends Error {}
+  function terminalZiele(l, w) {
+    const api = weltApi(w);
+    const pruef = (b, t) => { if (!b) throw new TerminalPruefung(t || "Noch nicht erfüllt."); };
+    return l.tests.map(t => {
+      try { new Function("$pruefe", "$w", '"use strict";\n' + t.code)(pruef, api); return { name: t.name, ok: true }; }
+      catch (e) { return { name: t.name, ok: false, text: e.message }; }
+    });
+  }
+  async function terminalVorbereiten(l) {
+    const w = neueWelt(l.dateien ? JSON.parse(l.dateien) : {});
+    for (const z of (l.vorbereitung || "").split("\n")) if (z.trim()) await terminalBefehl(w, z.trim(), null);
+    w.besucht = new Set([w.cwd]);
+    return w;
+  }
+  async function terminalProtokollAnwenden(w, p, ui) {
+    if (p.e !== undefined) { w.fs.set(p.e, { inhalt: String(p.t || "") }); return ["(" + zeigePfad(p.e) + " gespeichert)"]; }
+    w.befehle.push(p.c);
+    const raus = await terminalBefehl(w, p.c, ui);
+    w.ausgabe.push(...raus);
+    return raus;
+  }
+  // Selbsttest für die Werkzeuge: Musterlösung erfüllt alle Ziele, der leere Start keines vollständig
+  async function terminalSelbsttest(l) {
+    const w = await terminalVorbereiten(l);
+    const leer = terminalZiele(l, w).every(z => z.ok);
+    for (const z of (l.loesung || "").split("\n")) if (z.trim() && !z.trim().startsWith("#")) await terminalProtokollAnwenden(w, { c: z.trim() }, null);
+    const ziele = terminalZiele(l, w);
+    return { ok: ziele.every(z => z.ok) && !leer, leerBestanden: leer, offen: ziele.filter(z => !z.ok) };
+  }
+
+  function zeigeTerminal(l) {
+    const bereits = istErledigt(l.id);
+    const boss = l.art === "boss";
+    let protokoll = [];
+    try { protokoll = JSON.parse(zustand.code[l.id] || "[]"); } catch (e) { protokoll = []; }
+    if (!Array.isArray(protokoll)) protokoll = [];
+    ansicht.innerHTML =
+      '<div class="seite">' + lektionsNavigation(l) +
+      '<div class="lek-raster einspaltig"><article class="buch">' +
+      '<div class="titelblock"><p class="eyebrow' + (boss ? " boss" : "") + '">' + artText(l) + (bereits ? " · gemeistert" : "") + "</p><h1>" + esc(l.titel) + "</h1></div>" +
+      (l.szene ? '<p class="szene">' + inline(l.szene) + "</p>" : "") +
+      (l.erklaerung ? '<div class="prosa">' + md(l.erklaerung, "shell") + "</div>" : "") +
+      '<section class="aufgabe"><h2>Aufgabe</h2><div class="prosa">' + md(l.aufgabe || "", "shell") + "</div>" +
+      '<ol class="term-ziele" id="term-ziele"></ol></section>' +
+      '<div class="terminal"><div class="term-kopf"><span>Terminal</span><button class="knopf still klein-knopf" id="term-neu" type="button">Neu beginnen</button></div>' +
+      '<div class="term-aus" id="term-aus"></div>' +
+      '<form class="term-zeile" id="term-form"><label class="term-prompt" id="term-prompt" for="term-ein"></label>' +
+      '<input id="term-ein" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send" aria-label="Befehl eingeben"></form></div>' +
+      '<div class="term-editor" id="term-editor" hidden><div class="term-kopf"><span id="term-datei"></span>' +
+      '<span><button class="knopf klein-knopf" id="term-speichern" type="button">Speichern</button><button class="knopf still klein-knopf" id="term-zu" type="button">Schliessen</button></span></div>' +
+      '<textarea id="term-text" spellcheck="false" autocapitalize="off" rows="8"></textarea></div>' +
+      '<section class="hilfe" id="hilfe"></section>' +
+      '<section class="pruefung" id="pruefung" aria-live="polite"></section>' +
+      "</article></div></div>";
+    const aus = $("#term-aus"), ein = $("#term-ein"), editor = $("#term-editor"), text = $("#term-text");
+    let w = null, offeneDatei = null, fertig = bereits, zeiger = -1, laeuft = false;
+    const prompt = () => '<span class="term-wer">held@kodex</span>:<span class="term-wo">' + esc(zeigePfad(w.cwd)) + "</span>$ ";
+    const zeile = (html, kl) => { const d = document.createElement("div"); d.className = "term-z" + (kl ? " " + kl : ""); d.innerHTML = html; aus.appendChild(d); };
+    const ui = {
+      leeren: () => { aus.innerHTML = ""; },
+      oeffne: p => { offeneDatei = p; $("#term-datei").textContent = zeigePfad(p); text.value = (w.fs.get(p) || {}).inhalt || ""; editor.hidden = false; text.focus(); }
+    };
+    function zieleZeigen() {
+      const ziele = terminalZiele(l, w);
+      $("#term-ziele").innerHTML = ziele.map(z => '<li class="' + (z.ok ? "ok" : "") + '"><span class="marke-i">' + (z.ok ? "✓" : "○") + "</span>" + esc(z.name) + "</li>").join("");
+      if (!fertig && ziele.every(z => z.ok)) {
+        fertig = true;
+        const belohnung = abschliessen(l, {});
+        const n = naechsteNach(l);
+        const p = $("#pruefung");
+        p.innerHTML = '<div class="erfolg"><div><strong>' + (boss ? "Meisterprüfung bestanden!" : "Alle Ziele erreicht!") + "</strong><span>" +
+          (belohnung ? "+" + belohnung.ep + " EP" + (belohnung.ep >= maxEp(l) ? ", ganz ohne Hilfe." : ".") : "Diese Lektion hattest du schon gemeistert.") + "</span></div>" +
+          (n ? '<a class="knopf haupt" href="#' + n.id + '">Nächste Lektion' + ICON.weiter + "</a>" : '<a class="knopf haupt" href="#karte">Zur Karte' + ICON.weiter + "</a>") + "</div>";
+        belohnungZeigen(belohnung, p);
+        zeigeKopf();
+      }
+    }
+    function terminalHilfe() {
+      const genutzt = zustand.hinweise[l.id] || 0;
+      const loesungOffen = !!zustand.loesung[l.id];
+      let html = "";
+      for (let i = 0; i < genutzt && i < l.hinweise.length; i++) html += '<div class="hinweis"><b>Hinweis ' + (i + 1) + "</b><div>" + inline(l.hinweise[i]) + "</div></div>";
+      if (loesungOffen) html += '<div class="loesung-box"><p class="eyebrow">Musterlösung</p><pre class="code-block"><code>' + hlShell(l.loesung || "") + '</code></pre><p class="klein">Tippe die Befehle selbst ein, Zeile für Zeile.</p></div>';
+      const k = [];
+      if (genutzt < l.hinweise.length) k.push('<button class="knopf" type="button" id="term-hinweis">Hinweis zeigen (' + (genutzt + 1) + " von " + l.hinweise.length + ")</button>");
+      else if (!loesungOffen) k.push('<button class="knopf still" type="button" id="term-loesung">Lösung ansehen</button>');
+      if (k.length) html += '<div class="hilfe-knoepfe">' + k.join("") + "</div>";
+      $("#hilfe").innerHTML = html;
+      const hb = $("#term-hinweis");
+      if (hb) hb.addEventListener("click", () => { zustand.hinweise[l.id] = genutzt + 1; speichern(); terminalHilfe(); });
+      const lb = $("#term-loesung");
+      if (lb) lb.addEventListener("click", () => { zustand.loesung[l.id] = true; speichern(); terminalHilfe(); });
+    }
+    async function ausfuehrenUndZeigen(p, still) {
+      if (p.c !== undefined) zeile(prompt() + esc(p.c), "term-ein-z");
+      const raus = await terminalProtokollAnwenden(w, p, ui);
+      raus.forEach(z => zeile(esc(z), p.e !== undefined ? "term-info" : ""));
+      $("#term-prompt").innerHTML = prompt();
+      if (!still) { aus.scrollTop = aus.scrollHeight; zieleZeigen(); }
+    }
+    async function starten() {
+      laeuft = true;
+      w = await terminalVorbereiten(l);
+      aus.innerHTML = "";
+      zeile(esc("Kodex-Terminal. Tippe einen Befehl und drücke Enter. Mit help siehst du alle Befehle."), "term-info");
+      for (const p of protokoll) await ausfuehrenUndZeigen(p, true);
+      $("#term-prompt").innerHTML = prompt();
+      aus.scrollTop = aus.scrollHeight;
+      zieleZeigen();
+      laeuft = false;
+    }
+    const merken = () => { zustand.code[l.id] = JSON.stringify(protokoll.slice(-300)); speichern(); };
+    $("#term-form").addEventListener("submit", async e => {
+      e.preventDefault();
+      if (laeuft) return;
+      const c = ein.value.trim();
+      ein.value = ""; zeiger = -1;
+      if (!c) { zeile(prompt(), "term-ein-z"); return; }
+      laeuft = true;
+      protokoll.push({ c });
+      merken();
+      await ausfuehrenUndZeigen({ c });
+      laeuft = false;
+      ein.focus();
+    });
+    ein.addEventListener("keydown", e => {
+      const alte = protokoll.filter(p => p.c !== undefined).map(p => p.c);
+      if (e.key === "ArrowUp" && alte.length) { e.preventDefault(); zeiger = zeiger < 0 ? alte.length - 1 : Math.max(0, zeiger - 1); ein.value = alte[zeiger]; }
+      else if (e.key === "ArrowDown" && zeiger >= 0) { e.preventDefault(); zeiger++; ein.value = zeiger < alte.length ? alte[zeiger] : ""; if (zeiger >= alte.length) zeiger = -1; }
+    });
+    $("#term-speichern").addEventListener("click", async () => {
+      if (!offeneDatei) return;
+      const p = { e: offeneDatei, t: text.value };
+      protokoll.push(p);
+      merken();
+      await ausfuehrenUndZeigen(p);
+    });
+    $("#term-zu").addEventListener("click", () => { editor.hidden = true; offeneDatei = null; ein.focus(); });
+    $("#term-neu").addEventListener("click", () => { protokoll = []; merken(); editor.hidden = true; offeneDatei = null; starten(); });
+    aus.addEventListener("click", () => { if (!window.getSelection().toString()) ein.focus(); });
+    terminalHilfe();
+    starten();
   }
 
   /* ---------- Code lesen: Ausgabe vorhersagen ---------- */
@@ -22976,7 +24127,7 @@ Brauchst du nur die Einträge und keinen Index, ist `for...of` die sichere Wahl.
   if (nachgereicht.length) setTimeout(() => zeigeNeueAbzeichen(nachgereicht), 600);
   sicherungStart();
 
-  window.__kodex = { LEKTIONEN, ausfuehren, asyncZusatz, ausfuehrenPython, namensToleranz, pruefeWeb, sichereSchleifen, pythonErwartet, zustandHolen: () => zustand,
+  window.__kodex = { LEKTIONEN, ausfuehren, asyncZusatz, terminalSelbsttest, ausfuehrenPython, namensToleranz, pruefeWeb, sichereSchleifen, pythonErwartet, zustandHolen: () => zustand,
     zustandSetzen: z => {
       zustand = normalisiere(z);
       try { localStorage.setItem(SCHLUESSEL, JSON.stringify(zustand)); } catch (e) { /* Speicher nicht verfuegbar */ }
