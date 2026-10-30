@@ -27,6 +27,9 @@ export function zusammenfuehren(a, b) {
     z[k] = Object.assign({}, andere[k] || {}, z[k] || {});
   }
   z.tage = [...new Set([...(z.tage || []), ...(andere.tage || [])])].sort();
+  // Klassenwahl: einmal gewählt bleibt gewählt, bezahlte Wechsel zählen beide Geräte
+  z.klasseGewaehlt = !!(z.klasseGewaehlt || andere.klasseGewaehlt);
+  z.klassenWechsel = Math.max(z.klassenWechsel || 0, andere.klassenWechsel || 0);
   z.stats = z.stats || {};
   for (const [k, v] of Object.entries(andere.stats || {})) if (typeof v === "number") z.stats[k] = Math.max(z.stats[k] || 0, v);
   z.wdh = z.wdh || {};
@@ -44,6 +47,8 @@ export function zusammenfuehren(a, b) {
   const sa = andere.schatz || {}, sz = z.schatz || {};
   z.schatz = {
     ausgegeben: Math.max(sz.ausgegeben || 0, sa.ausgegeben || 0),
+    // Verdientes Gold wächst nur, darum gilt der grössere Wert
+    ...(typeof sz.verdient === "number" || typeof sa.verdient === "number" ? { verdient: Math.max(sz.verdient || 0, sa.verdient || 0) } : {}),
     besitz: Object.assign({}, sa.besitz || {}, sz.besitz || {}),
     traenkeGekauft: Math.max(sz.traenkeGekauft || 0, sa.traenkeGekauft || 0),
     gerettet: [...new Set([...(sz.gerettet || []), ...(sa.gerettet || [])])].sort(),
@@ -270,7 +275,10 @@ function gilde(el) {
     const ab = kodex.wocheAb();
     const wert = m => sortierung === "woche" ? (m.wocheAb === ab ? m.woche || 0 : 0) : sortierung === "serie" ? m.serie || 0 : m.ep || 0;
     const sortiert = liste.slice().sort((a, b) => wert(b) - wert(a));
-    el.innerHTML = '<div class="gilde-reiter">' + [["ep", "Gesamt"], ["woche", "Diese Woche"], ["serie", "Serie"]].map(([id, name]) =>
+    // «Diese Woche» öffnet sich erst mit dem Rang Kampfmagier
+    const wocheFrei = !kodex.frei || kodex.frei("gildeWoche");
+    if (!wocheFrei && sortierung === "woche") sortierung = "ep";
+    el.innerHTML = '<div class="gilde-reiter">' + [["ep", "Gesamt"], ["woche", "Diese Woche"], ["serie", "Serie"]].filter(([id]) => id !== "woche" || wocheFrei).map(([id, name]) =>
       '<button type="button" class="reiter' + (id === sortierung ? " aktiv" : "") + '" data-sort="' + id + '"><span>' + name + "</span></button>").join("") + "</div>" +
       '<ol class="gilde-liste">' + sortiert.map((m, i) => '<li class="' + (m.id === nutzer.uid ? "ich" : "") + '"><span class="platz">' + (i + 1) + '</span><span class="bild">' + kodex.portraetSvg(m.portraet) + "</span>" +
         '<span class="wer"><b>' + esc(m.name || "Namenloser Held") + (m.id === nutzer.uid ? " (du)" : "") + "</b><small>" + esc(m.rang || "") + " · " + (m.abzeichen || 0) + " Abzeichen</small></span>" +
